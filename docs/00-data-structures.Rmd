@@ -1,0 +1,97 @@
+---
+title: "Sprint 0: Experimenting with representation"
+author: "Mike Johnson"
+date: "`r Sys.Date()`"
+output: html_document
+out_dir: docs
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+# Dependencies
+library(dplyr)
+library(units)
+library(sf)
+library(jsonlite)
+```
+
+
+# Problem/Background
+
+Three tenets of `hy_features` are:
+
+- a catchment realization must perform the functions of a *flowpath* and a *catchment* area.
+- Any catchment realization may be composed of a network of other catchment realizations.
+- Catchment and nexus provide identity and topology but do _not_ have attributes or geometry.
+
+- But, we *need* geometry to inform processing, and we need that geometry to associate flow paths and catchment intercahangbly.
+
+We have 2 distinct files with a shared ID (comid):
+```{r}
+source('../R/prep_flownetwork.R')
+
+og_cat <- read_sf("../data/huc1805000502-catchment.gpkg") %>% 
+   dplyr::select(comid = FEATUREID)
+
+og_fl = read_sf("../data/huc1805000502-flowlines.gpkg") %>% 
+  prep_flownetwork() 
+```
+
+Lets create a single object that contains both "realizations" is a single go:
+
+```{r}
+source("../R/toy_functions.R")
+
+hy = make_hy(og_fl, og_cat)
+head(hy)
+```
+
+Looking at the header of the print, we see that the 'active' geometry column is called `cat_geom`.
+Thus, if we plot, we get:
+
+```{r}
+plot(st_geometry(hy))
+```
+
+But, often we want/need the flowpath represneation! So lets "activate" the flow path:
+
+```{r}
+hy = activate(hy, "fl")
+plot(st_geometry(hy))
+```
+
+Easy plot function:
+
+```{r}
+plot_hy(hy)
+```
+
+## Modification
+Awesome! Now what about "realization" centric calcuations like length/area?
+
+```{r}
+realize(hy, "fl") %>% st_length()
+realize(hy, "fl") %>% st_area()
+realize(hy, "cat") %>% st_area()
+```
+
+Flow path should be LINESTRINGS, not MULTILINESTRINGS. Always!
+
+```{r}
+hy = multi_to_line(realize(hy, "fl"))
+```
+
+## {Graph}ing
+
+We can also look at "spatial graph" representations of this `hy` object. 
+Here we enforce, a topologic order as well:
+
+```{r}
+hy_net = make_graph(hy)
+hy_net %>% tidygraph::activate("edges"),"cat")[[edges]]
+plot(realize(activate(hy_net, "edges"), "cat"),add = TRUE)
+```
