@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+workflow/cache
+*.gpkg

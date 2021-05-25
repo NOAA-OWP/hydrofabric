@@ -1,0 +1,83 @@
+
+```{r}
+library(dplyr)
+
+lapply(list.files("./R", full.names = TRUE), source)
+
+huc10 = 1027010402
+cw_path = '/Users/mikejohnson/Downloads/CrosswalkTable_NHDplus_HU12.csv'
+AOI     = data.table::fread(cw_path, data.table = FALSE) %>% 
+  mutate(HUC_10 = substr(HUC_12, 1,10)) %>% 
+  filter(HUC_10 == huc10)
+
+nhd = nhdplusTools::get_nhdplus(comid = AOI$FEATUREID, realization = c("flowline", "catchment"))
+
+og_cat = select(nhd$catchment, comid = featureid) %>% 
+  mutate(areasqkm = as.numeric(set_units(st_area(.), "km2")))
+
+length(unique(og_fl$comid))
+
+og_fl = prep_flownetwork(flownetwork = nhd$flowline) %>% 
+  multi_to_line() %>% 
+  filter(!duplicated(.))
+
+```
+
+```{r}
+a0 = purge_small_level_paths(og_fl, og_cat, 1)
+mapview(a0$fl) + a0$fl
+a1 = aggregate_by_levelpath(fl = a0$fl, cat = a0$cat, 
+                            ideal_size = 10, 
+                            max_size = 15,
+                            max_length = 10)
+
+sum(a1$cat$areasqkm > 15)
+a2 = aggregate_by_size(fl = a1$fl, cat = a1$cat, 3, 15)
+sum(a2$cat$areasqkm > 15)
+mapview(a2$cat) + a2$fl
+
+# TODO: look at ID 69!
+# TODO: need to summarize flowlines in purge_flowlines
+
+View(a0$fl) + a1$fl
+
+# topo_resolve = topology_doctor(fl = agg_size$fl, cat = agg_size$cat)
+# graph = nexus_flow_graph(fl = topo_resolve$fl, cat = topo_resolve$cat)
+# graph = collapse_junctions(graph, og_catchments = og_cat, threshold = 1, max_size = 15)
+
+purge_small_level_paths = function(fl, cat, threshold = .5){
+  # Identify
+  tmp = st_drop_geometry(fl) %>%
+      group_by(levelpathi) %>% 
+  summarize(l = sum(lengthkm)) %>% 
+  arrange(l) %>% 
+  filter(l < threshold) 
+  
+  #Prioritize merging with from COMID,  then to comid!
+  for(i in 1:nrow(tmp)){
+    tmp2 = filter(fl, levelpathi %in% tmp$levelpathi[i])
+    merge_with = fromJSON(tmp2$fromCOMID)
+    if(is.na(merge_with)){
+      merge_with = fromJSON(tmp2$toCOMID)
+    }
+  
+  duplicated(fl$comid) %>% sum()
+    
+  merge_into  = which(cat$comid == merge_with)
+  dissolve_id = which(cat$comid == tmp2$comid)
+
+  merge_into_fl  = which(fl$comid == merge_with)
+  dissolve_id_fl = which(fl$comid == tmp2$comid)  
+  # Change the 
+  st_geometry(cat[merge_into,]) = st_union(st_geometry(cat[merge_into,]), st_geometry(cat[dissolve_id,]))
+  fl$fromCOMID[merge_into_fl] = toJSON(unique(c(fromJSON(fl$fromCOMID[merge_into_fl]), tmp2$comid)))
+  fl = filter(fl, comid != tmp2$comid)
+  cat = filter(cat, comid != tmp2$comid)
+  }
+  
+  return(list(fl = fl, cat = cat))
+  
+}
+
+
+```
