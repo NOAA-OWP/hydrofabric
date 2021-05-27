@@ -80,7 +80,7 @@ cat = tt %>%
 #--------------------------------------------------
 #############################################################################
 
-make_plot(fl, cat, "Fragment Dissolve HF") %>%
+make_plot(in_fl, cat, "Fragment Dissolve HF") %>%
   ggsave(filename = "workflow/nhd_workflows/cache/img/01-ngen-frag-dissolve.png",
          units = "in", height = 4, width = 8)
 

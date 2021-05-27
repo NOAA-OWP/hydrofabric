@@ -9,6 +9,9 @@ min_length <- 0.6
 cat = read_sf(path, "catchments")
 
 fl  = read_sf(path, "flowpaths") %>%
+  select(-areasqkm) 
+
+fl = fl %>% 
   left_join(st_drop_geometry(cat), by = "comid") %>%
   left_join(select(st_drop_geometry(.), to_lp = levelpathi, tocomid = comid)) %>%
   mutate(inlet = !comid %in% tocomid)
@@ -103,19 +106,21 @@ removed_ids = unlist(removed_ids)
 
 new_cat2 = filter(st_as_sf(cat_dt2), !comid %in% removed_ids) %>%
   mutate(areasqkm = as.numeric(st_area(.)/1e6)) %>%
-  select(comid, areasqkm)
+  select(comid, areasqkm) %>% 
+  st_cast("MULTIPOLYGON")
 
 new_fl2 = filter(st_as_sf(fl_dt2), !comid %in% removed_ids) %>%
   mutate(lengthkm = as.numeric(st_length(.)/1e3)) %>%
   select(-ind, -areasqkm) %>%
-  left_join(st_drop_geometry(new_cat2), by = "comid")
+  left_join(st_drop_geometry(new_cat2), by = "comid") %>% 
+  mutate(lengthkm = as.numeric(st_length(.)/1e3))
 
-
-mutate(lengthkm = as.numeric(st_length(.)/1e3))
+POIS = select(new_fl2, comid, member_COMID, terminalfl)
+POIS$geom = nhdplusTools::get_node(POIS)$geometry
 
 #################################################
 
-make_plot(new_fl3, new_cat3, "Headwater Aggregation HF") %>%
+make_plot(new_fl2, new_cat2, "Headwater Aggregation HF") %>%
   ggsave(filename = "workflow/nhd_workflows/cache/img/04-ngen-firstorder-dissolve.png",
          units = "in", height = 4, width = 8)
 
@@ -124,4 +129,7 @@ message("Dropped: ", nrow(cat) - nrow(new_cat2), " features")
 unlink(out_path)
 write_sf(new_cat2, out_path, "catchments")
 write_sf(new_fl2, out_path, "flowpaths")
+write_sf(POIS, out_path, "POIS")
+
+
 
