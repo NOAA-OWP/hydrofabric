@@ -7,8 +7,7 @@ out_path   <- "workflow/nhd_workflows/cache/ngen_01a-3.gpkg"
 # Preprocessing .... ------------------------------------------------------
 
 cat = read_sf(path, layer = "catchments")
-fl  = read_sf(path, layer = "flowpaths") %>%
-  select(comid, tocomid, levelpathi, hydroseq, order, member_COMID)
+fl  = read_sf(path, layer = "flowpaths")
 
 # Interior Ring Removal and Fill ------------------------------------------
 # example = 15192 (outside), 15193 (interior)

@@ -37,6 +37,7 @@ mapping = multis %>%
     member_COMID = paste(comid, collapse = ","),
     comid = first(comid),
     order = first(order),
+    terminalfl = max(terminalfl),
     n = n()
   ) %>%
   mutate(tocomid = lead(comid)) %>%
@@ -76,8 +77,7 @@ ind = lapply(1:nrow(to_fix), function(x) {
   ifelse(length(tmp) == 0, x, tmp)
 })
 
-dim(to_fix)
-length(ind)
+
 to_fix$tocomid = out_fl$comid[unlist(ind)]
 
 rr = bind_rows(good, to_fix) %>%
