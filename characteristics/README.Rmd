@@ -1,10 +1,15 @@
 ---
-title: "Catchment Characteristics"
-author: "Mike Johnson"
-date: "6/11/2021"
-output: html_document
+output: github_document
 ---
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = ""
+)
+```
 # Climate 
 ### Mean precipitation
 
