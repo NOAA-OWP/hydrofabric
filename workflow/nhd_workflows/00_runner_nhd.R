@@ -86,11 +86,15 @@ oo = st_filter(usgs, catchment_data)
 
 what_nwis_data <- dataRetrieval::whatNWISdata(siteNumber = gsub("USGS-", "", oo$siteID))
 
-nwis_sites <- filter(what_nwis_data, parm_cd == "00060" & data_type_cd == "uv") %>%
+nwis_sites$ID <- filter(what_nwis_data, parm_cd == "00060" & data_type_cd == "uv") %>%
   st_as_sf(coords = c("dec_long_va", "dec_lat_va"),
            crs = 4269) %>%
   st_transform(5070)
 
+filter(catchment_data, toID == "nex-0") %>% 
+  mapview()
+
+table(flowpath_data$ID)
 fl = filter(flowpath_data, ID %in% xx$ID)
 fl$geom = nhdplusTools::get_node(fl)$geometry
 
@@ -138,9 +142,9 @@ write_geojson <- function(x, y) {
   write_sf(st_make_valid(st_transform(x, 4326)), y, layer_options = c("ID_FIELD=id", "ID_TYPE=String"))
 }
 
-write_fun(catchment_data, cfile)
-write_fun(flowpath_data, wfile)
-write_fun(x = nexus_data, nfile)
+write_geojson(catchment_data, cfile)
+write_geojson(flowpath_data, wfile)
+write_geojson(x = nexus_data, nfile)
 
 names(catchment_edge_list) <- tolower(names(catchment_edge_list))
 names(waterbody_edge_list) <- tolower(names(waterbody_edge_list))

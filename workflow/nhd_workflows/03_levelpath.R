@@ -9,7 +9,7 @@ ideal_size   <-  10   # in km2
 # Preprocessing .... ------------------------------------------------------
 cat = read_sf(path, "catchments")
 fl  = read_sf(path, "flowpaths") %>%
-  mutate(member_COMID = comid) %>%
+  mutate(member_COMID = comid) %>% 
   filter(order > 0) %>%
   left_join(st_drop_geometry(cat), by = "comid") %>%
   mutate(areasqkm = ifelse(is.na(areasqkm), 0, areasqkm))

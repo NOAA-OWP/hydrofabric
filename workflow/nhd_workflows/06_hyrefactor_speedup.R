@@ -86,15 +86,20 @@ if (any(remove_head_div <- !flowpath$ID %in% flowpath$toID & !flowpath$ID %in% d
     remove_fpaths <- filter(flowpath, remove_head_div)
     message(paste("removing", nrow(remove_fpaths), "headwater/diversion flowlines without catchments."))
     flowpath <- filter(flowpath, !ID %in% remove_fpaths$ID)
-  }
+}
 
 lps <- hyRefactor:::get_lps(flowpath)
 outlets <- mutate(outlets, ID = paste0("cat-", ID))
 divide <- mutate(divide, ID = paste0("cat-", ID))
-catchment <- flowpath %>% mutate(toID = ifelse(is.na(toID),  -ID, toID))
-nexus <- left_join(select(st_set_geometry(catchment, NULL), 
-                            toID = ID), select(st_set_geometry(catchment, NULL), fromID = ID, toID), by = "toID") %>% 
-  mutate(nexID = paste0("nex-",  toID), fromID = paste0("cat-", fromID), toID = paste0("cat-",  toID)) %>% 
+catchment <- flowpath %>% 
+  mutate(toID = ifelse(is.na(toID),  -ID, toID))
+
+nexus <- left_join(select(st_set_geometry(catchment, NULL), toID = ID), 
+                   select(st_set_geometry(catchment, NULL), fromID = ID, toID), 
+                   by = "toID") %>% 
+  mutate(nexID = paste0("nex-",  toID), 
+         fromID = paste0("cat-", fromID), 
+         toID = paste0("cat-",  toID)) %>% 
   select(nexID, fromID, toID)
 
 catchment <- mutate(st_set_geometry(catchment, NULL), 
@@ -103,32 +108,30 @@ catchment <- mutate(st_set_geometry(catchment, NULL),
                     ID = paste0("cat-", ID)) %>% 
   select(fromID, toID, cat_ID = ID)
 
-cat_graph <- graph_from_data_frame(d = catchment, directed = TRUE)
-outlets <- outlets %>% left_join(select(catchment, 
-                                        nexID_stem = fromID, 
-                                        ID = cat_ID), by = "ID") %>% 
+cat_graph <- igraph::graph_from_data_frame(d = catchment, directed = TRUE)
+outlets <- outlets %>% 
+  left_join(select(catchment, nexID_stem = fromID, ID = cat_ID), by = "ID") %>% 
   left_join(select(catchment,  nexID_terminal = toID, ID = cat_ID), by = "ID") %>% 
   mutate(nexID = case_when(type ==  "outlet" ~ nexID_stem, 
-                            type == "terminal" ~ nexID_terminal)) %>% 
+                           type == "terminal" ~ nexID_terminal)) %>% 
   select(ID, type, nexID) %>%
   distinct()
 
-  cat_graph_sort_verts <- topo_sort(cat_graph)
-  outlet_verts <- cat_graph_sort_verts[names(cat_graph_sort_verts) %in% 
-                                         outlets$nexID]
-  outlets <- outlets[match(names(outlet_verts), outlets$nexID), 
-  ]
-  cat_sets <- data.frame(ID = outlets$ID, nexID = outlets$nexID, 
-                         set = I(rep(list(list()), nrow(outlets))), geom = I(rep(list(list()), 
-                                                                                 nrow(outlets))), stringsAsFactors = FALSE)
-  fline_sets <- data.frame(ID = outlets$nexID, set = I(rep(list(list()), 
-                                                           nrow(outlets))), geom = I(rep(list(list()), nrow(outlets))), 
-                           stringsAsFactors = FALSE)
-  verts <- V(cat_graph)
-  us_verts <- c()
-  for (cat in seq_len(nrow(cat_sets))) {
-    if (cat%%10 == 0) 
-      message(paste(cat, "of", nrow(cat_sets)))
+cat_graph_sort_verts <- igraph::topo_sort(cat_graph)
+outlet_verts <- cat_graph_sort_verts[names(cat_graph_sort_verts) %in%  outlets$nexID]
+outlets <- outlets[match(names(outlet_verts), outlets$nexID), ]
+cat_sets <- data.frame(ID = outlets$ID, nexID = outlets$nexID, 
+                       set = I(rep(list(list()), nrow(outlets))), 
+                       geom = I(rep(list(list()), nrow(outlets))), stringsAsFactors = FALSE)
+fline_sets <- data.frame(ID = outlets$nexID, 
+                         set = I(rep(list(list()), nrow(outlets))),
+                         geom = I(rep(list(list()), nrow(outlets))), 
+                         stringsAsFactors = FALSE)
+verts <- igraph::V(cat_graph)
+us_verts <- c()
+
+for (cat in seq_len(nrow(cat_sets))) {
+    if (cat%%10 == 0) { message(paste(cat, "of", nrow(cat_sets))) }
     outlet <- filter(outlets, ID == cat_sets$ID[cat])
     ut <- bfs(graph = cat_graph, root = cat_sets$nexID[cat], 
               neimode = "in", order = TRUE, unreachable = FALSE, 
@@ -136,14 +139,21 @@ outlets <- outlets %>% left_join(select(catchment,
     outlet_id <- as.integer(gsub("^cat-", "", outlets$ID[cat]))
     head_id <- lps$head_ID[which(lps$ID == outlet_id)]
     head_id <- head_id[head_id != outlet_id]
-    if (length(head_id) == 0) 
+    
+    if (length(head_id) == 0) {
       head_id <- outlet_id
+    }      
+    
     abort_code <- tryCatch({
-      um <- find_um(us_verts, cat_graph, cat_id = cat_sets$nexID[cat], 
-                    head_id = head_id, outlet_type = filter(outlets, 
-                                                            nexID == cat_sets$nexID[cat])$type)
+      um <- hyRefactor:::find_um(us_verts, 
+                                 cat_graph, 
+                                 cat_id = cat_sets$nexID[cat], 
+                                 head_id = head_id, 
+                                 outlet_type = filter(outlets, nexID == cat_sets$nexID[cat])$type)
       abort_code <- ""
     }, error = function(e) e)
+    
+    
     if (abort_code != "") {
       if (!is.na(post_mortem_file)) {
         save(list = ls(), file = post_mortem_file)
@@ -154,18 +164,26 @@ outlets <- outlets %>% left_join(select(catchment,
         stop(paste("Upstream Main error:", abort_code))
       }
     }
+    
     if (length(us_verts) > 0) {
       vert <- us_verts[which(um %in% us_verts)]
       if (length(vert) == 1) {
         us_verts <- us_verts[!us_verts %in% vert]
       }
     }
+    
     um <- as.numeric(gsub("^nex-", "", um))
-    if (0 %in% um) 
+    
+    if (0 %in% um) {
       um[um == 0] <- as.numeric(gsub("^cat-", "", outlets[outlets$nexID == 
                                                             "nex-0", ]$ID))
+    }
+    
     fline_sets$geom[[cat]] <- filter(flowpath, ID %in% um) %>% 
-      st_geometry() %>% st_cast("LINESTRING") %>% st_union()
+      st_geometry() %>% 
+      st_cast("LINESTRING") %>% 
+      st_union()
+    
     abort_code <- tryCatch({
       if (length(cat) > 0 && length(st_geometry_type(fline_sets$geom[[cat]])) > 
           0 && st_geometry_type(fline_sets$geom[[cat]]) == 
@@ -200,6 +218,8 @@ outlets <- outlets %>% left_join(select(catchment,
       }
       abort_code <- ""
     }, error = function(e) e)
+    
+    
     if (abort_code != "") {
       if (!is.na(post_mortem_file)) {
         save(list = ls(), file = post_mortem_file)
@@ -213,24 +233,27 @@ outlets <- outlets %>% left_join(select(catchment,
     }
     cat_sets$set[[cat]] <- as.numeric(gsub("^cat-", "", cat_sets$set[[cat]]))
     us_verts <- c(us_verts, cat_sets$nexID[cat])
-  }
-  cat_sets$geom <- st_cast(st_sfc(cat_sets$geom, crs = st_crs(divide)), 
-                           "MULTIPOLYGON")
-  cat_sets <- select(cat_sets, -nexID)
-  cat_sets <- st_sf(cat_sets)
-  cat_sets[["ID"]] <- as.numeric(gsub("^cat-", "", outlets$ID))
-  fline_sets$geom <- st_sfc(fline_sets$geom, crs = st_crs(flowpath))
-  fline_sets <- st_sf(fline_sets)
-  fline_sets[["ID"]] <- as.numeric(gsub("^cat-", "", outlets$ID))
-  sets <- tidyr::unnest(st_set_geometry(fline_sets, NULL), 
-                        cols = c(set))
-  next_id <- sets %>% left_join(select(st_set_geometry(flowpath, 
-                                                       NULL), ID, toID), by = c(set = "ID")) %>% group_by(ID) %>% 
-    filter(!toID %in% set) %>% select(ID, toID) %>% ungroup() %>% 
-    distinct() %>% left_join(select(sets, set_toID = ID, 
-                                    set), by = c(toID = "set")) %>% select(ID, toID = set_toID)
-  fline_sets <- left_join(fline_sets, next_id, by = "ID")
-  cat_sets <- left_join(cat_sets, next_id, by = "ID")
-  return(list(cat_sets = cat_sets, fline_sets = fline_sets, 
+}
+
+cat_sets$geom      <- st_cast(st_sfc(cat_sets$geom, crs = st_crs(divide)), "MULTIPOLYGON")
+cat_sets           <- select(cat_sets, -nexID)
+cat_sets           <- st_sf(cat_sets)
+cat_sets[["ID"]]   <- as.numeric(gsub("^cat-", "", outlets$ID))
+fline_sets$geom    <- st_sfc(fline_sets$geom, crs = st_crs(flowpath))
+fline_sets         <- st_sf(fline_sets)
+fline_sets[["ID"]] <- as.numeric(gsub("^cat-", "", outlets$ID))
+sets               <- tidyr::unnest(st_set_geometry(fline_sets, NULL), cols = c(set))
+next_id <- sets %>% 
+  left_join(select(st_set_geometry(flowpath, NULL), ID, toID), by = c(set = "ID")) %>% group_by(ID) %>% 
+  filter(!toID %in% set) %>% 
+  select(ID, toID) %>% 
+  ungroup() %>% 
+  distinct() %>% 
+  left_join(select(sets, set_toID = ID, set), by = c(toID = "set")) %>% 
+  select(ID, toID = set_toID)
+
+fline_sets <- left_join(fline_sets, next_id, by = "ID")
+cat_sets <- left_join(cat_sets, next_id, by = "ID")
+return(list(cat_sets = cat_sets, fline_sets = fline_sets, 
               coastal_sets = coastal))
 }

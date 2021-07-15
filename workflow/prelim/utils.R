@@ -5,6 +5,7 @@ library(mapview)
 library(data.table)
 library(ggplot2)
 library(units)
+library(sfnetworks)
 
 flowpaths_to_linestrings = function(fp){
   bool = (st_geometry_type(st_geometry(fp)) == "MULTILINESTRING")
@@ -117,11 +118,7 @@ cs_group <- function(x, threshold) {
 make_plot = function(fl, cat, title, min = 3, ideal = 10, max = 15){
   library(patchwork)
 
-  e = ecdf(cat$areasqkm)
-  # plot the result
-  e1 = e(min)
-
-  g1 = ggplot(cat, aes(x = areasqkm)) +
+  ggplot(cat, aes(x = areasqkm)) +
     stat_ecdf(color = "red", alpha = .5, lwd = 1) +
     geom_vline(xintercept = min, col = "gray20") +
     geom_vline(xintercept = ideal, col = "darkred") +
@@ -419,7 +416,91 @@ get_nhd_crosswalk <- function(x, catchment_prefix = "catchment_",
     names(nhd_crosswalk) <- new_names
 
   }
-
   nhd_crosswalk
 }
+  
+system.file("shape/nc.shp", package="sf")
+  
+prep_ngen = function(fl, cat, ID_col = "ID"){
+  
+  length(fl[[ID_col]])
+  sort(fl[[ID_col]]) %>% length()
+  sum(duplicated(fl$ID))
+  
+  id_map = data.frame(
+    old_id = sort(fl[[ID_col]]),
+    new_id = 1:nrow(fl)
+  )
+  
+    fl_net = as_sfnetwork(fl)
+    nodes = st_as_sf(mutate(activate(fl_net,"nodes"), nexID = 1:n()))
+    fl    = st_as_sf(mutate(activate(fl_net,"edges"))) %>% 
+      rename(old_id = !!ID_col) %>% 
+      mutate(ID = id_map$new_id[match(old_id, id_map$old_id)],
+             old_id = NULL)
+    
+    cat    = cat  %>% 
+      rename(old_id = !!ID_col) %>% 
+      mutate(ID = id_map$new_id[match(old_id, id_map$old_id)],
+             old_id = NULL)
 
+    hw   = fl$from[!fl$from %in% fl$to]
+    term = fl$to[!fl$to %in% fl$from]
+    
+    nodes$type = ifelse(nodes$nexID %in% hw, "hw", NA)
+    nodes$type = ifelse(nodes$nexID %in% term, "term", nodes$type)
+    nodes$type = ifelse(is.na(nodes$type), "nex", nodes$type)
+    
+    return(list(nex = nodes,
+                fl = fl,
+                cat  = cat))
+}
+
+
+build_flow_line = function(geom1, geom2){
+  g = st_union(c(geom1, geom2))
+  
+  if(st_geometry_type(g) == "MULTILINESTRING"){
+    g = st_line_merge(g)
+  }
+  
+  g
+}
+
+
+build_node_net = function(fl, add_type = TRUE){
+  net = suppressWarnings({ sfnetworks::as_sfnetwork(fl)  })
+  # network    = st_as_sf(mutate(activate(net,"edges"))) 
+  network = net %>% 
+  activate('edges') %>% 
+  filter(!edge_is_multiple()) %>%
+  filter(!edge_is_loop()) %>% 
+  st_as_sf()
+  
+  nodes = st_as_sf(mutate(activate(net,"nodes"), nexID = 1:n()))
+    
+  
+  if(add_type){
+    id_map = network %>% 
+      # Identify fromID from fromNODE
+      left_join(select(st_drop_geometry(network), fromID  = ID, tmpto = to),   
+                by = c("from" = "tmpto")) %>% 
+      # Identify toID from toNODE
+      left_join(select(st_drop_geometry(network), toID    = ID, tmpfrom = from),
+                by = c("to" = "tmpfrom"))
+    
+    hw   = id_map$from[!id_map$from %in% id_map$to]
+    term = id_map$to[!id_map$to %in% id_map$from]
+    nodes$type = ifelse(nodes$nexID %in% hw, "hw", NA)
+    nodes$type = ifelse(nodes$nexID %in% term, "term", nodes$type)
+    nodes$type = ifelse(is.na(nodes$type), "nex", nodes$type)
+    
+    network$fromType = left_join(select(network, from), 
+                                 st_drop_geometry(nodes), by = c('from' = "nexID"))$type
+    
+    network$toType = left_join(select(network, to), 
+                               st_drop_geometry(nodes), by = c('to' = "nexID"))$type
+  }
+  
+  list(node = nodes, network = network)
+}

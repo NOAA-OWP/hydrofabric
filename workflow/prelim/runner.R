@@ -104,10 +104,7 @@ nwis_sites <- filter(what_nwis_data, parm_cd == "00060" & data_type_cd == "uv") 
            crs = 4269) %>%
   st_transform(5070)
 
-
-distance_from_outlet =
-
-  xx = st_join(nwis_sites, catchment_data)
+xx = st_join(nwis_sites, catchment_data)
 
 fl = filter(flowpath_data, ID %in% xx$ID)
 fl$geom = nhdplusTools::get_node(fl)$geometry

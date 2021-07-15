@@ -5,11 +5,8 @@ out_path <- "workflow/nhd_workflows/cache/ngen_01a-1.gpkg"
 #############################################################################
 
 # Catchments only carry around geometry and ID
-in_cat <- read_sf(path, layer = "catchment") %>%
-  st_transform(5070)
-
-in_fl = read_sf(path, layer = "flowline") %>%
-  st_transform(5070)
+in_cat <- read_sf(path, layer = "catchment") 
+in_fl = read_sf(path, layer = "flowline") 
 
 #############################################################################
 

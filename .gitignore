@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-workflow/cache
-*.gpkg
+**/cache/*
+data
+**/.DS_Store
