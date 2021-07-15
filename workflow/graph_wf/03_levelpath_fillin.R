@@ -79,38 +79,33 @@ fill_level_path = function(lpID, network){
     
     c = build_node_net(candidate)
     
-    breaks = st_collection_extract(lwgeom::st_split(candidate, c$node),"LINESTRING") %>% 
-      mutate(tmpLength = round(as.numeric(set_units(st_length(.), "km")) / lengthkm, 2),
-             tmpLength = ifelse(tmpLength == 1.00, NA, tmpLength),
-             newID = paste0(, ifelse(!is.na(tmpLength),tmpLength,""))) 
+    breaks = st_collection_extract(lwgeom::st_split(candidate, c$node),"LINESTRING") #%>% 
+      # mutate(tmpLength = round(as.numeric(set_units(st_length(.), "km")) / lengthkm, 2),
+      #       tmpLength = ifelse(tmpLength == 1.00, NA, tmpLength),
+      #       newID = paste0(member_comid, ifelse(!is.na(tmpLength),tmpLength,""))) 
   
     new_lp_full = st_filter(breaks, new_lp, .predicate = st_covered_by) %>% 
-      mutate(levelpath = lpID) %>% 
-      mutate(member_comid = paste(member_comid, newID, sep = ","))
+      mutate(levelpath = lpID)
     
-    new_lp_full$member_comid
-  
     frags = st_anti_filter(breaks,  new_lp, .predicate = st_within) %>% 
       st_filter(new_lp, .predicate = st_touches) %>% 
       filter(ID %in% new_lp_full$ID) 
-
-    new_lp_full$member_comid
-    frags$member_comid
     
     corrections = list()
     
     if(nrow(frags) > 0){
       for(j in 1:nrow(frags)){
-      cand = filter(c$network, ID == frags$ID[j])
+      cand = frags[j,]
       
-      non_lp_connection = filter(c$network, to %in% c(cand$from) ) %>% 
+      non_lp_connection = st_filter(c$network, cand,  .predicate = st_touches) %>% 
         filter(!ID %in% new_lp_full$ID)
+      
       # mapview(non_lp_connection, color = "Red") + cand + new_lp_full
       non_lp_connection$geom = build_flow_line(frags$geom[j],
                                                non_lp_connection$geom)
       
       non_lp_connection$member_comid = paste(non_lp_connection$member_comid,
-                                             frags$newID[j], sep = ",")
+                                             frags$member_comid[j], sep = ",")
 
       
       corrections[[j]] = non_lp_connection
@@ -154,9 +149,35 @@ saveRDS(out, "data/sample_network.rds")
     plot(tail[[1]], col  = "purple", add = TRUE)
     plot(net, add = TRUE)
 }
+ 
 
-raw_nhd = 
+dups
 
-refactor_hy = function(){}
+flow_data = improvements
+
+dups = function(flow_data){
+  t = table(unlist(strsplit(flow_data$member_comid, ",")))
+  out = sfarrow::st_read_parquet("workflow/graph_wf/basedata/01a-base-nhd-flowpaths.parquet") %>% 
+  filter(ID %in% c(names(t[t>1])))
+  
+  hope = flow_data[grepl(out$ID[1], flow_data$member_comid),]
+  mapview(hope, color = 'red') + out[1,]
+  
+  for(i in 1:nrow(out)){
+    st_intersection(out[1,], flow_data)
+  }
+  
+  needed_modify = st_filter(flow_data, out, .predicate = st_covered_by)
+  
+  mapview(needed_modify) + flow_data
+}
+  
+  
+  arrow::open_dataset("workflow/graph_wf/basedata/01a-base-nhd-flowpaths.parquet") %>% 
+    filter(ID %in% c(names(t[t>1]))) %>% 
+    st_read_parquet()
+  
+  
+}
 
 
