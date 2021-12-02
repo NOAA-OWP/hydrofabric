@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-**/cache/*
-data
 **/.DS_Store
+depriciate
+
+
