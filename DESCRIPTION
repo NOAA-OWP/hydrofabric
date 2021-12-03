@@ -1,0 +1,36 @@
+Package: hydrofabric
+Title: Easily Install and Load 'hydrofabric' tools
+Version: 1.3.1.9000
+Authors@R: 
+    c(person(given = "Mike",
+             family = "Johnson",
+             role = c("aut", "cre"),
+             email = "mikecp11@gmail.com"))
+Description: The 'hydrofabric' meta package is a set of packages that work in harmony
+    to complete hydrofabric creation tasks. 
+License: MIT + file LICENSE
+URL: https://github.com/NOAA-OWP/hydrofabric
+BugReports: https://github.com/NOAA-OWP/hydrofabric
+Depends: 
+    R (>= 3.5)
+Imports: 
+    cli (>= 2.4.0),
+    crayon (>= 1.4.1),
+    rstudioapi,
+    nhdplusTools,
+    hyRefactor,
+    hyAggregate,
+    hyRelease,
+    zonal
+Remotes: 
+    USGS-R/nhdplusTools,
+    dblodgett-usgs/hyRefactor,
+    mikejohnson51/hyAggregate,
+    mikejohnson51/hyRelease
+    mikejohnson51/zonal
+Suggests:
+    knitr 
+VignetteBuilder: 
+    knitr
+Encoding: UTF-8
+RoxygenNote: 7.1.2
