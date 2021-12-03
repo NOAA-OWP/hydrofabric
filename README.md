@@ -4,6 +4,8 @@
 # hydrofabric
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/NOAA-OWP/hydrofabric/workflows/R-CMD-check/badge.svg)](https://github.com/NOAA-OWP/hydrofabric/actions)
 <!-- badges: end -->
 
 ### Overview
