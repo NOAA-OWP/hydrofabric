@@ -10,17 +10,17 @@
 
 ### Overview
 
-There are three types of network refactoring needed to meet the broad
-needs of `ngen`, `PRMS`, `inland hydraulics`, and `FIM.`
+There are three major types of network refactoring needed to meet a
+broad set of needs:
 
-1.  One based on a flowline length criteria
-2.  One that aims for a uniform catchment size
+1.  One based on a flowline length criteria (routing)
+2.  One that aims for a uniform catchment size (rainfall-runoff)
 3.  A POI version that forces things down to a set critical locations
     (PRMS).
 
 `hydrofabric` is a set of packages that work in harmony to meet these
 needs. The package is designed to make it easy to install and load core
-packages in a single command.
+packages across users and organizations in a single command.
 
 ## Installation
 
@@ -36,16 +36,16 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 
 -   [nhdarrow]() (In development)
 -   [nwmdata]() (In development)
+-   [zonal](https://github.com/mikejohnson51/zonal) for catchment
+    parameter estimation
 -   [nhdplusTools](https://github.com/usgs-r/nhdplusTools/) for network
     manipulation
--   [hyRefactor](https://github.com/dblodgett-usgs/hyRefactor), for
+-   [hyRefactor](https://github.com/dblodgett-usgs/hyRefactor) for
     network factoring
 -   [hyAggregate](https://github.com/mikejohnson51/hyAggregate) for
     network aggregation
--   [hyRelease](https://github.com/mikejohnson51/hyRelease) data
+-   [hyRelease](https://github.com/mikejohnson51/hyRelease) for data
     releases running elected subroutines
--   [zonal](https://github.com/mikejohnson51/zonal) for catchment
-    parameter estimation
 
 And you can check that all tidyverse packages are up-to-date with
 `tidyverse_update()`:
