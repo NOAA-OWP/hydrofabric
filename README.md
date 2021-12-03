@@ -32,10 +32,19 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 
 ## Usage
 
+``` r
+library(hydrofabric)
+#> ── Attaching packages ───────────────────────────────── hydrofabric1.3.1.9000 ──
+#> ✓ nhdplusTools 0.4.3          ✓ hyAggregate  0.0.1     
+#> ✓ hyRefactor   0.4.7          ✓ zonal        0.0.1     
+#> ✓ hyRelease    0.0.0.9000
+#> ── Conflicts ──────────────────────────────────────── hydrofabric_conflicts() ──
+#> x hyAggregate::flowpaths_to_linestrings() masks hyRefactor::flowpaths_to_linestrings()
+#> x hyAggregate::length_average_routlink()  masks hyRelease::length_average_routlink()
+```
+
 `library(hydrofabric)` will load the core packages:
 
--   [nhdarrow]() (In development)
--   [nwmdata]() (In development)
 -   [zonal](https://github.com/mikejohnson51/zonal) for catchment
     parameter estimation
 -   [nhdplusTools](https://github.com/usgs-r/nhdplusTools/) for network
@@ -47,8 +56,10 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 -   [hyRelease](https://github.com/mikejohnson51/hyRelease) for data
     releases running elected subroutines
 
-And you can check that all tidyverse packages are up-to-date with
-`tidyverse_update()`:
+Soon these will be added:
+
+-   [nhdarrow]() (In development)
+-   [nwmdata]() (In development)
 
 ## Code of Conduct
 

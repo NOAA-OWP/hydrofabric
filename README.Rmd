@@ -39,22 +39,22 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 
 ## Usage
 
+```{r}
+library(hydrofabric)
+```
+
 `library(hydrofabric)` will load the core packages: 
 
-* [nhdarrow]() (In development)
-* [nwmdata]() (In development)
 * [zonal](https://github.com/mikejohnson51/zonal) for catchment parameter estimation
 * [nhdplusTools](https://github.com/usgs-r/nhdplusTools/) for network manipulation
 * [hyRefactor](https://github.com/dblodgett-usgs/hyRefactor) for network factoring
 * [hyAggregate](https://github.com/mikejohnson51/hyAggregate) for network aggregation
 * [hyRelease](https://github.com/mikejohnson51/hyRelease) for data releases running elected subroutines
 
+Soon these will be added:
 
-And you can check that all tidyverse packages are up-to-date with `tidyverse_update()`:
-
-```{r update, eval = FALSE}
-
-```
+* [nhdarrow]() (In development)
+* [nwmdata]() (In development)
 
 ## Code of Conduct
 

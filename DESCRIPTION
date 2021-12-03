@@ -21,7 +21,9 @@ Imports:
     hyRefactor,
     hyAggregate,
     hyRelease,
-    zonal
+    zonal,
+    purrr,
+    magrittr
 Remotes: 
     USGS-R/nhdplusTools,
     dblodgett-usgs/hyRefactor,
