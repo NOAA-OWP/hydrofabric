@@ -27,6 +27,8 @@ There are three major types of network refactoring needed to meet a broad set of
   2. One that aims for a uniform catchment size (rainfall-runoff)
   3. A POI version that forces things down to a set critical locations (PRMS).
   
+Additionally many instances of hydrofabric creation requires the creation of model specific attributes, data files, and formates (releases).
+  
 `hydrofabric` is a set of packages that work in harmony to meet these needs. The package is designed to make it easy to install and load core packages across users and organizations in a single command.
 
 ## Installation
@@ -45,16 +47,17 @@ library(hydrofabric)
 
 `library(hydrofabric)` will load the core packages: 
 
-* [zonal](https://github.com/mikejohnson51/zonal) for catchment parameter estimation
 * [nhdplusTools](https://github.com/usgs-r/nhdplusTools/) for network manipulation
+
 * [hyRefactor](https://github.com/dblodgett-usgs/hyRefactor) for network factoring
 * [hyAggregate](https://github.com/mikejohnson51/hyAggregate) for network aggregation
 * [hyRelease](https://github.com/mikejohnson51/hyRelease) for data releases running elected subroutines
 
-Soon these will be added:
+* [opendap.catalog](https://github.com/mikejohnson51/opendap.catalog) for accessing remote data resources for parameter and attributes estimation
+* [zonal](https://github.com/mikejohnson51/zonal) for catchment parameter estimation
 
-* [nhdarrow]() (In development)
-* [nwmdata]() (In development)
+* [eHydRo](https://github.com/mikejohnson51/eHydRo) for accessing Army Corp bathymetry data and embedding it in the a DEM.
+
 
 ## Code of Conduct
 

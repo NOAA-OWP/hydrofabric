@@ -1,10 +1,4 @@
-ls_env <- function(env) {
-  x <- ls(pos = env)
-  if (identical(env, "package:dplyr")) {
-    x <- setdiff(x, c("intersect", "setdiff", "setequal", "union"))
-  }
-  x
-}
+ls_env <- function(env) { ls(pos = env) }
 
 #' Conflicts between the hydrofabric and other packages
 #'
@@ -21,7 +15,7 @@ ls_env <- function(env) {
 #' hydrofabric_conflicts()
 hydrofabric_conflicts <- function() {
   
-  envs <- grep("^package:", search(), value = TRUE)
+  envs <- grep("^package:", base::search(), value = TRUE)
   envs <- purrr::set_names(envs)
   objs <- invert(lapply(envs, ls_env))
   

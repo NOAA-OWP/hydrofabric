@@ -18,6 +18,10 @@ broad set of needs:
 3.  A POI version that forces things down to a set critical locations
     (PRMS).
 
+Additionally many instances of hydrofabric creation requires the
+creation of model specific attributes, data files, and formates
+(releases).
+
 `hydrofabric` is a set of packages that work in harmony to meet these
 needs. The package is designed to make it easy to install and load core
 packages across users and organizations in a single command.
@@ -34,32 +38,40 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 
 ``` r
 library(hydrofabric)
-#> ── Attaching packages ───────────────────────────────── hydrofabric1.3.1.9000 ──
-#> ✓ nhdplusTools 0.4.3          ✓ hyAggregate  0.0.1     
-#> ✓ hyRefactor   0.4.7          ✓ zonal        0.0.1     
-#> ✓ hyRelease    0.0.0.9000
+#> ── Attaching packages ────────────────────────────────────── hydrofabric0.0.2 ──
+#> ✔ nhdplusTools    0.5.2          ✔ zonal           0.0.1     
+#> ✔ hyRefactor      0.4.6.9011     ✔ opendap.catalog 0.0.0.9000
+#> ✔ hyRelease       0.0.0.9000     ✔ eHydRo          0.0.0.9000
+#> ✔ hyAggregate     0.0.1
 #> ── Conflicts ──────────────────────────────────────── hydrofabric_conflicts() ──
-#> x hyAggregate::flowpaths_to_linestrings() masks hyRefactor::flowpaths_to_linestrings()
-#> x hyAggregate::length_average_routlink()  masks hyRelease::length_average_routlink()
+#> ✖ hyAggregate::flowpaths_to_linestrings() masks hyRefactor::flowpaths_to_linestrings()
+#> ✖ opendap.catalog::search()               masks base::search()
+#> ✖ opendap.catalog::weighting_grid()       masks zonal::weighting_grid()
 ```
 
 `library(hydrofabric)` will load the core packages:
 
--   [zonal](https://github.com/mikejohnson51/zonal) for catchment
-    parameter estimation
 -   [nhdplusTools](https://github.com/usgs-r/nhdplusTools/) for network
     manipulation
+
 -   [hyRefactor](https://github.com/dblodgett-usgs/hyRefactor) for
     network factoring
+
 -   [hyAggregate](https://github.com/mikejohnson51/hyAggregate) for
     network aggregation
+
 -   [hyRelease](https://github.com/mikejohnson51/hyRelease) for data
     releases running elected subroutines
 
-Soon these will be added:
+-   [opendap.catalog](https://github.com/mikejohnson51/opendap.catalog)
+    for accessing remote data resources for parameter and attributes
+    estimation
 
--   [nhdarrow]() (In development)
--   [nwmdata]() (In development)
+-   [zonal](https://github.com/mikejohnson51/zonal) for catchment
+    parameter estimation
+
+-   [eHydRo](https://github.com/mikejohnson51/eHydRo) for accessing Army
+    Corp bathymetry data and embedding it in the a DEM.
 
 ## Code of Conduct
 

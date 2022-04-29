@@ -1,11 +1,15 @@
-core <- c("nhdplusTools", "hyRefactor", "hyRelease", "hyAggregate", "zonal")
+core <- c("nhdplusTools", 
+          "hyRefactor", "hyRelease", "hyAggregate", 
+          "zonal", "opendap.catalog",
+          "eHydRo")
 
 core_unloaded <- function() {
   search <- paste0("package:", core)
-  core[!search %in% search()]
+  core[!search %in% base::search()]
 }
 
 # Attach the package from the same package library it was
+# loaded from before:
 
 same_library <- function(pkg) {
   loc <- if (pkg %in% loadedNamespaces()) dirname(getNamespaceInfo(pkg, "path"))

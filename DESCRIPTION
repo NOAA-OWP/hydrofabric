@@ -1,6 +1,6 @@
 Package: hydrofabric
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 1.3.1.9000
+Version: 0.0.2
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
@@ -22,6 +22,8 @@ Imports:
     hyAggregate,
     hyRelease,
     zonal,
+    opendap.catalog,
+    eHydRo,
     purrr,
     magrittr
 Remotes: 
@@ -29,7 +31,9 @@ Remotes:
     dblodgett-usgs/hyRefactor,
     mikejohnson51/hyAggregate,
     mikejohnson51/hyRelease,
-    mikejohnson51/zonal
+    mikejohnson51/zonal,
+    mikejohnson51/opendap.catalog,
+    JamesColl-NOAA/eHydRo
 Suggests:
     knitr 
 VignetteBuilder: 
