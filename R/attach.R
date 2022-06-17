@@ -1,7 +1,6 @@
 core <- c("nhdplusTools", 
-          "hyRefactor", "hyRelease", "hyAggregate", 
-          "zonal", "opendap.catalog",
-          "eHydRo")
+          "hyRefactor", "hyAggregate", 
+          "zonal", "opendap.catalog")
 
 core_unloaded <- function() {
   search <- paste0("package:", core)
