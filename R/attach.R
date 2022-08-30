@@ -1,5 +1,5 @@
 core <- c("nhdplusTools", 
-          "hyRefactor", "hyAggregate", 
+          "hydrofab", "ngen.hydrofab", 
           "zonal", "opendap.catalog")
 
 core_unloaded <- function() {

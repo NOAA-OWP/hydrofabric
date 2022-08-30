@@ -1,13 +1,13 @@
 Package: hydrofabric
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 0.0.2
+Version: 0.0.3
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
              role = c("aut", "cre"),
              email = "mikecp11@gmail.com"))
 Description: The 'hydrofabric' meta package is a set of packages that work in harmony
-    to complete hydrofabric creation tasks. 
+    to complete hydrofabric tasks. 
 License: MIT + file LICENSE
 URL: https://github.com/NOAA-OWP/hydrofabric
 BugReports: https://github.com/NOAA-OWP/hydrofabric
@@ -18,18 +18,18 @@ Imports:
     crayon (>= 1.4.1),
     rstudioapi,
     nhdplusTools,
-    hyRefactor,
-    hyAggregate,
+    hydrofab,
+    ngen.hydrofab,
     zonal,
     opendap.catalog,
     purrr,
     magrittr
 Remotes: 
     USGS-R/nhdplusTools,
-    dblodgett-usgs/hyRefactor,
-    mikejohnson51/hyAggregate,
+    mikejohnson51/hydrofab,
+    mikejohnson51/ngen.hydrofab,
     mikejohnson51/zonal,
-    mikejohnson51/opendap.catalog,
+    mikejohnson51/opendap.catalog
 Suggests:
     knitr 
 VignetteBuilder: 
