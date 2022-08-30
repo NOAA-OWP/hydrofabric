@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+
+body {
+  margin:0px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.navbar {
+  postion: fixed;
+  border-radius: 0px;
+  background-color: #003660;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.navbar a {
+  float: left;
+  color: white;
+  text-align: center;
+  padding: 12px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+.navbar a:hover {
+  background-color: #DCE1E5 ;
+}
+
+.active {
+  background-color: #fe1d11;
+}
+
+@media screen and (max-width: 600px) {
+  .navbar a {
+    float: none;
+    display: block;
+  }
+}
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+
+.dropdown .dropbtn {
+  cursor: pointer;
+  font-size: 16px;  
+  border: none;
+  outline: none;
+  color: white;
+  padding: 14px 16px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  float: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.show {
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <a class="active" href="index.html"><i class="fa fa-fw fa-home"></i> Home</a> 
+  <a href="https://lynker-intel.com"><i class="fa fa-building-o"></i> Lynker</a>
+  <a href="https://water.noaa.gov"><i class="fa fa-building-o"></i> NOAA OWP</a>
+  <a href="https://mikejohnson51.github.io/hyAggregate/"><i class="fa fa-user-md"></i>  Documentation</a>
+  <a href="schema.html"><i class="fa fa-fw fa-file"></i>Schema</a>
+  
+  <div class="dropdown">
+  <button class="dropbtn" onclick="myFunction()"><i class="fa fa-fw fa-github"></i>Github</a>
+    <i class="fa fa-caret-down"></i>
+  </button>
+  <div class="dropdown-content" id="myDropdown">
+    <a href="https://github.com/NOAA-OWP/ngen"><i class="fa fa-fw fa-github"></i>Nextgen</a>
+    <a href="https://github.com/mikejohnson51/hydrofab"><i class="fa fa-fw fa-github"></i>hydrofab</a>
+    <a href="https://github.com/mikejohnson51/nextgen.hydrofab"><i class="fa fa-fw fa-github"></i>nextgen.hydrofab</a>
+  </div>
+  </div> 
+</div>
+
+<script>
+/* When the user clicks on the button, 
+toggle between hiding and showing the dropdown content */
+function myFunction() {
+  document.getElementById("myDropdown").classList.toggle("show");
+}
+
+// Close the dropdown if the user clicks outside of it
+window.onclick = function(e) {
+  if (!e.target.matches('.dropbtn')) {
+  var myDropdown = document.getElementById("myDropdown");
+    if (myDropdown.classList.contains('show')) {
+      myDropdown.classList.remove('show');
+    }
+  }
+}
+</script>
+</body>
+</html>
