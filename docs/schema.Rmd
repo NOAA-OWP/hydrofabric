@@ -47,7 +47,7 @@ library(sf)
 Nextgen hydrofabric artifacts are distributed as as [geopackages](https://www.geopackage.org) by _NHDPlusV2_ **V**ector **P**rocessing **U**nits 
 
 ::: {#hello .blackbox .left}
-**NOTE:**
+**What is a geopackage?**
 
 The GeoPackage Encoding Standard describes a set of conventions for storing the following within an SQLite database:
 
@@ -79,8 +79,8 @@ Below, we will describe these nine layers, and there respective fields.
 Flowpaths are a principle catchment realization and provide the needed input primarily for hydraulic and routing based modeling.
 
 ::: {#hello .blackbox .left}
-**NOTE:**
-One-dimensional (linear) feature that is a hydrology-specific realization of the holistic catchment. Topologically, flowpath can be understood to be an edge bounded by inflow and outflow nodes, and associated with left-bank and right-bank sub-catchment faces. The concept of an edge bounded by nodes is described in detail in the ISO topology model [ISO19107]. The flowpath is usually represented as a geometric curve.
+**HY Feature flowpath:**
+One-dimensional (linear) feature that is a hydrology-specific realization of the holistic catchment. Topologically, flowpath can be understood to be an edge bounded by inflow and outflow nodes, and associated with left-bank and right-bank sub-catchment faces. The concept of an edge bounded by nodes is described in detail in the ISO topology model [ISO19107]. 
 :::
 
 The flowpaths layer contains the following 9 feilds alongside a `LINESTRING` geometry:
@@ -103,7 +103,7 @@ The flowpaths layer contains the following 9 feilds alongside a `LINESTRING` geo
 Divides are a principle catchment realization and provide the needed input primarily for hydrologic modeling.
 
 ::: {#hello .blackbox .left}
-**NOTE:**
+**HY Feature Divide:**
 One-dimensional (linear) feature that is a hydrology-specific realization of the holistic catchment. Topologically, catchment divide can be understood as an edge bounded by inflow and outflow nodes. The concept of an edge bounded by nodes is described in detail in the ISO topology model [ISO19107]. The catchment divide is usually represented as a geometric curve, or as a polygon ring feature.
 :::
 
@@ -123,10 +123,10 @@ sf::read_sf(url, "flowpaths") %>% head()
 
 ## nexus
 
-Nexus locations define that locations where information (model states, ect) can be exchanged. They are fundemental to the Nextgen topology and model engine design.
+Nexus locations define that locations where information (model states, ect) can be exchanged. They are fundamental to the NextGen topology and model engine design.
 
 ::: {#hello .blackbox .left}
-**NOTE:**
+**HY Feature:**
 Conceptual outlet for water contained by a catchment. The hydro nexus concept represents the place where a catchment interacts with another catchment. Every catchment flows to a hydro nexus, conversely every location in a hydrologic system can be thought of as a hydro nexus that drains some catchment. Similar to catchments, hydro nexuses can be realized in several hydrology-specific ways.
 
 If a given hydro nexus does not have a known hydrology-specific realization or is undetermined, it is termed 'nillable' in this standard. For example, a hydro nexus exists in the form of flow to the subsurface or atmosphere but may be undetermined and unrepresented within implementations focused on surface water hydrology and would not be included or referenced.
@@ -210,7 +210,7 @@ read_sf(url, "crosswalk") %>% names()
 
 ## nwm1km_weights
 
-Many OWP supported models require initial parameters to execute. Computing catchment scale values from gridded data requires the ability to identify and then quickly and accurately summarizes raster values over polygonal areas including partially covered grid cells. The relationship between divide, cell ID, and the coverage fraction can be stored in a weights file.  For more information on how this is accomplished please see the [zonal package](https://github.com/NOAA-OWP/zonal) which has produced the ability to summarize decades of data, for areas as large as the east coast, in minutes on a personal laptop (this package is included in the `hydrofabric` meta package). The `nwm1km_weights` provides the weight grid relating the Nextgen catchments to the WRF-Hydro domain grids:
+Many OWP supported models require initial parameters to execute. Computing catchment scale values from gridded data requires the ability to identify and then quickly and accurately summarizes raster values over polygonal areas including partially covered grid cells. The relationship betwe en divide, cell ID, and the coverage fraction can be stored in a weights file.  For more information on how this is accomplished please see the [zonal package](https://github.com/NOAA-OWP/zonal) which has produced the ability to summarize decades of data, for areas as large as the east coast, in minutes on a personal laptop (this package is included in the `hydrofabric` meta package). The `nwm1km_weights` provides the weight grid relating the Nextgen catchments to the WRF-Hydro domain grids:
 
 ```{r, echo = FALSE, eval = FALSE}
 sf::read_sf(url, "nwm1km_weights") %>% head()
@@ -263,8 +263,6 @@ read_sf(url, "aorc_weights") %>% names()
 | cell    | The cell number of the AORC gridded files  | Reads from top left to bottom right  |
 | coverage_fraction      | The percent of [cell] covered by catchment [id] |
 :::
-
-
 
 <br>
 <br>

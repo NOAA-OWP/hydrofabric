@@ -10,21 +10,17 @@
 
 ### Overview
 
-There are three major types of network refactoring needed to meet a
-broad set of needs:
+This repository serves two purpose. (1) it provides a dedicated landing
+page to access the community nextgen artifacts and (2) it provides a
+single source download collection of R packages designed for data
+science.
 
-1.  One based on a flowline length criteria (routing)
-2.  One that aims for a uniform catchment size (rainfall-runoff)
-3.  A POI version that forces things down to a set critical locations
-    (PRMS).
+## Data
 
-Additionally many instances of hydrofabric creation requires the
-creation of model specific attributes, data files, and formates
-(releases).
-
-`hydrofabric` is a set of packages that work in harmony to meet these
-needs. The package is designed to make it easy to install and load core
-packages across users and organizations in a single command.
+The data and documentation for the Nextgen community resources can be
+found [here](https://noaa-owp.github.io/hydrofabric/) with detailed
+documentation of the geopackage contents
+[here](https://noaa-owp.github.io/hydrofabric/schema.html)
 
 ## Installation
 
@@ -38,40 +34,27 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 
 ``` r
 library(hydrofabric)
-#> ── Attaching packages ────────────────────────────────────── hydrofabric0.0.2 ──
-#> ✔ nhdplusTools    0.5.2          ✔ zonal           0.0.1     
-#> ✔ hyRefactor      0.4.6.9011     ✔ opendap.catalog 0.0.0.9000
-#> ✔ hyRelease       0.0.0.9000     ✔ eHydRo          0.0.0.9000
-#> ✔ hyAggregate     0.0.1
+#> ── Attaching packages ────────────────────────────────────── hydrofabric0.0.3 ──
+#> ✔ nhdplusTools    0.5.7          ✔ zonal           0.0.1     
+#> ✔ hydrofab        0.4.7          ✔ opendap.catalog 0.0.0.9000
+#> ✔ ngen.hydrofab   0.0.3
 #> ── Conflicts ──────────────────────────────────────── hydrofabric_conflicts() ──
-#> ✖ hyAggregate::flowpaths_to_linestrings() masks hyRefactor::flowpaths_to_linestrings()
-#> ✖ opendap.catalog::search()               masks base::search()
-#> ✖ opendap.catalog::weighting_grid()       masks zonal::weighting_grid()
+#> ✖ opendap.catalog::search() masks base::search()
 ```
 
 `library(hydrofabric)` will load the core packages:
 
 -   [nhdplusTools](https://github.com/usgs-r/nhdplusTools/) for network
     manipulation
-
--   [hyRefactor](https://github.com/dblodgett-usgs/hyRefactor) for
-    network factoring
-
--   [hyAggregate](https://github.com/mikejohnson51/hyAggregate) for
-    network aggregation
-
--   [hyRelease](https://github.com/mikejohnson51/hyRelease) for data
-    releases running elected subroutines
-
+-   [hydrofab](https://github.com/mikejohnson51/hydrofab) a toolset for
+    “fabricating” multiscale hydrofabrics
+-   [ngen.hydrofab](https://github.com/mikejohnson51/ngen.hydrofab)
+    Nextgen extensions for hydrofab
 -   [opendap.catalog](https://github.com/mikejohnson51/opendap.catalog)
     for accessing remote data resources for parameter and attributes
     estimation
-
 -   [zonal](https://github.com/mikejohnson51/zonal) for catchment
     parameter estimation
-
--   [eHydRo](https://github.com/mikejohnson51/eHydRo) for accessing Army
-    Corp bathymetry data and embedding it in the a DEM.
 
 ## Code of Conduct
 

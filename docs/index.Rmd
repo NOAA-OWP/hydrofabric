@@ -13,8 +13,8 @@ output:
   max-width: 1800px !important;
   padding-left: 250px;
   padding-right: 250px;
-  padding-bottom: 250px;
   margin-left: 0;
+  margin-top: 0;
   margin-right: auto;
 }
 </style>
@@ -40,9 +40,9 @@ vpus = nhdplusTools::get_boundaries() %>%
                   
 for(i in 1:nrow(meta)){
   t = sf::st_layers(meta$path[i])
-  meta$flowpaths[i] = t$features[which(t$name == "flowpaths")]
-  meta$divides[i] = t$features[which(t$name == "divides")]
-  meta$nexus[i] = t$features[which(t$name == "nexus")]
+  meta$flowpaths[i] =  prettyNum(t$features[which(t$name == "flowpaths")],big.mark=",",scientific=FALSE)
+  meta$divides[i] =  prettyNum(t$features[which(t$name == "divides")],big.mark=",",scientific=FALSE)
+  meta$nexus[i] =  prettyNum(t$features[which(t$name == "nexus")],big.mark=",",scientific=FALSE)
   meta$size[i] = paste0(round(file.size(meta$path[i]) / 1e6, 2), " Mb")
 }
 
@@ -69,15 +69,11 @@ bbox = as.numeric(sf::st_bbox(vpus))
 
 ## What is it?
 
-Nextgen hydrofabric artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits. They are generated from a set of national reference datasets [cite](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b) built in collaboration between the USGS and NOAA. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks.
-
-```{r, fig.align='center', echo = FALSE}
-knitr::include_graphics("../man/figures/roadmap.png")
-```
+Nextgen hydrofabric artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits. They are generated from a set of national reference datasets built in collaboration between the USGS and NOAA for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.
 
 ## How do I get it?
 
-Nextgen artifacts are publicly available through a partnership with Lynker and the NOAA OWP by VPU. For each VPU two artifacts are available 
+Nextgen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU two artifacts are available:
  
   - a geopackage that contains all tables, spatial data, and lookups relvant to a hydrofabric logical model
   - a zip folder containing the files needed to run the [Next Generation (Nextgen) Water Modelling Framework](https://github.com/NOAA-OWP/ngen).
@@ -132,11 +128,11 @@ getTotal <- function(index, data){
   
   col <- data[,index]
   col <- gsub("[Mb]","",col)
-  col <- suppressWarnings(as.numeric(col))
+  col <- suppressWarnings(as.numeric(gsub(",", "", col)))
   if(all(is.na(col))){
     return("Totals")
   } else {
-    return(sum(col))
+    return(prettyNum(sum(col), big.mark=",",scientific=FALSE))
   }
 }
 
@@ -160,8 +156,36 @@ m = rbind(m, sapply(1:ncol(m), function(x){ getTotal(x, m) }))
 ```
 </center>
 
+:::{ .main-container}
+
+# Gridded Resources
+
+The following resources are made available as VRTs
+
+- `DEM`: Digital elevation Model (cm)
+- `hydroDEM`: Hydro Conditioned DEM
+- `TWI`: Topographic Wetness Index 
 
 # A resource built on collaboration
 
+The NextGen artifacts are a _model application_ dataset built to meet the aims of NextGen. By design, these artifacts are derived from a set of general authorative data products outlined in figure 1 that have been built in close collaboration with colleagues at the USGS (Dave Blodgett and Andy Bock). 
 
-https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure
+```{r, fig.align='center', echo = FALSE, fig.cap="Figure 1"}
+knitr::include_graphics("../man/figures/roadmap.png")
+```
+
+These include a set of base data that improves the network topology and geometry validity while defining a set of community points of interest (POI).  These 4 data products are used to build an intermediate refactored network from which one hydrofabric network has been aggregated to a set of community POIs (minimal network), and one has been aggregated to a more consistent size (3-10 sqkm) with enforced POI locations (uniform). NextGen specifically is derived from the uniform size aggregated product while the upcoming developments on the [National Hydrologic Model (NHM)] (https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure) will be built from the community minimal network. While these two aggregations serve a wide range of federal modeling needs, our focus on open source software development and workflows  allow interested parties to build there own networks starting with either the 4 reference datasets, or the refactored network!
+
+The reference, refactor, minimal, and uniform hydrfabrics can all be accessed [here]([cite](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b))
+
+
+
+
+:::
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
