@@ -1,5 +1,5 @@
 ---
-title: "&nbsp;"
+title: "NexGen Hydrofabric"
 output:
   html_document:
     includes: 
@@ -9,6 +9,11 @@ output:
 
 
 <style type="text/css">
+
+ .title{
+    display: none;
+  }
+  
 .main-container {
   max-width: 1800px !important;
   padding-left: 250px;
@@ -62,7 +67,7 @@ bbox = as.numeric(sf::st_bbox(vpus))
 
 
 <center>
-# NOAA OWP NextGeneraton Modeling Framework Hydrofabric
+# NOAA OWP Next Generaton Modeling Framework Hydrofabric
 </center>
 <br>
 <br>
