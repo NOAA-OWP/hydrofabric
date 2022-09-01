@@ -1,5 +1,5 @@
 ---
-title: "NexGen Hydrofabric"
+title: "NextGen Hydrofabric"
 output:
   html_document:
     includes: 
@@ -67,21 +67,21 @@ bbox = as.numeric(sf::st_bbox(vpus))
 
 
 <center>
-# NOAA OWP Next Generaton Modeling Framework Hydrofabric
+# NOAA OWP Next Generation Modeling Framework Hydrofabric
 </center>
 <br>
 <br>
 
 ## What is it?
 
-Nextgen hydrofabric artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits. They are generated from a set of national reference datasets built in collaboration between the USGS and NOAA for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.
+Next Generation Modeling Framework (NextGen) hydrofabric artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits. They are generated from a set of national reference datasets built in collaboration between the USGS and NOAA for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.
 
 ## How do I get it?
 
-Nextgen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU two artifacts are available:
+NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU two artifacts are available:
  
   - a geopackage that contains all tables, spatial data, and lookups relvant to a hydrofabric logical model
-  - a zip folder containing the files needed to run the [Next Generation (Nextgen) Water Modelling Framework](https://github.com/NOAA-OWP/ngen).
+  - a zip folder containing the files needed to run the [Next Generation (NextGen) Water Modelling Framework](https://github.com/NOAA-OWP/ngen).
 
 These can be programatically accessed using the respective URL patterns:
 

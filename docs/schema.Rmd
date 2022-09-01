@@ -1,5 +1,5 @@
 ---
-title: "&nbsp;"
+title: "NextGen Hydrofabric"
 output:
   html_document:
     includes: 
@@ -9,6 +9,11 @@ output:
 
 
 <style type="text/css">
+
+.title{
+    display: none;
+  }
+  
 .main-container {
   max-width: 1800px !important;
   padding-left: 250px;
