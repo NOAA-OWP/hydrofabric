@@ -22,6 +22,18 @@ output:
   margin-top: 0;
   margin-right: auto;
 }
+
+.blackbox {
+  padding: 20px;
+  background: gray90;
+  color: black;
+  border: 4px solid black;
+  border-radius: 10px;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  margin-left: 0;
+  margin-right: auto;
+}
 </style>
 
 ```{r, echo = F, message = FALSE, warning=FALSE}
@@ -181,8 +193,16 @@ knitr::include_graphics("../man/figures/roadmap.png")
 
 These include a set of base data that improves the network topology and geometry validity while defining a set of community points of interest (POI).  These 4 data products are used to build an intermediate refactored network from which one hydrofabric network has been aggregated to a set of community POIs (minimal network), and one has been aggregated to a more consistent size (3-10 sqkm) with enforced POI locations (uniform). NextGen specifically is derived from the uniform size aggregated product while the upcoming developments on the [National Hydrologic Model (NHM)](https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure) will be built from the community minimal network. While these two aggregations serve a wide range of federal modeling needs, our focus on open source software development and workflows  allow interested parties to build there own networks starting with either the 4 reference datasets, or the refactored network!
 
-The reference, refactor, minimal, and uniform hydrfabrics can all be accessed [here](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b).
+The reference, refactor, minimal, and uniform hydrofabrics can all be accessed [here](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b).
 
+
+<br>
+<br>
+
+
+::: {#hello .blackbox .left}
+**Disclaimer**: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that neither NOAA, the USGS, nor the U.S. Government shall be held liable for any damages resulting from the authorized or unauthorized use of the data.
+:::
 
 
 
