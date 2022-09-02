@@ -1,6 +1,6 @@
 Package: hydrofabric
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
@@ -35,4 +35,4 @@ Suggests:
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

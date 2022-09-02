@@ -4,3 +4,5 @@
 depriciate
 ^README\.Rmd$
 ^\.github$
+Dockerfile
+docs
