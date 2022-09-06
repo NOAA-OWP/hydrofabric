@@ -88,6 +88,14 @@ bbox = as.numeric(sf::st_bbox(vpus))
 
 Next Generation Modeling Framework (NextGen) hydrofabric artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits. They are generated from a set of national reference datasets built in collaboration between the USGS and NOAA for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.
 
+::: {#hello .blackbox .left}
+**Citation**: 
+
+Johnson, J. M. (2022). National Hydrologic Geospatial Fabric (hydrofabric) for the Next Generation (NextGen) Hydrologic Modeling Framework, HydroShare, http://www.hydroshare.org/resource/129787b468aa4d55ace7b124ed27dbde
+:::
+
+
+
 ## How do I get it?
 
 NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU two artifacts are available:
