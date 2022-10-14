@@ -1,0 +1,59 @@
+---
+title: "Versions"
+output:
+  html_document:
+    includes: 
+      in_header: header2.html
+      after_body: footer.html
+---
+
+
+<style type="text/css">
+
+.title{
+    display: none;
+  }
+  
+.main-container {
+  max-width: 1800px !important;
+  padding-left: 250px;
+  padding-right: 250px;
+  margin-left: auto;
+  margin-top: 0;
+  margin-right: auto;
+}
+
+
+</style>
+
+
+<center>
+# Hydrofabric Versions
+</center>
+<br>
+<br>
+
+
+# Version 1.2
+
+1. Improved Nexus locations (always downstream of a junction). Critical to subsetting.
+2. Added Nexus `POINT`s for Coastal and Internal divides, called `cnx-XXX` (coastal) and `inx-XXX` (internal)
+3. Ensured POIs at the outlet of a mainstem now split the downstream mainstem
+4. Removed negative ("-") id convention for inland sinks adopted from NHDPlus
+5. Ensured all `id` and `toid` are integers to avoid casting to scientific notation in global ID generation
+6. Divides layers receive updated `toid` terminal values
+
+# Version 1.1
+
+Version 1.0 with globally unique, rather then VPU unique, identifiers.
+
+# Version 1.0
+
+Warts and all initial release (September 1, 2022)
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>

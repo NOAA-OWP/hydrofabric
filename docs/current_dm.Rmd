@@ -1,0 +1,615 @@
+---
+title: "Hydrofabric Data Model and Alignment"
+author: "Mike Johnson"
+date: "2022-10-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(hydrofab)
+library(dm)
+library(DBI)
+library(sf)
+```
+
+```{r, echo = FALSE}
+hf = list(
+lookup_table = data.frame(
+  NHDPlusV2_COMID = numeric(1L),
+  NHDPlusV2_COMID_part = integer(1L),
+  id = integer(1L),
+  divide_id = integer(1L),
+  mainstem = integer(1L),
+  poi_id = integer(1L),
+  poi_type = integer(1L),
+  poi_value = integer(1L)
+),
+
+reference_flowlines = data.frame(
+  id = integer(1L),
+  toid = integer(1L),
+  member_comid = character(1L),
+  mainstem = integer(1L),
+  lengthkm = numeric(1L),
+  tot_drainage_areasqkm = numeric(1L),
+  slope = numeric(1L),
+  order = numeric(1L),
+  hydroseq = numeric(1L),
+  areasqkm = numeric(1L),
+  gnis_id = numeric(1L),
+  gnis_name = character(1L),
+  `wbareacomi_` = integer(1L),
+  poi_id = integer(1L),
+  divide_id = integer(1L),
+  geometry = numeric(1L)
+),
+
+
+mapped_POIs = data.frame(
+  poi_id = integer(1L),
+  id     = integer(1L),
+  type_HUC12 = character(1L),
+  type_gages = character(1L),
+  type_te    = character(1L),
+  type_nid   = character(1L),
+  type_wbin  = character(1L),
+  type_wbout = character(1L),
+  type_conf  = character(1L),
+  type_term  = character(1L),
+  type_elev  = character(1L),
+  type_travel = character(1L),
+  type_con    = character(1L),
+  nexus = character(1L),
+  snapped = numeric(1L),
+  geometry = numeric(1L)
+),
+
+reference_catchments = data.frame(
+  divide_id = integer(1L),
+  toid = integer(1L),
+  areasqkm = numeric(1L),
+  type = character(1L),
+  geometry = numeric(1L)
+),
+
+reference_network = data.frame(
+  id = integer(1L),
+  toid = integer(1L),
+  divide_id = integer(1L),
+  lengthkm = numeric(1L),
+  areasqkm = numeric(1L),
+  tot_drainage_areasqkm = numeric(1L),
+  `wbareacomi_` = integer(1L),
+  hydroseq = numeric(1L),
+  mainstem = numeric(1L)
+),
+
+`WB_` = data.frame(
+  `wbareacomi_` = integer(1L),
+  gnis_id = numeric(1L),
+  gnis_name = character(1L),
+  wb_areasqkm = numeric(1L),
+  wb_elevation = numeric(1L),
+  wb_mean_depth = numeric(1L),
+  wb_lake_volume = numeric(1L),
+  wb_max_depth = numeric(1L),
+  wb_source = numeric(1L),
+  geometry = numeric(1L)
+)
+)
+
+
+
+
+meta = tibble::tribble(
+  ~Attribute, ~Description,
+"NHDPlusV2_COMID",          "The NHDPlusCOMID",
+"NHDPlusV2_COMID_part",     "If the original NHDPlus COMID was split, the subpart.	Parts increase from outlet to inlet",
+"id",                       "A hydrofabric specfic, globaly unique flowpath/flowline identifier",
+"divide_id",                "A hydrofabric specfic, globaly unique divide identifier",
+"mainstem",                 "the primary downstream segment of a river, as contrasted to its tributaries",
+"poi_id",                   "A hydrofabric specifc, globaly unique Point of Interest identifier",
+"poi_type",                 "The Point of Interest type",
+"poi_value",                "The origional identifier of the POI in the native dataset",
+"toid",                     "The identifier of the directly downstream flowpath/flowline",
+"lengthkm",                 "The length in kilometers of the flowpath element",
+"tot_drainage_areasqkm",    "The total upstream area contributing to the flowpath/flowline",
+"order",                    "Strahler stream order",
+"hydroseq",                 "VPU based hydrologic sort. Increases from downstream to upstream",
+"areasqkm",                 "The area of the incremental divide for a given flowpath/flowline",
+"gnis_id",                  "Geographic Names Information System Identifier",
+"gnis_name",                "Geographic Names Information System Name",
+"wbareacomi_",              "NHDPlusV2 Water body Common Identifier",
+"geometry",                 "Simple Features Geometry",
+"type_HUC12",               "Point of Interest made at a HUC12 outlet (contains WBD HUC12 ID)",
+"type_gages",               "Point of Interest made at an NWIS gage (contains eight digit NWIS ID)",
+"type_te",                  "Point of Interest made at a Thermoelectic Plant (contains native dataset ID)",
+"type_nid",                 "Point of Interest made at an Army Corp Dam (contains NID ID)",
+"type_wbin",                "Point of Interest made at a Waterbody Inflow (contains NHDPlusV2 waterbody ID)",
+"type_wbout",               "Point of Interest made at a Waterbody Outflow (contains NHDPlusV2 waterbody ID)",
+"type_conf",                "Point of Interest made at a network confluence (contains NHDPlusV2 waterbody ID)",
+"type_term",                "Point of Interest made at a network terminal (contains NHDPlusV2 COMID)",
+"type_elev",                "Point of Interest made at a network elevation break (contains NHDPlusV2 COMID)",
+"type_travel",              "Point of Interest made at a network travel time break (contains NHDPlusV2 COMID)",
+"type",                     "Type of divide (network, internal, coastal)",
+"wb_areasqkm",              "Waterbody area",
+"wb_elevation",             "Waterbody elevation",
+"wb_mean_depth",            "Waterbody mean depth",
+"wb_lake_volume",           "Waterbody lake volume",
+"wb_max_depth",             "Waterbody max depth",
+"wb_source",                "Waterbody source"
+)
+
+
+dm = dm::dm(lookup_table = hf$lookup_table,
+            flowlines = hf$reference_flowlines,
+            mapped_POIs = hf$mapped_POIs,
+            divides = hf$reference_catchments,
+            network = hf$reference_network,
+            WB_ = hf$`WB_`) %>% 
+
+dm_add_pk(flowlines, id)  %>% 
+  dm_add_pk(mapped_POIs, poi_id)  %>% 
+  dm_add_pk(WB_, `wbareacomi_`)  %>% 
+  dm_add_pk(network, id)  %>% 
+  dm_add_pk(divides, divide_id) %>% 
+  dm_add_pk(lookup_table, id) %>% 
+  
+  dm_add_fk(flowlines,  `wbareacomi_`, WB_) %>% 
+  dm_add_fk(network,  `wbareacomi_`, WB_) %>% 
+  dm_add_fk(flowlines,  poi_id, mapped_POIs) %>% 
+  dm_add_fk(flowlines,  divide_id, divides) %>% 
+  
+  dm_add_fk(mapped_POIs,  id, network) %>% 
+  dm_add_fk(lookup_table,  id, network) %>% 
+  dm_add_fk(lookup_table,  id, flowlines) %>% 
+  dm_add_fk(flowlines,  id, network) %>% 
+  dm_add_fk(lookup_table,  divide_id, divides) %>% 
+  dm_add_fk(lookup_table,  poi_id, mapped_POIs) %>% 
+  dm_set_colors(red = flowlines, 
+                orange = divides,
+                green = lookup_table, 
+                yellow = mapped_POIs,
+                purple = WB_, 
+                violet = network)
+
+
+df = data.frame(names = names(unlist(hf))) %>% 
+             tidyr::separate(names, sep = "[.]", into  = c('layer', 'Attribute')) %>% 
+  group_by(Attribute) %>% 
+  summarise(layers = paste(layer, collapse = ", "))
+
+
+meta = left_join(meta, df, by = "Attribute")
+
+```
+
+# Current State of Affairs {.tabset}
+
+## Proposed Idealized Data Model (10/14/2022)
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+dm_draw(dm,  view_type = "all", column_types = TRUE)
+```
+
+```{r, echo = FALSE}
+DT::datatable(meta, options = list(pageLength = 35, dom = 't'), rownames = FALSE)
+```
+
+
+## Reference
+
+### Exisiting Reference Fabric
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+ref = get_hydrofabric(VPU = "01", "reference", dir = '/Volumes/Transcend/ngen/CONUS-hydrofabric/')
+
+db <- dbConnect(RSQLite::SQLite(), ref)
+
+OG = dm_from_con(db, learn_keys = FALSE)[c(st_layers(ref)$name)] %>% 
+  dm_select(reference_flowline, -fid) %>% 
+  dm_select(POIs, -fid) %>% 
+  dm_select(WB_01, -fid) %>% 
+  dm_select(reference_network, -fid) %>% 
+  dm_select(reference_catchment, -fid) %>% 
+  dm_select(lookup_table, -fid)  %>% 
+  dm_set_colors(red = reference_flowline, 
+                orange = reference_catchment,
+                green = lookup_table, 
+                yellow = POIs,
+                purple = WB_01, 
+                violet = reference_network,
+  )
+
+dm_draw(OG, view_type = "all", rank = "RL", column_types = TRUE) 
+
+```
+
+
+### Idealized Reference Fabric
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+dm_draw(dm, view_type = "all", rank = "RL", column_types = TRUE)
+```
+
+### Required Changes: 
+
+#### 1. WB
+
+- [ ] Change table name from `WB_*` to `WB`
+- [ ] Change all names to lower case
+ 
+- [ ] *Remove*:
+    - [ ]  `COMID`
+    - [ ]  `FDATE`
+    - [ ]  `RESOLUTION`
+    - [ ]  `FTYPE`
+    - [ ]  `FCODE`
+    - [ ]  `Shape_Length`
+    - [ ]  `Shape_Area`
+    - [ ]  `ONOFFNET`
+    - [ ]  `PurpCode`
+    - [ ]  `PurpDesc`
+    
+- [ ] *Add*: 
+    - [ ] NA
+    
+- [ ] *Change*:
+    - [ ] NA
+    
+#### 2. POIs
+
+- [ ]  Change all names to lower case
+ 
+- [ ] *Remove*:
+   - [ ]  NA
+   
+- [ ] *Add*: 
+   - [ ]  NA
+   
+- [ ] *Change*:
+    - [ ] `Identifier` --> `poi_id`
+    - [ ] `COMID` --> `id`
+    
+#### 3. Lookup Table
+
+- [ ]  Change all names to lower case
+ 
+- [ ] *Remove*:
+    - [ ]  NA
+   
+- [ ] *Add*: 
+    - [ ] `NHDPlusV2_COMID_part` (always 1)
+    - [ ] `id` (equals COMID in reference)
+    
+- [ ] *Change*:
+    - [ ] `value` --> `poi_value`
+    - [ ] `type` --> `poi_type`
+    - [ ] `realizied_catchmentID` --> `divide_id`
+    
+#### 4. Reference network
+
+- [ ] Change all names to lower case
+ 
+- [ ] *Remove* (all of these can be looked up by id/comid):
+    - [ ] `terminalpa`
+    - [ ] `dnlevelpat`
+    - [ ] `dnhydroseq`
+    - [ ] `reachcode`
+    - [ ] `frommeas`
+    - [ ] `tomeas`
+    - [ ] `pathlength`
+    - [ ] `arbolatesu`
+    - [ ] `ftype`
+    - [ ] `fcode`
+    - [ ] `vpuid`
+    - [ ] `rpuid` 
+   
+- [ ] *Add*: 
+    - [ ] `divide_id`
+   
+- [ ] *Change*:
+    - [ ] `comid` --> `id`
+    - [ ] `tocomid` --> `toid`
+    - [ ] `totdasqkm` --> `tot_draiange_areasqkm`
+    - [ ] `levelpathi` -->  `mainstem`
+    
+#### 5. Reference catchments
+
+- [ ] Change all names to lower case
+- [ ] Change table name to `reference_divides`
+ 
+ - *Remove*:
+    - [ ] `VPUID`
+    - [ ] `RPUID`
+    - [ ] `hy_cats`
+    - [ ] `full_cats`
+   
+- [ ] *Add*: 
+    - [ ] `type`
+   
+- [ ] *Change*:
+    - [ ] `FEATUREID` --> `divide_id`
+    - [ ] `tocomid` --> `toid`
+    - [ ] `totdasqkm` --> `tot_draiange_areasqkm`
+    - [ ] `levelpathi` -->  `mainstem`
+    
+#### 6. Reference Flowlines
+
+- [ ] Change all names to lower case
+ 
+- [ ] *Remove*:
+    - [ ] `FromNode`
+    - [ ] `ToNode`
+    - [ ] `StartFlag`
+    - [ ] `StreamCalc`
+    - [ ] `Diveregence`
+    - [ ] `DnMinorHyd`
+    - [ ] `FCODE`
+    - [ ] `REACHCODE`
+    - [ ] `FromMeas`
+    - [ ] `ToMeas`
+    - [ ] `ArbolateSu`
+    - [ ] `TernimalPa`
+    - [ ] `Pathlength`
+    - [ ] `DnLevelPat`
+    - [ ] `DnHydroseq`
+    - [ ] `TerminalFl`
+    - [ ] `streamleve`
+    - [ ] `vpuin`
+    - [ ] `vpuout`
+    - [ ] `wbareaype`
+    - [ ] `slopelenkm`
+    - [ ] `FTYPE`
+    - [ ] `hwnodesqkm`
+    - [ ] `RPUID`
+    - [ ] `VPUID`
+    - [ ] `roughness`
+    - [ ] `dend`
+    - [ ] `WB`
+    - [ ] `minNext`
+    - [ ] `poi`
+    - [ ] `struct_POI`
+    - [ ] `struct_net`
+   
+- [ ] *Add*: 
+    - [ ] `member_comid`
+   
+- [ ] *Change*:
+    - [ ] `COMID` --> `id`
+    - [ ] `toCOMID` --> `toid`
+    - [ ] `TotDASqKM` --> `tot_draiange_areasqkm`
+    - [ ] `LevelPathI` -->  `mainstem`
+    - [ ] `StreamOrd` --> order
+    
+## Refactor
+
+### Exisiting Refactor Fabric
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+rf = get_hydrofabric(VPU = "01", "refactor", dir = '/Volumes/Transcend/ngen/CONUS-hydrofabric/')
+
+db <- dbConnect(RSQLite::SQLite(), rf)
+
+OG = dm_from_con(db, learn_keys = FALSE)[c(st_layers(rf)$name)] %>% 
+  dm_select(refactored_flowpaths, -fid) %>% 
+  dm_select(mapped_POIs, -fid) %>% 
+  dm_select(catchment_network, -fid) %>% 
+  dm_select(refactored_divides, -fid) %>% 
+  dm_select(lookup_table, -fid)  %>% 
+  dm_set_colors(red = refactored_flowpaths, 
+                orange = refactored_divides,
+                green = lookup_table, 
+                yellow = mapped_POIs,
+                violet = catchment_network
+  )
+
+
+dm_draw(OG, view_type = "all", rank = "RL", column_types = TRUE) 
+
+```
+
+### Idealized Refactored Fabric
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+dm = dm::dm(lookup_table = hf$lookup_table,
+            flowpaths = mutate(hf$reference_flowlines, wbareacomi_ = NULL),
+            mapped_POIs = hf$mapped_POIs,
+            divides = hf$reference_catchments,
+            network = mutate(hf$reference_network, wbareacomi_ = NULL)) %>% 
+
+dm_add_pk(flowpaths, id)  %>% 
+  dm_add_pk(mapped_POIs, poi_id)  %>% 
+  dm_add_pk(network, id)  %>% 
+  dm_add_pk(divides, divide_id) %>% 
+  dm_add_pk(lookup_table, id) %>% 
+  
+  dm_add_fk(flowpaths,  poi_id, mapped_POIs) %>% 
+  dm_add_fk(flowpaths,  divide_id, divides) %>% 
+  
+  dm_add_fk(mapped_POIs,  id, network) %>% 
+  dm_add_fk(lookup_table,  id, network) %>% 
+  dm_add_fk(lookup_table,  id, flowpaths) %>% 
+  dm_add_fk(flowpaths,  id, network) %>% 
+  dm_add_fk(lookup_table,  divide_id, divides) %>% 
+  dm_add_fk(lookup_table,  poi_id, mapped_POIs) %>% 
+  dm_set_colors(red = flowpaths, 
+                orange = divides,
+                green = lookup_table, 
+                yellow = mapped_POIs,
+                violet = network)
+
+
+#dm_draw(dm,  rank = "RL", column_types = TRUE)
+
+
+dm_draw(dm, view_type = "all", rank = "RL", column_types = TRUE)
+
+```
+
+### Required Changes: 
+
+
+#### 1. mapped_POIs
+
+ - Change all names to lower case
+ 
+ - *Remove*:
+    - `toid`, `set`, `comid`, `member_COMID`, `TotDASqKM`, `DnHydroseq`,`type`, `member_COMID`
+   
+ - *Add*: 
+    - NA
+    
+ - *Change*:
+    - `identifier` --> `poi_id`
+    - `geom` --> `geometry`
+    
+#### 2. Lookup Table
+
+ - Change all names to lower case
+ 
+ - *Remove*:
+    - member_COMID
+   
+   
+ - *Add*: 
+    - `NHDPlusV2_COMID_part`
+    - `divide_id`
+    - `POI_ID`
+    - `POI_TYPE`
+    - `POI_VALUE`
+    
+    
+ - *Change*:
+    - `reconciled_ID` --> `id`
+    - `LevelPathID` --> `mainstem`
+    
+#### 3.  Network
+
+- Change all names to lower case
+ 
+ - *Remove*:
+   - NA
+   
+ - *Add*: 
+    - `hydroseq`, `tot_drainage_areasqkm`, `divide_id`
+   
+ - *Change*:
+    - `levelpathid` --> `mainstem`
+    
+#### 4. divides 
+
+- Change all names to lower case
+- change table name to `reference_divides`
+ 
+ - *Remove*:
+   - `rpu`, `member_COMID`
+   
+ - *Add*: 
+  - `type`, `toid`
+   
+ - *Change*:
+    - `ID` --> `divide_id`
+    
+#### 5. Reference Flowlines
+
+- Change all names to lower case
+ 
+ - *Remove*:
+  - `refactor_id`
+   
+   
+ - *Add*: 
+    - gnis_id, gnis_name, hydroseq order, slope, areasqkm, poi_id, divide_id
+   
+ - *Change*:
+    - `TotDASqKM` --> `tot_draiange_areasqkm`
+    - `LevelPathID` -->  `mainstem`
+    
+## Minimal
+
+### Exisiting Minimal Fabric
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+rm = get_hydrofabric(VPU = "01", "minimal", dir = '/Volumes/Transcend/ngen/CONUS-hydrofabric/', overwrite = FALSE)
+
+db <- dbConnect(RSQLite::SQLite(), rm)
+
+OG = dm_from_con(db, learn_keys = FALSE)[c(st_layers(rm)$name)] %>% 
+  dm_select(aggregated_flowpaths, -fid) %>% 
+  dm_select(mapped_POIs, -fid) %>% 
+  dm_select(catchment_network, -fid) %>% 
+  dm_select(aggregated_divides, -fid) %>% 
+  dm_select(lookup_table, -fid)  %>% 
+  dm_set_colors(red = aggregated_flowpaths, 
+                orange = aggregated_divides,
+                green = lookup_table, 
+                yellow = mapped_POIs,
+                violet = catchment_network
+  )
+
+dm_draw(OG, view_type = "all", rank = "RL", column_types = TRUE) 
+```
+
+### Idealized Minimal Fabric
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+dm = dm::dm(lookup_table = hf$lookup_table,
+            flowpaths = mutate(hf$reference_flowlines, wbareacomi_ = NULL),
+            mapped_POIs = hf$mapped_POIs,
+            divides = hf$reference_catchments,
+            network = mutate(hf$reference_network, wbareacomi_ = NULL)) %>% 
+
+dm_add_pk(flowpaths, id)  %>% 
+  dm_add_pk(mapped_POIs, poi_id)  %>% 
+  dm_add_pk(network, id)  %>% 
+  dm_add_pk(divides, divide_id) %>% 
+  dm_add_pk(lookup_table, id) %>% 
+  
+  dm_add_fk(flowpaths,  poi_id, mapped_POIs) %>% 
+  dm_add_fk(flowpaths,  divide_id, divides) %>% 
+  
+  dm_add_fk(mapped_POIs,  id, network) %>% 
+  dm_add_fk(lookup_table,  id, network) %>% 
+  dm_add_fk(lookup_table,  id, flowpaths) %>% 
+  dm_add_fk(flowpaths,  id, network) %>% 
+  dm_add_fk(lookup_table,  divide_id, divides) %>% 
+  dm_add_fk(lookup_table,  poi_id, mapped_POIs) %>% 
+  dm_set_colors(red = flowpaths, 
+                orange = divides,
+                green = lookup_table, 
+                yellow = mapped_POIs,
+                violet = network)
+
+
+dm_draw(dm, view_type = "all", rank = "RL", column_types = TRUE)
+
+```
+
+## Uniform
+
+### Exisiting Uniform Fabric
+
+```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+rm = '/Volumes/Transcend/ngen/CONUS-hydrofabric/pre-release/global_uniform_01.gpkg'
+
+db <- dbConnect(RSQLite::SQLite(), rm)
+
+OG = dm_from_con(db, learn_keys = FALSE)[c(st_layers(rm)$name)] %>% 
+  dm_select(flowpaths, -fid) %>% 
+  dm_select(mapped_POIs, -fid) %>% 
+  dm_select(flowpath_edge_list, -fid) %>% 
+  dm_select(divides, -fid) %>% 
+  dm_select(lookup_table, -fid)  %>% 
+  dm_set_colors(red = flowpaths, 
+                orange = divides,
+                green = lookup_table, 
+                yellow = mapped_POIs,
+                violet = flowpath_edge_list
+  )
+
+dm_draw(OG, view_type = "all", rank = "RL", column_types = TRUE) 
+```
+
+### Idealized Minimal Fabric
