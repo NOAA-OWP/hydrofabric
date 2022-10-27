@@ -216,33 +216,55 @@ dm_draw(dm, view_type = "all", rank = "LR", column_types = TRUE)
     - [ ]  `AREASQKM`
     - [ ]  `MeanDUsed`
     - [ ]  `MeanDCode`
+    - [ ]  `ELEVATION`  
+    - [ ]  `MeanDepth`  
+    - [ ]  `LakeVolume`
+    - [ ]  `MaxDepth`  
     
 - [ ] *Change*:
-    - [ ] `ELEVATION`  --> `wb_elevation`
-    - [ ] `MeanDepth`  --> `wb_mean_depth`
-    - [ ] `LakeVolume` --> `wb_lake_volume`
-    - [ ] `MaxDepth`   --> `wb_max_depth`
+
     - [ ] `LakeArea`   --> `wb_lake_area`
     - [ ] `source`     --> `wb_source`
     - [ ] `geom`       --> `geometry`
     
 #### 2. mapped_POIs
 
-- [ ] Change table name from to `mapped_POIs`
-- [ ]  Change all names to lower case
+- [ ] Change table name to `POIs`
+- [ ] Change all names to lower case
  
+ - [ ] *Remove*:
+    - [ ] `Type_HUC12`
+    - [ ] `Type_Gages`     
+    - [ ] `Type_TE`  
+    - [ ] `Type_HUC12`
+    - [ ] `Type_Gages`     
+    - [ ] `Type_TE`  
+    - [ ] `Type_NID`
+    - [ ] `Type_WBIn`     
+    - [ ] `Type_WBOut`  
+    - [ ] `Type_Conf`
+    - [ ] `Type_Term`     
+    - [ ] `Type_Elev`  
+    - [ ] `Type_Travel`
+    - [ ] `nexus`     
+    - [ ] `snapped`  
+    
 - [ ] *Change*:
     - [ ] `Identifier` --> `poi_id`
     - [ ] `COMID`      --> `id`
     - [ ] `geom`       --> `geometry`
+    
 
 #### 3. Lookup Table
 
 - [ ]  Change all names to lower case
  
 - [ ] *Add*: 
-    - [ ] `NHDPlusV2_COMID_part` (always 1)
+    - [ ] `hf_source` (equals NHDPlusV2)
+    - [ ] `hf_id_part` (always 1)
+    - [ ] `hf_id` (equals COMID in reference)
     - [ ] `id` (equals COMID in reference)
+    - [ ] `wbareacomi`
     
 - [ ] *Change*:
     - [ ] `value` --> `poi_value`
@@ -270,6 +292,8 @@ dm_draw(dm, view_type = "all", rank = "LR", column_types = TRUE)
    
 - [ ] *Add*: 
     - [ ] `divide_id`
+    - [ ] `poi_id`
+    - [ ] `wbareacomi`
    
 - [ ] *Change*:
     - [ ] `comid` --> `id`
@@ -289,7 +313,8 @@ dm_draw(dm, view_type = "all", rank = "LR", column_types = TRUE)
     - [ ] `full_cats`
    
 - [ ] *Add*: 
-    - [ ] `type`
+    - [ ] `divide_type`
+    
    
 - [ ] *Change*:
     - [ ] `FEATUREID` --> `divide_id`
@@ -299,7 +324,7 @@ dm_draw(dm, view_type = "all", rank = "LR", column_types = TRUE)
     
 #### 6. Flowlines
 
-- [ ] Change table name to `flowpaths`
+- [ ] Change table name to `flowpaths` (?)
 - [ ] Change all names to lower case
  
 - [ ] *Remove*:
@@ -335,9 +360,6 @@ dm_draw(dm, view_type = "all", rank = "LR", column_types = TRUE)
     - [ ] `poi`
     - [ ] `struct_POI`
     - [ ] `struct_net`
-   
-- [ ] *Add*: 
-    - [ ] `member_comid` (equal to id here)
    
 - [ ] *Change*:
     - [ ] `COMID` --> `id`
@@ -401,6 +423,7 @@ dm_draw(dm, view_type = "all", rank = "RL", column_types = TRUE)
 #### 1. mapped_POIs
 
 - [ ] Change all names to lower case
+- [ ] change table name to POIs
  
 - [ ] *Remove*:
     - [ ] `toid`
