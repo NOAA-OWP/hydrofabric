@@ -14,9 +14,14 @@ pacman::p_load(terra, tidyterra, sf, ggplot2, dplyr, opendap.catalog, nhdplusToo
 
 path = '/Users/mjohnson/Downloads/GF_01.gpkg'
 
-xx = filter(read_sf(path, 'mapped_POIs'), !is.na(Type_Gages))
+# xx = filter(read_sf(path, 'mapped_POIs'), !is.na(Type_Gages))
+# 
+# origin = xx$ID[1]
 
-origin = xx$ID[1]
+origin = read_sf(path, 'mapped_POIs') %>% 
+filter(identifier == 1142) %>% 
+  pull(ID)
+
 flowpath_edgelist = 'catchment_network'
 flowpath_name     = 'aggregated_flowpaths'
 catchment_name    = 'aggregated_divides'
@@ -156,7 +161,9 @@ ggplot() +
 Similar to Figure 1, but emphasize a buffer around flowpaths rather than the aggregate catchment boundaries.
 
 ```{r, echo = FALSE}
-tmp = inputs$divides[9,]
+
+#mapview::mapview(inputs$divides) + inputs$flowpaths
+tmp = inputs$divides[7,]
 tmp_fl = filter(inputs$flowpaths, ID == tmp$ID)
 tmp_elev = mask(crop(inputs$elev, vect(tmp)),vect(tmp))
 
@@ -198,31 +205,108 @@ tbl2 <- tableGrob(df2, rows=NULL, theme=tt2)
 grid.arrange(g1, tbl2, ncol = 2, widths = c(5,5))
 ```
 
-# River Location
 
-Similar figure 1 to above but with a fish sample, a water quality sample, and a velocity measurement on a diverted channel.
-
-# Flowlines
-
-Show the distributary system of flowlines with one primary flowpath flowing from catchment inlet to outlet.
 
 ```{r, echo = FALSE}
-flowlines = st_intersection(get_nhdplus(AOI = tmp), tmp)
 
-pts = bind_rows(get_node(tmp_fl, "start"), get_node(tmp_fl, "end")) 
-pts$Type = c("Inlet", "Outlet")
+path = '/Users/mjohnson/Downloads/GF_02.gpkg'
+
+origin = 10002405
+origin2 = 10004177
+
+net = read_sf(path, flowpath_edgelist) %>% 
+   select(ID = id, toID = toid)
+
+y = 2
+
+trace  = bind_rows(tail(get_sorted(net, outlets = origin), y), 
+                   tail(get_sorted(net, outlets = origin2), y))
  
+
+ids = unique(unlist(trace))
+
+fl_inputs = list()
+
+fl_inputs[['flowpaths']] = filter(read_sf(path,  flowpath_name),  ID %in% ids) %>% 
+  select(-toID) %>% 
+  left_join(trace, by = "ID") %>% 
+  mutate(toid = ifelse(is.na(toID), 0, toID))
+
+fl_inputs[['divides']]   = suppressWarnings({
+  filter(read_sf(path,  catchment_name), ID %in% fl_inputs$flowpaths$ID) 
+})
+
+fl_inputs[['pois']] = read_sf(path, 'mapped_POIs')[fl_inputs$divides, ]
+
+dem = '/vsis3/nextgen-hydrofabric/dem.vrt'
+
+fl_inputs[['elev']] = dap(URL = dem, AOI = fl_inputs$divides) %>% mask(vect(fl_inputs$divides))
+
+fl_inputs[['og_fl']] = st_intersection(get_nhdplus(AOI = st_union(fl_inputs$divides)), fl_inputs$divides)
+
+```
+
+# Flowlines 
+
+```{r, echo = FALSE}
 ggplot() +
-  geom_spatraster(data = tmp_elev, alpha = .4) +
+  geom_spatraster(data = fl_inputs$elev, alpha = .4) +
   scale_fill_distiller(type = "seq",
                        na.value = "white",
                        direction = -1,
                        palette = "Greys", guide = "none") +
-  geom_sf(data = tmp, fill = NA, lwd = 1) + 
-  geom_sf(data = flowlines, color = "blue", lwd = 1) + 
-  geom_sf(data = tmp_fl, color = "navy", lwd = 2) +
-  geom_sf(data = pts, aes(color = Type), size = 5) + 
-  labs(color = "Flowpath Position") +
+  geom_sf(data = fl_inputs$divides, fill = NA, lwd = .8) + 
+  geom_sf(data = fl_inputs$og_fl, color = "red", lwd = .5) + 
+  geom_sf(data = fl_inputs$flowpaths, color = "blue", lwd = .8) +
+    geom_sf(data = fl_inputs$pois, color = "black", size = 5) + 
+  geom_sf(data = fl_inputs$pois, color = "darkgreen", size = 4) + 
+  theme_void() + 
+  theme(legend.position="bottom")
+```
+
+# Flow network Location
+
+Similar to flowline figure but with a fish sample, a water quality sample, and a velocity measurement on a diverted channel.
+
+```{r, echo = FALSE}
+div_id = 22741689
+
+hucs  = select(mutate(filter(fl_inputs$pois, !is.na(Type_HUC12)), Type = "HUC12"), Type) %>% 
+  rename_geometry("geometry")
+
+fish_sample = filter(fl_inputs$og_fl, comid != div_id) %>% 
+  st_union() %>% 
+  st_line_merge() %>% 
+  st_cast("LINESTRING") %>% 
+  st_as_sf() %>% 
+  sample_n(2) %>% 
+  st_line_sample(1) %>% 
+  st_cast("POINT")  %>% 
+  st_as_sf() %>% 
+  mutate(Type = "Fish Sample") %>% 
+  rename_geometry("geometry")
+
+vel = filter(fl_inputs$og_fl, comid == div_id) %>% 
+  st_line_sample(1) %>% 
+  st_as_sf() %>% 
+  mutate(Type = "Velocity Measurement") %>% 
+  rename_geometry("geometry")
+
+pts = bind_rows(hucs, fish_sample, vel) %>% 
+  st_cast("POINT")
+
+ggplot() +
+  geom_spatraster(data = fl_inputs$elev, alpha = .4) +
+  scale_fill_distiller(type = "seq",
+                       na.value = "white",
+                       direction = -1,
+                       palette = "Greys", guide = "none") +
+  geom_sf(data = fl_inputs$divides, fill = NA, lwd = .8, guide = "none") + 
+  geom_sf(data = fl_inputs$og_fl, color = "red", lwd = .5, guide = "none") + 
+  geom_sf(data = fl_inputs$flowpaths, color = "blue", lwd = .8, guide = "none") +
+  geom_sf(data = pts, color = "black", size = 3) + 
+  geom_sf(data = pts, aes(color = Type), size = 2) + 
+  labs(color = "Hydrolocation Type") +
   theme_void() + 
   theme(legend.position="bottom")
 ```

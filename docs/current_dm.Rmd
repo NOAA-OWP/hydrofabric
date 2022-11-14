@@ -140,7 +140,6 @@ dm = dm::dm(hydrolocation_lookup = hf_dm$hydrolocation_lookup,
                 red = WB, 
                 gray = network)
 
-
 df = data.frame(names = names(unlist(hf_dm))) %>% 
              tidyr::separate(names, sep = "[.]", into  = c('layer', 'Attribute')) %>% 
   group_by(Attribute) %>% 
