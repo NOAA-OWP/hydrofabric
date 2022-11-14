@@ -233,7 +233,8 @@ fl_inputs[['flowpaths']] = filter(read_sf(path,  flowpath_name),  ID %in% ids) %
   mutate(toid = ifelse(is.na(toID), 0, toID))
 
 fl_inputs[['divides']]   = suppressWarnings({
-  filter(read_sf(path,  catchment_name), ID %in% fl_inputs$flowpaths$ID) 
+  filter(read_sf(path,  catchment_name), ID %in% fl_inputs$flowpaths$ID)  %>% 
+    select(ID)
 })
 
 fl_inputs[['pois']] = read_sf(path, 'mapped_POIs')[fl_inputs$divides, ]
@@ -244,24 +245,53 @@ fl_inputs[['elev']] = dap(URL = dem, AOI = fl_inputs$divides) %>% mask(vect(fl_i
 
 fl_inputs[['og_fl']] = st_intersection(get_nhdplus(AOI = st_union(fl_inputs$divides)), fl_inputs$divides)
 
+
+bb = st_bbox(filter(fl_inputs$og_fl, comid == 22741689) %>% 
+               st_buffer(2000))
+
 ```
 
 # Flowlines 
 
 ```{r, echo = FALSE}
-ggplot() +
+library(patchwork)
+g1 = ggplot() +
   geom_spatraster(data = fl_inputs$elev, alpha = .4) +
   scale_fill_distiller(type = "seq",
                        na.value = "white",
                        direction = -1,
                        palette = "Greys", guide = "none") +
   geom_sf(data = fl_inputs$divides, fill = NA, lwd = .8) + 
-  geom_sf(data = fl_inputs$og_fl, color = "red", lwd = .5) + 
-  geom_sf(data = fl_inputs$flowpaths, color = "blue", lwd = .8) +
-    geom_sf(data = fl_inputs$pois, color = "black", size = 5) + 
-  geom_sf(data = fl_inputs$pois, color = "darkgreen", size = 4) + 
+  geom_sf(data = fl_inputs$og_fl, aes(color = "Flowlines"), lwd = .5) + 
+  geom_sf(data = fl_inputs$flowpaths, aes(color = "Flowpaths"), lwd = .8) +
+  scale_color_manual(labels = c("Flowlines", "Flowpaths"),
+                     values = c("red", "blue")) +
+  labs(color = "Network Type") +
+  geom_sf(data = st_as_sf(st_as_sfc(bb)), fill  = NA, lwd = 1) + 
+  # geom_sf(data = fl_inputs$pois, color = "black", size = 3) + 
+  # geom_sf(data = fl_inputs$pois, color = "darkgreen", size = 2) +
   theme_void() + 
-  theme(legend.position="bottom")
+  theme(legend.position="bottom") 
+
+
+g2 = ggplot() +
+  geom_spatraster(data = fl_inputs$elev, alpha = .4) +
+  scale_fill_distiller(type = "seq",
+                       na.value = "white",
+                       direction = -1,
+                       palette = "Greys", guide = "none") +
+  geom_sf(data = fl_inputs$divides, fill = NA, lwd = .8) + 
+  geom_sf(data = fl_inputs$og_fl, aes(color = "Flowlines"), lwd = .5) + 
+  geom_sf(data = fl_inputs$flowpaths, aes(color = "Flowpaths"), lwd = .8) +
+  scale_color_manual(labels = c("Flowlines", "Flowpaths"),
+                     values = c("red", "blue")) +
+  labs(color = "Network Type") +
+  coord_sf(xlim = c(bb$xmin, bb$xmax), # min & max of x values
+           ylim = c(bb$ymin, bb$ymax)) +
+  theme_void() + 
+  theme(legend.position="none")
+
+g1 + g2
 ```
 
 # Flow network Location
@@ -274,39 +304,50 @@ div_id = 22741689
 hucs  = select(mutate(filter(fl_inputs$pois, !is.na(Type_HUC12)), Type = "HUC12"), Type) %>% 
   rename_geometry("geometry")
 
-fish_sample = filter(fl_inputs$og_fl, comid != div_id) %>% 
+fish_sample = st_filter(fl_inputs$og_fl, st_as_sfc(bb)) %>% 
+  filter(comid != div_id) %>% 
   st_union() %>% 
   st_line_merge() %>% 
   st_cast("LINESTRING") %>% 
   st_as_sf() %>% 
-  sample_n(2) %>% 
+  sample_n(3) %>% 
   st_line_sample(1) %>% 
   st_cast("POINT")  %>% 
   st_as_sf() %>% 
   mutate(Type = "Fish Sample") %>% 
   rename_geometry("geometry")
 
-vel = filter(fl_inputs$og_fl, comid == div_id) %>% 
-  st_line_sample(1) %>% 
+div = filter(fl_inputs$og_fl, comid == div_id) %>% 
+  st_line_sample(n = 2) %>% 
+  st_cast("POINT") %>% 
   st_as_sf() %>% 
-  mutate(Type = "Velocity Measurement") %>% 
+  mutate(Type = c("Fish Sample", "Velocity Measurement")) %>% 
   rename_geometry("geometry")
 
-pts = bind_rows(hucs, fish_sample, vel) %>% 
+pts = bind_rows(hucs, fish_sample, div) %>% 
   st_cast("POINT")
 
-ggplot() +
+
+g2 = ggplot() +
   geom_spatraster(data = fl_inputs$elev, alpha = .4) +
   scale_fill_distiller(type = "seq",
                        na.value = "white",
                        direction = -1,
                        palette = "Greys", guide = "none") +
-  geom_sf(data = fl_inputs$divides, fill = NA, lwd = .8, guide = "none") + 
-  geom_sf(data = fl_inputs$og_fl, color = "red", lwd = .5, guide = "none") + 
-  geom_sf(data = fl_inputs$flowpaths, color = "blue", lwd = .8, guide = "none") +
+  geom_sf(data = fl_inputs$divides, fill = NA, lwd = .8) + 
+  geom_sf(data = fl_inputs$og_fl, aes(color = "Flowlines"), lwd = .5) + 
+  geom_sf(data = fl_inputs$flowpaths, aes(color = "Flowpaths"), lwd = .8) +
+  scale_color_manual(labels = c("Flowlines", "Flowpaths"),
+                     values = c("red", "blue")) +
+  labs(color = "Network Type") +
+  ggnewscale::new_scale_color() +
   geom_sf(data = pts, color = "black", size = 3) + 
   geom_sf(data = pts, aes(color = Type), size = 2) + 
   labs(color = "Hydrolocation Type") +
+  coord_sf(xlim = c(bb$xmin, bb$xmax), # min & max of x values
+           ylim = c(bb$ymin, bb$ymax)) +
   theme_void() + 
-  theme(legend.position="bottom")
+  theme(legend.position="right") 
+
+g2
 ```
