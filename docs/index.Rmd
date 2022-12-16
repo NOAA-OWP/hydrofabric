@@ -1,5 +1,5 @@
 ---
-title: "NextGen Hydrofabric"
+title: "The NOAA Next Generation Water Resources Modeling Framework Hydrofabric"
 output:
   html_document:
     includes: 
@@ -39,13 +39,17 @@ output:
 ```{r, echo = F, message = FALSE, warning=FALSE}
 library(dplyr)
 library(leaflet)
+library(DT)
 ```
 
-```{r, echo = FALSE, message = FALSE, warning=FALSE}
+```{r, echo = FALSE, message = FALSE, warning=FALSE, eval = FALSE}
 
 current_version = 'v1.0'
 
-meta = data.frame(path = list.files('/Volumes/Transcend/ngen/CONUS-hydrofabric/nextgen',full.name = TRUE, pattern = "gpkg$")) %>% 
+path = '/Volumes/Transcend/ngen/CONUS-hydrofabric/pre-release/nextgen'
+
+meta = data.frame(path = list.files(path,full.name = TRUE, pattern = "gpkg$")) %>% 
+  filter(!grepl("_ext", path)) %>% 
   mutate(file = basename(path),
          v = gsub(".gpkg", "", gsub("nextgen_", "", file)),
          gpkg_link = glue::glue('https://nextgen-hydrofabric.s3.amazonaws.com/{current_version}/nextgen_{v}.gpkg'),
@@ -59,6 +63,7 @@ for(i in 1:nrow(meta)){
   t = sf::st_layers(meta$path[i])
   meta$flowpaths[i] =  prettyNum(t$features[which(t$name == "flowpaths")],big.mark=",",scientific=FALSE)
   meta$divides[i] =  prettyNum(t$features[which(t$name == "divides")],big.mark=",",scientific=FALSE)
+  meta$hydrolocations[i] =  prettyNum(t$features[which(t$name == "hydrolocations")],big.mark=",",scientific=FALSE)
   meta$nexus[i] =  prettyNum(t$features[which(t$name == "nexus")],big.mark=",",scientific=FALSE)
   meta$size[i] = paste0(round(file.size(meta$path[i]) / 1e6, 2), " Mb")
 }
@@ -86,7 +91,7 @@ bbox = as.numeric(sf::st_bbox(vpus))
 
 ## What is it?
 
-Next Generation Modeling Framework (NextGen) hydrofabric artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits. They are generated from a set of national reference datasets built in collaboration between the USGS and NOAA for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.
+Next Generation Modeling Framework (NextGen) hydrofabric artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits. They are generated from a set of national reference datasets built in collaboration between NOAA, the USGS, and Lynker for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.
 
 ::: {#hello .blackbox .left}
 **Citation**: 
@@ -98,12 +103,10 @@ Johnson, J. M. (2022). National Hydrologic Geospatial Fabric (hydrofabric) for t
 
 ## How do I get it?
 
-NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU two artifacts are available:
- 
-  - a geopackage that contains all tables, spatial data, and lookups relvant to a hydrofabric logical model
-  - a zip folder containing the files needed to run the [Next Generation (NextGen) Water Modelling Framework](https://github.com/NOAA-OWP/ngen).
+NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relvant to a hydrofabric data model 
 
-These can be programatically accessed using the respective URL patterns:
+
+These can be browsed [here](https://nextgen-hydrofabric.s3.amazonaws.com/index.html), or, programatically accessed using the respective URL patterns:
 
 ### s3
 
@@ -112,19 +115,9 @@ s3://nextgen-hydrofabric/{version}/nextgen_{VPU}.gpkg
 s3://nextgen-hydrofabric/{version}/nextgen_{VPU}.zip
 ```
 
-### https
-```r
-https://nextgen-hydrofabric.s3.amazonaws.com/{version}/nextgen_{VPU}.gpkg
-https://nextgen-hydrofabric.s3.amazonaws.com/{version}/nextgen_{VPU}.zip
-```
-
-Right now only version `v1.0` is available!
-
-## Interactive Viewer
-
 <center>
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, eval = FALSE}
 #pal <- colorNumeric("BuPu", domain  = AOI$count, n = 10)
   
 leaflet(width='100%') %>% 
@@ -142,7 +135,7 @@ leaflet(width='100%') %>%
 
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, eval = FALSE}
 library(DT)
 
 getTotal <- function(index, data){
@@ -166,6 +159,7 @@ m = meta %>%
 
 
 m = rbind(m, sapply(1:ncol(m), function(x){ getTotal(x, m) }))
+m[nrow(m), ncol(m)] = paste0(round(as.numeric(gsub(",", "", m[nrow(m), ncol(m)])) / 1000, 2), " GB")
 
   DT::datatable(m, escape = FALSE, width="100%",  filter = "none", 
                   rownames = T,
@@ -174,7 +168,7 @@ m = rbind(m, sapply(1:ncol(m), function(x){ getTotal(x, m) }))
                               scrollCollapse = T,
                               dom = 'lftp',
                               columnDefs = list(list(visible = F, targets = 0)))) %>% 
-  formatStyle(0, target = "row", fontWeight = styleEqual(dim(m)[1], "bold"))
+  DT::formatStyle(0, target = "row", fontWeight = styleEqual(dim(m)[1], "bold"))
 
   
 
@@ -183,26 +177,24 @@ m = rbind(m, sapply(1:ncol(m), function(x){ getTotal(x, m) }))
 
 :::{ .main-container}
 
-# Gridded Resources
-
-The following resources are made available as VRTs
-
-- `DEM`: Digital elevation Model (cm)
-- `hydroDEM`: Hydro Conditioned DEM
-- `TWI`: Topographic Wetness Index 
 
 # A resource built on collaboration
 
-The NextGen artifacts are a _model application_ dataset built to meet the aims of NextGen. By design, these artifacts are derived from a set of general authorative data products outlined in figure 1 that have been built in close collaboration with colleagues at the USGS (Dave Blodgett and Andy Bock). 
+The NextGen artifacts are a _model application_ dataset built to meet the aims of [NextGen](https://github.com/NOAA-OWP/ngen). By design, these artifacts are derived from a set of general authoritative data products outlined in figure 1 that have been built in close collaboration with the USGS. 
 
 ```{r, fig.align='center', echo = FALSE, fig.cap="Figure 1"}
 knitr::include_graphics("../man/figures/roadmap.png")
 ```
 
-These include a set of base data that improves the network topology and geometry validity while defining a set of community points of interest (POI).  These 4 data products are used to build an intermediate refactored network from which one hydrofabric network has been aggregated to a set of community POIs (minimal network), and one has been aggregated to a more consistent size (3-10 sqkm) with enforced POI locations (uniform). NextGen specifically is derived from the uniform size aggregated product while the upcoming developments on the [National Hydrologic Model (NHM)](https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure) will be built from the community minimal network. While these two aggregations serve a wide range of federal modeling needs, our focus on open source software development and workflows  allow interested parties to build there own networks starting with either the 4 reference datasets, or the refactored network!
+These include a set of base data that improves the network topology and geometry validity while defining a set of community hydrolocations (POIs). These 4 data products are used to build an intermediate refactored network from which one hydrofabric network has been aggregated to a set of community hydrolocations (minimal network), and one has been aggregated to a more consistent size (3-10 sqkm) with enforced POI locations (target distribution). NextGen specifically is derived from the target size aggregated product while the upcoming developments on the [National Hydrologic Model (NHM)](https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure) will be built from the community minimal network. While these two aggregations serve a wide range of federal modeling needs, our focus on open source software development and workflows allow interested parties to build there own networks starting with either the 4 reference datasets, or the refactored network!
 
-The reference, refactor, minimal, and uniform hydrofabrics can all be accessed [here](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b).
+# Resources
 
+- The hydrofabric builds on the OGC [HY_Features conceptual model](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html), the in prep [Hydrofabric Logical model](http://bl.ocks.org/dblodgett-usgs/raw/5856fece659d1c42f20e4994ed88c92f/?raw=true#_executive_summary), and the proposed [Hydrofabric Data Model](https://noaa-owp.github.io/hydrofabric/current_dm.html).
+
+- The base software for general hydrofabric development is based on [nhdplusTools](https://github.com/DOI-USGS/nhdplusTools) and [hydrofab](https://github.com/mikejohnson51/hydrofab). The tools for extending these to be NextGen ready are found at [ngen.hydrofab](https://github.com/mikejohnson51/ngen.hydrofab).
+
+- The reference, refactor, minimal, and target hydrofabrics can all be accessed [here](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b). A high level introduction to these resources can be found on the [USGS Water Data blog](https://waterdata.usgs.gov/blog/hydrofabric/).
 
 <br>
 <br>
