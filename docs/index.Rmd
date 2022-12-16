@@ -40,9 +40,10 @@ output:
 library(dplyr)
 library(leaflet)
 library(DT)
+eval = TRUE
 ```
 
-```{r, echo = FALSE, message = FALSE, warning=FALSE, eval = FALSE}
+```{r, echo = FALSE, message = FALSE, warning=FALSE, eval = eval}
 
 current_version = 'v1.0'
 
@@ -117,7 +118,7 @@ s3://nextgen-hydrofabric/{version}/nextgen_{VPU}.zip
 
 <center>
 
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo = FALSE, eval = eval}
 #pal <- colorNumeric("BuPu", domain  = AOI$count, n = 10)
   
 leaflet(width='100%') %>% 
@@ -135,7 +136,7 @@ leaflet(width='100%') %>%
 
 ```
 
-```{r, echo = FALSE, eval = FALSE}
+```{r, echo = FALSE, eval = eval}
 library(DT)
 
 getTotal <- function(index, data){
