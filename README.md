@@ -50,7 +50,7 @@ library(hydrofabric)
     “fabricating” multiscale hydrofabrics
 -   [ngen.hydrofab](https://github.com/mikejohnson51/ngen.hydrofab)
     Nextgen extensions for hydrofab
--   [opendap.catalog](https://github.com/mikejohnson51/opendap.catalog)
+-   [climateR](https://github.com/mikejohnson51/climateR)
     for accessing remote data resources for parameter and attributes
     estimation
 -   [zonal](https://github.com/mikejohnson51/zonal) for catchment

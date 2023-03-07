@@ -1,6 +1,6 @@
 Package: hydrofabric
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
@@ -21,7 +21,7 @@ Imports:
     hydrofab,
     ngen.hydrofab,
     zonal,
-    opendap.catalog,
+    climateR,
     purrr,
     magrittr
 Remotes: 
@@ -29,7 +29,7 @@ Remotes:
     mikejohnson51/hydrofab,
     mikejohnson51/ngen.hydrofab,
     mikejohnson51/zonal,
-    mikejohnson51/opendap.catalog
+    mikejohnson51/climateR
 Suggests:
     knitr 
 VignetteBuilder: 

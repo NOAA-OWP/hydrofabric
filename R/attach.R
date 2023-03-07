@@ -1,6 +1,6 @@
 core <- c("nhdplusTools", 
           "hydrofab", "ngen.hydrofab", 
-          "zonal", "opendap.catalog")
+          "zonal", "climateR")
 
 core_unloaded <- function() {
   search <- paste0("package:", core)
@@ -20,6 +20,7 @@ same_library <- function(pkg) {
 
 hydrofabric_attach <- function() {
   to_load <- core_unloaded()
+  
   if (length(to_load) == 0)
     return(invisible())
   
