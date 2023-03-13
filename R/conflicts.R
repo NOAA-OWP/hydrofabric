@@ -13,6 +13,7 @@ ls_env <- function(env) { ls(pos = env) }
 #' @export
 #' @examples
 #' hydrofabric_conflicts()
+
 hydrofabric_conflicts <- function() {
   
   envs <- grep("^package:", base::search(), value = TRUE)

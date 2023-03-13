@@ -16,3 +16,9 @@ hydrofabric_attach()
 is_attached <- function(x) {
   paste0("package:", x) %in% search()
 }
+
+
+
+#' Hydrofabric Data Model
+#' 
+'hf_dm'
