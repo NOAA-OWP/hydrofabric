@@ -1,6 +1,5 @@
-core <- c("nhdplusTools", 
-          "hydrofab", "ngen.hydrofab", 
-          "zonal", "climateR")
+core <- c("dplyr",  "terra",  "ngen.hydrofab","climateR",  
+          "sf", "nhdplusTools",  "hydrofab","zonal", "glue")
 
 core_unloaded <- function() {
   search <- paste0("package:", core)
@@ -21,8 +20,7 @@ same_library <- function(pkg) {
 hydrofabric_attach <- function() {
   to_load <- core_unloaded()
   
-  if (length(to_load) == 0)
-    return(invisible())
+  if (length(to_load) == 0) { return(invisible()) }
   
   msg(
     cli::rule(

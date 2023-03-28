@@ -23,12 +23,27 @@ hydrofabric_conflicts <- function() {
   conflicts <- purrr::keep(objs, ~ length(.x) > 1)
   
   tidy_names <- paste0("package:", hydrofabric_packages())
+  tidy_names = tidy_names[tidy_names != "package:hydrofabric"]
   conflicts <- purrr::keep(conflicts, ~ any(.x %in% tidy_names))
+
   
   conflict_funs <- purrr::imap(conflicts, confirm_conflict)
   conflict_funs <- purrr::compact(conflict_funs)
   
-  structure(conflict_funs, class = "hydrofabric_conflicts")
+  c = lapply(1:length(conflict_funs), function(x){
+    conflict_funs[[x]] = conflict_funs[[x]][!conflict_funs[[x]] %in% 
+                                              c("package:hydrofabric", 
+                                                "package:base",
+                                                'package:stats',
+                                                'package:graphics',
+                                                'package:utils',
+                                                'package:grDevices')]
+  })
+  
+  names(c) = names(conflict_funs)
+  c = c[lengths(c) > 1]
+  
+  structure(c, class = "hydrofabric_conflicts")
 }
 
 hydrofabric_conflict_message <- function(x) {

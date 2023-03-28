@@ -1,6 +1,6 @@
 Package: hydrofabric
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 0.0.5
+Version: 0.0.6
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
@@ -16,6 +16,12 @@ Depends:
 Imports: 
     cli (>= 2.4.0),
     crayon (>= 1.4.1),
+    dplyr,
+    DBI,
+    RSQLite,
+    sf,
+    terra,
+    glue,
     rstudioapi,
     nhdplusTools,
     hydrofab,
