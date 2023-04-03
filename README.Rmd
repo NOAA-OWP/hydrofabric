@@ -25,7 +25,7 @@ This repository serves two purpose. (1) it provides a dedicated landing page to 
 
 ## Data
 
-The data and documentation for the Nextgen community resources can be found [here](https://noaa-owp.github.io/hydrofabric/) with detailed documentation of the geopackage contents [here](https://noaa-owp.github.io/hydrofabric/schema.html)
+The data and documentation for the Nextgen community resources can be found [here](https://noaa-owp.github.io/hydrofabric/) with detailed documentation of the geopackage contents [here](https://noaa-owp.github.io/hydrofabric/schema.html).
 
 
 ## Installation
@@ -49,6 +49,8 @@ library(hydrofabric)
 * [ngen.hydrofab](https://github.com/mikejohnson51/ngen.hydrofab) Nextgen extensions for hydrofab
 * [climateR](https://github.com/mikejohnson51/climateR) for accessing remote data resources for parameter and attributes estimation
 * [zonal](https://github.com/mikejohnson51/zonal) for catchment parameter estimation
+
+Additionally it will load key r-spatial and data science libraries including `terra`, `sf`, `dplyr` and `glue`
 
 ## Code of Conduct
 
