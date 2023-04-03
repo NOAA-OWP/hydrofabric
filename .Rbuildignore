@@ -6,3 +6,4 @@ depriciate
 ^\.github$
 Dockerfile
 docs
+tmp

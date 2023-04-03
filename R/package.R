@@ -8,7 +8,8 @@
 #' @import nhdplusTools
 #' @import zonal
 #' @rawNamespace import(dplyr, except = c(intersect, union))
-#' @rawNamespace import(terra, except = trim)
+#' @rawNamespace import(glue, except = trim)
+#' @import terra
 #' @import sf
 #' @importFrom DBI dbConnect dbDisconnect
 #' @importFrom RSQLite SQLite
