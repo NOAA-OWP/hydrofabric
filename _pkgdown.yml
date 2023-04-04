@@ -1,0 +1,18 @@
+url: ~
+template:
+  bootstrap: 5
+  bootswatch: litera
+authors:
+   NOAA: 
+     html: "<img src='man/figures/noaa-logo.png' height='36' alt='NOAA OWP'/>"
+     href: "https://water.noaa.gov/about/nwm"
+   USGS: 
+     html: "<img src='man/figures/usgs-logo.png' height='36' alt='USGS WMA'/>"
+     href: "https://www.usgs.gov/mission-areas/water-resources"
+   Lynker: 
+     html: "<img src='man/figures/lynker-logo.png' height='36' alt='Lynker'/>"
+     href: "https://lynker-intel.com/"
+   footer:
+    roles: [cre]
+   citation:
+    roles: [cre]

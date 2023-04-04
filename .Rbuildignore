@@ -7,3 +7,7 @@ depriciate
 Dockerfile
 docs
 tmp
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+dead

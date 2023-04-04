@@ -5,7 +5,10 @@ Authors@R:
     c(person(given = "Mike",
              family = "Johnson",
              role = c("aut", "cre"),
-             email = "mikecp11@gmail.com"))
+             email = "mikecp11@gmail.com"),
+      person("NOAA", role = c("fnd")),
+      person("USGS", role = c("fnd")),
+      person("Lynker", role = c("fnd")))
 Description: The 'hydrofabric' meta package is a set of packages that work in harmony
     to complete hydrofabric tasks. 
 License: MIT + file LICENSE
@@ -37,7 +40,8 @@ Remotes:
     mikejohnson51/zonal,
     mikejohnson51/climateR
 Suggests:
-    knitr 
+    knitr,
+    rmarkdown
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
