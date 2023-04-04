@@ -73,21 +73,20 @@
 <!-- badges: start -->
 
 <p><br></p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#Johnson, J. M. (2022). National Hydrologic Geospatial Fabric (hydrofabric)</span></span>
-<span><span class="co">#for the Next Generation (NextGen) Hydrologic Modeling Framework,</span></span>
-<span><span class="co">#HydroShare, http://www.hydroshare.org/resource/129787b468aa4d55ace7b124ed27dbde</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Johnson, J. <span class="fu">M.</span> (<span class="dv">2022</span>). National Hydrologic Geospatial <span class="fu">Fabric</span> (hydrofabric)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> the Next <span class="fu">Generation</span> (NextGen) Hydrologic Modeling Framework,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>HydroShare, http<span class="sc">:</span><span class="er">//</span>www.hydroshare.org<span class="sc">/</span>resource<span class="sc">/</span>129787b468aa4d55ace7b124ed27dbde</span></code></pre></div>
 <div class="section level3">
 <h3 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h3>
-<p>This repository serves two purpose. (1) It provides a dedicated landing page to access the Next Generation Modeling Framework (NextGen) hydrofabric artifacts and (2) provides a single source download collection of R packages designed for hydroscience.</p>
+<p>This repository serves two purpose. (1) It provides a dedicated landing page to access the Next Generation Modeling Framework (NextGen) hydrofabric artifacts and (2) a meta package of R packages that are designed for hydroscience.</p>
 <p>NextGen artifacts are distributed by <em>NHDPlusV2</em> <strong>V</strong>ector <strong>P</strong>rocessing <strong>U</strong>nits and are generated from a set of national reference datasets built in collaboration between NOAA, the USGS, and Lynker for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="how-do-i-get-it">How do I get it?<a class="anchor" aria-label="anchor" href="#how-do-i-get-it"></a>
 </h2>
-<p>The data and documentation for the Nextgen community resources can be found <a href="https://noaa-owp.github.io/hydrofabric/data_access.html" class="external-link">here</a> with detailed documentation of the geopackage contents <a href="https://noaa-owp.github.io/hydrofabric/schema.html" class="external-link">here</a>. NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relvant to a hydrofabric data model</p>
+<p>The data and documentation for the NextGen community resources can be found <a href="https://noaa-owp.github.io/hydrofabric/articles/data_access.html" class="external-link">here</a> with detailed documentation of the geopackage contents <a href="https://noaa-owp.github.io/hydrofabric/articles/hf_dm.html" class="external-link">here</a>. NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relevant to a hydrofabric data model</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>s3<span class="sc">:</span><span class="er">//</span>nextgen<span class="sc">-</span>hydrofabric<span class="sc">/</span>{version}<span class="sc">/</span>nextgen_{REGION}.gpkg</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>s3<span class="sc">:</span><span class="er">//</span>nextgen<span class="sc">-</span>hydrofabric<span class="sc">/</span>{version}<span class="sc">/</span>nextgen_{REGION}_ext.gpkg</span></code></pre></div>
 </div>
@@ -105,23 +104,24 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">hydrofabric</a></span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="do">## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ terra         1.7.21     ✔ nhdplusTools  0.6.2 </span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ ngen.hydrofab 0.0.3      ✔ hydrofab      0.5.0 </span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ climateR      0.3.0      ✔ zonal         0.0.2 </span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ sf            1.0.12     ✔ glue          1.6.2</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="do">## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ terra::intersect() masks dplyr::intersect()</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ glue::trim()       masks terra::trim()</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ terra::union()     masks dplyr::union()</span></span></code></pre></div>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ dplyr         1.1.1      ✔ nhdplusTools  0.6.2 </span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ terra         1.7.21     ✔ hydrofab      0.5.0 </span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ ngen.hydrofab 0.0.3      ✔ zonal         0.0.2 </span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ climateR      0.3.0      ✔ glue          1.6.2 </span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ sf            1.0.12</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="do">## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ terra::intersect() masks dplyr::intersect()</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ glue::trim()       masks terra::trim()</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ terra::union()     masks dplyr::union()</span></span></code></pre></div>
 <p><code><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">library(hydrofabric)</a></code> will load the core packages:</p>
 <ul>
 <li>
 <a href="https://github.com/usgs-r/nhdplusTools/" class="external-link">nhdplusTools</a> for network manipulation</li>
 <li>
-<a href="https://github.com/mikejohnson51/hydrofab" class="external-link">hydrofab</a> a toolset for “fabricating” multiscale hydrofabrics</li>
+<a href="https://github.com/mikejohnson51/hydrofab" class="external-link">hydrofab</a> a tool set for “fabricating” multiscale hydrofabrics</li>
 <li>
-<a href="https://github.com/mikejohnson51/ngen.hydrofab" class="external-link">ngen.hydrofab</a> Nextgen extensions for hydrofab</li>
+<a href="https://github.com/mikejohnson51/ngen.hydrofab" class="external-link">ngen.hydrofab</a> NextGen extensions for hydrofab</li>
 <li>
 <a href="https://github.com/mikejohnson51/climateR" class="external-link">climateR</a> for accessing remote data resources for parameter and attributes estimation</li>
 <li>
@@ -138,24 +138,22 @@
 Figure 1
 </p>
 </div>
-<p>These include a set of base data that improves the network topology and geometry validity while defining a set of community hydrolocations (POIs). These 4 data products are used to build an intermediate refactored network from which one hydrofabric network has been aggregated to a set of community hydrolocations (minimal network), and one has been aggregated to a more consistent size (3-10 sqkm) with enforced POI locations (target distribution). NextGen specifically is derived from the target size aggregated product while the upcoming developments on the <a href="https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure" class="external-link">National Hydrologic Model (NHM)</a> will be built from the community minimal network. While these two aggregations serve a wide range of federal modeling needs, our focus on open source software development and workflows allow interested parties to build there own networks starting with either the 4 reference datasets, or the refactored network!</p>
+<p>These include a set of base data that improves the network topology and geometry validity while defining a set of community hydrolocations (POIs). These 4 data products are used to build an intermediate refactored network from which one hydrofabric network has been aggregated to a set of community hydrolocations (minimal network), and one has been aggregated to a more consistent size (3-10 sqkm) with enforced POI locations (target distribution). NextGen specifically is derived from the target size aggregated product while the upcoming developments on the <a href="https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure" class="external-link">National Hydrologic Model (NHM)</a> will be built from the community minimal network.</p>
+<p>While these two aggregations serve a wide range of federal modeling needs, our focus on open source software development and workflows allow interested parties to build there own networks starting with either the 4 reference datasets, or the refactored network!</p>
 </div>
 <div class="section level1">
 <h1 id="resources">Resources<a class="anchor" aria-label="anchor" href="#resources"></a>
 </h1>
 <ul>
-<li><p>The hydrofabric builds on the OGC <a href="https://docs.opengeospatial.org/is/14-111r6/14-111r6.html" class="external-link">HY_Features conceptual model</a>, the in prep <a href="http://bl.ocks.org/dblodgett-usgs/raw/5856fece659d1c42f20e4994ed88c92f/?raw=true#_executive_summary" class="external-link">Hydrofabric Logical model</a>, and the proposed <a href="https://noaa-owp.github.io/hydrofabric/current_dm.html" class="external-link">Hydrofabric Data Model</a>.</p></li>
-<li><p>The base software for general hydrofabric development is based on <a href="https://github.com/DOI-USGS/nhdplusTools" class="external-link">nhdplusTools</a> and <a href="https://github.com/mikejohnson51/hydrofab" class="external-link">hydrofab</a>. The tools for extending these to be NextGen ready are found at <a href="https://github.com/mikejohnson51/ngen.hydrofab" class="external-link">ngen.hydrofab</a>.</p></li>
+<li><p>The hydrofabric builds on the OGC <a href="https://docs.opengeospatial.org/is/14-111r6/14-111r6.html" class="external-link">HY_Features conceptual model</a>, the <a href="https://docs.ogc.org/per/22-040.html" class="external-link">Hydrofabric Logical model</a>, and the proposed <a href="https://noaa-owp.github.io/hydrofabric/articles/hf_dm.html" class="external-link">Hydrofabric Data Model</a>.</p></li>
 <li><p>The reference, refactor, minimal, and target hydrofabrics can all be accessed <a href="https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b" class="external-link">here</a>. A high level introduction to these resources can be found on the <a href="https://waterdata.usgs.gov/blog/hydrofabric/" class="external-link">USGS Water Data blog</a>.</p></li>
 </ul>
-<div id="hello" class="blackbox left">
-<p><strong>Disclaimer</strong>: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that neither NOAA, the USGS, nor the U.S. Government shall be held liable for any damages resulting from the authorized or unauthorized use of the data.</p>
-</div>
 <p><img src="reference/figures/logos.png" width="1796" style="display: block; margin: auto;"></p>
 <div class="section level2">
 <h2 id="questions">Questions:<a class="anchor" aria-label="anchor" href="#questions"></a>
 </h2>
 <p><a href="mailto:mike.johnson@noaa.gov?subject=Nexgen%20Hydrofabric%20Questions"> Mike Johnson</a> (Hydrofabric Lead), <a href="mailto:trey.flowers@noaa.gov?subject=Nexgen%20Hydrofabric%20Questions"> Trey Flowers </a> (Director, OWP Analysis and Prediction Division), <a href="mailto:fernando.salas@noaa.gov?subject=Nexgen%20Hydrofabric%20Questions"> Fernando Salas </a> (Director, OWP Geospatial Intellegence Division)</p>
+<p><strong>Disclaimer</strong>: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that neither NOAA, the USGS, nor the U.S. Government shall be held liable for any damages resulting from the authorized or unauthorized use of the data.</p>
 </div>
 </div>
 
