@@ -2,6 +2,10 @@
 
 "hf_dm"
 
+#' Cross Section Data Model
+
+"cs_dm"
+
 #' @import climateR
 #' @import hydrofab
 #' @import ngen.hydrofab

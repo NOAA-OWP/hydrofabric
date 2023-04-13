@@ -7,3 +7,4 @@ depriciate
 .DS_Store
 tmp
 dead
+inst/doc
