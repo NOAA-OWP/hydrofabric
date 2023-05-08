@@ -17,5 +17,6 @@
 #' @import sf
 #' @importFrom DBI dbConnect dbDisconnect
 #' @importFrom RSQLite SQLite
+#' @importFrom arrow open_dataset
 
 NULL
