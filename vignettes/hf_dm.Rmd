@@ -71,6 +71,7 @@ hf_dm = list(
     # Associations
     divide_id  = integer(1L),
     mainstem   = integer(1L),
+    hydroseq   = integer(1L),
     wb_id      = integer(1L), 
     hl_id      = integer(1L),
     hl_uri     = character(1L),
