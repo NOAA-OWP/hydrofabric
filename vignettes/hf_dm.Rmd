@@ -38,6 +38,7 @@ hf_dm = list(
     divide_id = integer(1L),
     id   = integer(1L),
     toid = integer(1L),
+    ds_id = integer(1L),
     areasqkm = numeric(1L),
     type = character(1L),
     has_flowline = logical(1),
@@ -70,6 +71,7 @@ hf_dm = list(
     toid       = integer(1L),
     # Associations
     divide_id  = integer(1L),
+    ds_id = integer(1L),
     mainstem   = integer(1L),
     hydroseq   = integer(1L),
     wb_id      = integer(1L), 
@@ -108,37 +110,42 @@ fs::file_copy(
 
 meta = tibble::tribble(
 ~Attribute, ~Description,
-"id",             "A hydrofabric specfic, globaly unique flowpath/flowline identifier",
-"hf_source",      "Unique Integer Indentifer for Hydrofabric Origin",
-"hf_id",          "The origin hydrofabric identifier",
-"hf_id_part",     "If the original hydrofabric identifierwas split, the subpart. Parts increase from outlet to inlet",
+"id",             "A hydrofabric specfic, globaly unique flowline identifier",
+"hf_source",      "The source dataset for the hydrofabric development (e.g. NHDPlusV2)",
+"hf_id",          "The unique identifier in the source hydrofabric (hf_source)",
+#"hf_id_part",     "If the original hydrofabric identifier was split, the subpart. Parts increase from outlet to inlet",
 "divide_id",      "A hydrofabric specfic, globaly unique divide identifier",
-"mainstem",       "the primary downstream segment of a river, as contrasted to its tributaries",
-"hl_id",          "A hydrofabric specifc, globaly unique Point of Interest identifier",
-"hl_reference",   "The Point of Interest type",
-"hl_link",         "The origional identifier of the POI in the native dataset. Ideally a URI",
+"mainstem",       "A nationally unique identifier assigned to the set of flowlines that compose a stream from its headwater to its mouth",
+"hl_id",          "A hydrofabric specifc, globaly unique, hydrologic location identifier",
+"hl_reference",   "The hydrologic location type (e.g. Gage, NID)",
+"hl_link",         "The unique identifier in the source hydrologic location dataset.",
+"hl_uri",         "A comma seperated conncatination of hl_reference and hl_link that mirrors thse used in the NLDI",
 "hl_position",    "Position of hydrolocation on flowpath (inflow, outflow, along)",
 "wb_id",          "Water body Common Identifier from wb_source",
-
+"ds_id",          "Most downstream adjacent divide. Only applicable to internal catchments",
 
 "toid",                     "The identifier of the directly downstream flowpath/flowline",
 "lengthkm",                 "The length in kilometers of the flowpath element",
-"areasqkm",                 "The area of the incremental divide for a given flowpath/flowline",
-"tot_drainage_areasqkm",    "The total upstream area contributing to the flowpath/flowline",
+"areasqkm",                 "The area of the incremental divides",
+"tot_drainage_areasqkm",    "The total upstream area contributing to the feature",
 
 "order",                    "Strahler stream order",
 "hydroseq",                 "VPU based hydrologic sort. Increases from downstream to upstream",
 
-"geometry",      "Simple Features Geometry",
-"network_type",  "Type of network feature (network, internal, coastal, connector), previously was divide_type",
+"geometry",      "Simple Features Geometry (POINT, LINESTRING, POLYGON)",
+"type",          "Type of network feature (network, internal, coastal, connector)",
 
 "wb_area",       "Waterbody area",
 "wb_source",     "Waterbody source",
 
 "has_divide",    "Does an abstract catchment have a divide realization",
-"has_flowline",  "Does an abstract catchment have a flowline/flowpath realization")
+"has_flowline",  "Does an abstract catchment have a flowline/flowpath realization",
+"vpu", "A processing unit used to segment large scale hydrofabrics")
+
+x = unique(unlist(sapply(hf_dm, names)))
 
 
+if(!all(length(x[!x %in% meta$Attribute]) == 0, length(meta$Attribute[!meta$Attribute %in% x]) == 0)){stop()}
 
 dm = dm::dm(
             network = hf_dm$network,
@@ -186,5 +193,5 @@ dm_draw(dm,  view_type = "all", column_types = TRUE, rankdir = "LR")
 ## Descriptions 
 
 ```{r, echo = FALSE}
-DT::datatable(meta, options = list(pageLength = 35, dom = 't'), rownames = FALSE)
+DT::datatable(arrange(meta, Attribute), options = list(pageLength = 35, dom = 't'), rownames = FALSE)
 ```
