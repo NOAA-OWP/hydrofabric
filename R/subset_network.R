@@ -7,7 +7,7 @@
 #' @param lyrs layers to extract
 #' @param export_gpkg file path to write to
 #'
-#' @return
+#' @return file path or list 
 #' @export
 
 subset_network = function(id = NULL, 

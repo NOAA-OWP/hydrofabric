@@ -3,6 +3,7 @@
 S3method(print,hydrofabric_conflicts)
 export(hydrofabric_conflicts)
 export(hydrofabric_packages)
+export(subset_network)
 import(climateR)
 import(dplyr, except = c(intersect, union))
 import(glue, except = trim)

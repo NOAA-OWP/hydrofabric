@@ -5,9 +5,9 @@
 \alias{hf_dm}
 \title{Hydrofabric Data Model}
 \format{
-An object of class \code{list} of length 7.
+An object of class \code{list} of length 6.
 
-An object of class \code{list} of length 7.
+An object of class \code{list} of length 6.
 }
 \usage{
 hf_dm
