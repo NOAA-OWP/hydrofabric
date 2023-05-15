@@ -33,8 +33,6 @@ Examples:
 Options:
 `
 
-const endpoint = "http://localhost:9000"
-
 type SubsetRequest struct {
 	id      []string
 	id_type *string
@@ -174,6 +172,14 @@ func main() {
 		progressbar.OptionShowBytes(false),
 		progressbar.OptionSetVisibility(*quiet),
 	)
+
+	var endpoint string
+	if v, ok := os.LookupEnv("HFSUBSET_ENDPOINT"); ok {
+		endpoint = v
+	} else {
+		// TODO: Change to AWS endpoint
+		endpoint = "http://localhost:9000"
+	}
 
 	resp := makeRequest(endpoint, opts, bar)
 	response_size := len(resp.data)
