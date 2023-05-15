@@ -31,12 +31,13 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # We use `|| true` to ensure the step passes
-      # if the repository doesn't exist
-      - name: Pull latest image
+      - name: Verify ECR Repository
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: docker pull ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest || true
+        run: |
+          (aws ecr describe-repositories --repository-names ${ECR_REPOSITORY} \
+            && docker pull ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest) \
+          || aws ecr create-repository --repository-name ${ECR_REPOSITORY}
 
       - name: Build and tag image
         env:
@@ -55,11 +56,45 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: docker push ${ECR_REGISTRY}/${ECR_REPOSITORY} --all-tags
 
-      - name: Update Lambda function
+      - name: Check Lambda function
+        id: lambda-function
+        continue-on-error: true
         env:
+          LAMBDA_FUNCTION: hfsubset
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: aws lambda wait function-exists --function-name ${LAMBDA_FUNCTION} > /dev/null 2>&1
+
+      - name: Create Lambda function
+        if: steps.lambda-function.outcome == 'failure'
+        env:
+          LAMBDA_FUNCTION: hfsubset
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          AWS_ACCOUNT_ID: ${{ steps.aws-credentials.outputs.aws-account-id }}
+        working-directory: ./subset
+        run: |
+            aws iam create-role \
+              --role-name ${LAMBDA_FUNCTION}-role \
+              --assume-role-policy-document '{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}'
+
+            aws iam attach-role-policy \
+              --role-name ${LAMBDA_FUNCTION}-role \
+              --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+            aws lambda create-function \
+              --function-name ${LAMBDA_FUNCTION} \
+              --role "arn:aws:iam:${AWS_ACCOUNT_ID}:role/${LAMBDA_FUNCTION}-role"
+
+            # TODO: put this behind an API Gateway?
+            output=$(aws lambda create-function-url-config --function-name ${LAMBDA_FUNCTION} --auth-type NONE)
+
+            echo ":rocket: lambda function running at $(echo $output | jq .FunctionUrl)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Update Lambda function
+        if: steps.lambda-function.outcome == 'success'
+        env:
+          LAMBDA_FUNCTION: hfsubset
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          aws lambda \
-            update-function-code \
-            --function-name hfsubset \
-            --image-uri "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          aws lambda update-function-code \
+              --function-name ${LAMBDA_FUNCTION} \
+              --image-uri "${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
