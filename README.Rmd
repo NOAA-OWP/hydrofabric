@@ -21,6 +21,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/NOAA-OWP/hydrofabric/workflows/R-CMD-check/badge.svg)](https://github.com/NOAA-OWP/hydrofabric/actions)
+[![hfsubset](https://img.shields.io/static/v1?label=hfsubset&message=download&color=blue)](https://github.com/NOAA-OWP/hydrofabric/releases)
 <!-- badges: end -->
 
 <br>
