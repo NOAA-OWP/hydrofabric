@@ -5,9 +5,11 @@ depriciate
 ^README\.Rmd$
 ^\.github$
 Dockerfile
-docs
-tmp
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
 dead
+vignettes/cihro-data
+data
+docs
+tmp

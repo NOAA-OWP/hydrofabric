@@ -16,3 +16,19 @@ authors:
     roles: [cre]
    citation:
     roles: [cre]
+articles:
+- title: Data Models
+  desc: In Development Data Models
+  contents:
+  - hf_dm
+  - cs_dm
+
+- title: NOAA's Enterprise Hydrofabric System
+  desc: Quick Start
+  contents:
+  - 01-intro-deep-dive
+  - 02-design-deep-dive
+  - 03-processing-deep-dive
+  - 04-data-model-deep-dive
+  - 05-subsetting
+  - 06-attribute-access

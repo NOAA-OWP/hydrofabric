@@ -1,0 +1,294 @@
+---
+title: "Building your own subset"
+description: |
+  "Getting data for your AOI"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+  - name: "Justin Singh"
+    url: https://github.com/--program
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(hydrofabric)
+library(DBI)
+library(RSQLite)
+library(mapview)
+```
+
+
+We are now at the point where we have a common understanding of how hydrofabrics are sourced, manipulated for a given modeling task, and generated on a VPU basis.
+
+This aim of this section is that each of us can build a subset network for a hydrolocation of interest. Doing this requires an understanding of the following:
+
+1. The CONUS network file
+2. General topological sorts and pitfalls
+3. The R base `hydrofabric::subset_network`
+4. The CLI, Go based, utility for micro service subsets.
+
+# The CONUS network file
+
+- Remember, reference, refactor, and NextGen products are distributed by VPU. 
+
+- While the data products are segmented, they do describe a holistic network.
+
+- To easy data discoverabilty, cross-walking, and indexing, the network layers of each VPU are joined into a single Parquet file (~80MB in size)
+ 
+```{r}
+net = arrow::read_parquet("../data/conus_net.parquet")
+
+glimpse(net)
+```
+
+In the above table you'll see that every relationship between the features in the current hydrofabric, the source hydrofabric, and all hydrolocations, have been exploded into a "many-to-many" table. 
+
+For example, we can look at the flowpath `wb-1002` and find that it is defined by the aggregation of NHDPlusV2 COMID 2239831 and 2239831.
+
+```{r}
+filter(net, id == "wb-1002") %>% 
+  glimpse()
+```
+Or, that the terminal outflow of 'HUC12-010100100101' occurs at `tnx-1000000019` which is fed by an aggregate flowpath made up of three source flowpaths (`COMID={816563, 816417, 816415}`)
+
+```{r}
+filter(net, hl_uri == 'HUC12-010100100101') %>% 
+  glimpse()
+```
+## Why do it this way?
+
+### 1. Speed 
+
+```{r, eval = FALSE}
+system.time({
+  net = read_parquet('s3://nextgen-hydrofabric/pre-release/conus_net.parquet')
+})
+
+#    user  system elapsed 
+#  2.180   2.123  41.288 
+```
+
+#### Defered Evaluation
+
+The times you would want to open the entire network are limited, often, we are interested in small bits of data that  
+
+```{r, eval = FALSE}
+system.time({
+  net = open_dataset('s3://nextgen-hydrofabric/pre-release/conus_net.parquet') %>% 
+    filter(id == "wb-1002") %>% 
+    collect()
+})
+
+#   user  system elapsed 
+#  2.294   2.588  24.261
+```
+
+### 2. Feature Identification
+
+#### By location
+
+```{r}
+here = AOI::geocode("National Water Center, Alabama", pt = TRUE)
+  
+x = dataRetrieval::findNLDI(location = here)
+
+(filter(net, hf_id == x$origin$comid))
+```
+
+#### For a gage in Calfornia
+
+```{r}
+hl = filter(net, hl_uri == "Gages-11123000")
+
+(slice_max(hl, hf_hydroseq))
+```
+
+#### For the HUC12 of Atascadero Creek in Santa Barbara:
+
+```{r}
+hl = filter(net, hl_uri == "HUC12-180600130201")
+
+(wbd = slice_max(hl, hf_hydroseq))
+```
+
+
+#### For the dam on Horsetooth Reservoir
+
+```{r}
+hl = filter(net, hl_uri == "NID-CO01659-1")
+
+(wbd = slice_max(hl, hf_hydroseq))
+```
+
+#### By known COMID
+
+```{r}
+filter(net, hf_id == 101)
+```
+
+### 3. Topo sorting!
+
+A national network provides an opportunity for rapid network navigation and subsetting. The structure of the CONUS network file also facilitates this, if a few precautions are taken.
+
+While the "many-to-many" relationship of the network file allows for fast indexing and discovery, the duplication of feature IDs is not conducive to graph based approaches.
+
+```{r}
+# Most downstream feature associated with 
+(wbd = filter(net, hl_uri == "HUC12-180600130201") %>% 
+   select(id, toid, hl_uri, vpu, hydroseq) %>% 
+   slice_max(hydroseq, with_ties = TRUE))
+```
+
+Seeking just the topology of the network would be impractical/wrong
+
+```{r}
+(filter(net, vpu == wbd$vpu[1]) %>% 
+  select(id, toid, divide_id))
+```
+
+Thus, you NEED to make sure that operations running on the network file are dealing with distinct rows for the operations you want.
+
+In the case of hydrosequencing, these are unique `id`/`toid` pairs
+
+```{r}
+(wbd_net = filter(net, vpu == wbd$vpu) %>% 
+  select(id, toid, divide_id) %>% 
+  distinct())
+```
+
+With a complete, non duplicated network, we can easily sort and subset based on a defined outlet(s)
+
+```{r}
+(get_sorted(wbd_net, outlets = wbd$toid[1]))
+```
+
+## Complete Example:
+
+```{r}
+system.time({
+  wbd = filter(net, hl_uri == "HUC12-180600130201") %>% 
+   select(toid,  vpu, hydroseq) %>% 
+   slice_max(hydroseq, with_ties = FALSE)
+
+ wbd_net = filter(net, vpu == wbd$vpu) %>% 
+  select(id, toid, divide_id) %>% 
+    distinct() %>% 
+    get_sorted(outlets = wbd$toid)
+})
+
+(ids = na.omit(unique(unlist(wbd_net))))
+```
+
+### 4. Easy integration with SQL
+
+Once you have a set of IDs, the SQL backing of GPKG allows for quickly extracting features based on that ID set
+
+```{r}
+## USE GET HYDROFABRIC HERE
+(gpkg = get_hydrofabric(VPU = wbd$vpu, type = "nextgen", dir = "cihro-data"))
+  
+db <- dbConnect(SQLite(), gpkg)
+
+t = tbl(db, "divides") %>%
+      filter(if_any(any_of(c('divide_id', 'id', 'ds_id')), ~ . %in% ids)) %>%
+      collect()
+
+st_as_sf(t, crs = 5070) %>% 
+  mapview()
+```
+
+
+# Subsetting!
+
+Now, while conceptual that is straight forward, doing this repetitively is annoying. Equally, writing out the logic for all layers is a loop that can be prone to easy errors. 
+
+In these cases, we provide a subset_network function that works o n
+
+```{r}
+system.time({
+  xx = subset_network(id = wbd$toid, 
+                      network = "../data/conus_net.parquet",
+                      pattern = '/Volumes/Transcend/ngen/CONUS-hydrofabric/05_nextgen/nextgen_{vpu}.gpkg',
+                      lyrs = c("divides", "nexus", "flowpaths", "lakes", "flowpath_attributes"))
+})
+
+mapview(xx$divides) + xx$nexus + xx$flowpaths
+```
+
+```{r}
+lapply(xx, names)
+```
+
+# Example for Poudre River!
+
+```{r}
+system.time({
+  xx = subset_network(hl_id = 'Gages-06752260', 
+                      network ="../data/conus_net.parquet",
+                      export_gpkg = "cihro-data/poudre-sub.gpkg",
+                      lyrs = c("divides", "nexus", "flowpaths"))
+})
+
+st_layers(xx)
+```
+
+## Open in QGIS
+
+```{r, echo = F}
+knitr::include_graphics('../man/figures/hydrofabric.png')
+```
+
+# CLI Option
+
+For those interested in using the NOAA NextGen fabric as is, we have provided a Go-based CLI [here](https://github.com/LynkerIntel/hfsubset/releases)
+
+This utility has the following syntax:
+
+```{bash, eval = FALSE}
+hfsubset - Hydrofabric Subsetter
+
+Usage:
+  hfsubset [OPTIONS] identifiers...
+  hfsubset (-h | --help)
+
+Example:
+  hfsubset -l divides -o ./poudre-divides.gpkg -r "pre-release" -t hl "Gages-06752260"
+  hfsubset -o ./poudre-all.gpkg -t hl "Gages-06752260"
+
+Options:
+  -l string
+        Layers to subset (default "divides,nexus,flowpaths,network,hydrolocations")
+  -o string
+        Output file name (default "hydrofabric.gpkg")
+  -r string
+        Hydrofabric version (default "pre-release")
+  -t string
+        One of: hf, hl, or comid (default "hf")
+```
+
+## NextGen Needs GeoJSON: Final example
+
+While GPKG support is the end goal for NextGen, it current requires GeoJSON and CSV inputs.
+
+Fortunately, `ogr2ogr` provides easy ways to extract these sub layer/formats from the GPKG file.
+
+Here is a full-stop example of extracting a subset for a hydrolocation, using the CLI, and generating the needed files for NextGen
+
+```{bash, eval = FALSE}
+cd <WHEREVER YOU WANT!>
+mkdir poudre
+cd poudre
+
+hfsubset -l divides,nexus,flowpath_attributes -o ./poudre-subset.gpkg -r "pre-release" -t hl "Gages-06752260"
+
+ogr2ogr -f GeoJSON catchments.geojson poudre-subset.gpkg -nln divides  
+ogr2ogr -f GeoJSON nexus.geojson poudre-subset.gpkg -nln nexus
+ogr2ogr -f CSV flowpath_attributes.csv poudre-subset.gpkg -nln flowpath_attributes
+
+ls poudre
+```
