@@ -40,7 +40,7 @@ Lynker and the NOAA OWP. For each VPU a geopackage that contains all
 tables, spatial data, and lookups relevant to a hydrofabric data model
 
 [NextGen Data
-Artifacts](https://nextgen-hydrofabric.s3.amazonaws.com/index.html#pre-release/)
+Artifacts](https://nextgen-hydrofabric.s3.amazonaws.com/index.html)
 
 ## Package Installation
 
