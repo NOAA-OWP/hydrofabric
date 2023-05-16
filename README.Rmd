@@ -40,12 +40,10 @@ NextGen artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**
 
 ## How do I get it?
 
-The data and documentation for the NextGen community resources can be found [here](https://noaa-owp.github.io/hydrofabric/articles/data_access.html) with detailed documentation of the geopackage contents [here](https://noaa-owp.github.io/hydrofabric/articles/hf_dm.html). NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relevant to a hydrofabric data model 
+NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relevant to a hydrofabric data model 
 
-```r
-s3://nextgen-hydrofabric/{version}/nextgen_{REGION}.gpkg
-s3://nextgen-hydrofabric/{version}/nextgen_{REGION}_ext.gpkg
-```
+[NextGen Data Artifacts](https://nextgen-hydrofabric.s3.amazonaws.com/index.html#pre-release/)
+
 
 ## Package Installation
 
@@ -68,9 +66,7 @@ library(hydrofabric)
 * [climateR](https://github.com/mikejohnson51/climateR) for accessing remote data resources for parameter and attributes estimation
 * [zonal](https://github.com/mikejohnson51/zonal) for catchment parameter estimation
 
-Additionally it will load key spatial data science libraries: `terra`, `sf`, `dplyr` and `glue`
-
-    
+Additionally it will load key spatial data science libraries: `arrow`, `terra`, `sf`, `dplyr` and `glue`
 
 # Background
 

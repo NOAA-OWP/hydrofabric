@@ -35,19 +35,12 @@ possible input data.
 
 ## How do I get it?
 
-The data and documentation for the NextGen community resources can be
-found
-[here](https://noaa-owp.github.io/hydrofabric/articles/data_access.html)
-with detailed documentation of the geopackage contents
-[here](https://noaa-owp.github.io/hydrofabric/articles/hf_dm.html).
 NextGen artifacts are publicly available through a partnership with
 Lynker and the NOAA OWP. For each VPU a geopackage that contains all
 tables, spatial data, and lookups relevant to a hydrofabric data model
 
-``` r
-s3://nextgen-hydrofabric/{version}/nextgen_{REGION}.gpkg
-s3://nextgen-hydrofabric/{version}/nextgen_{REGION}_ext.gpkg
-```
+[NextGen Data
+Artifacts](https://nextgen-hydrofabric.s3.amazonaws.com/index.html#pre-release/)
 
 ## Package Installation
 
@@ -64,7 +57,7 @@ library(hydrofabric)
 
     ## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──
 
-    ## ✔ dplyr         1.1.1      ✔ nhdplusTools  0.6.2 
+    ## ✔ dplyr         1.1.2      ✔ nhdplusTools  0.6.2 
     ## ✔ terra         1.7.21     ✔ hydrofab      0.5.0 
     ## ✔ ngen.hydrofab 0.0.3      ✔ zonal         0.0.2 
     ## ✔ climateR      0.3.0      ✔ glue          1.6.2 
@@ -88,8 +81,8 @@ library(hydrofabric)
 - [zonal](https://github.com/mikejohnson51/zonal) for catchment
   parameter estimation
 
-Additionally it will load key spatial data science libraries: `terra`,
-`sf`, `dplyr` and `glue`
+Additionally it will load key spatial data science libraries: `arrow`,
+`terra`, `sf`, `dplyr` and `glue`
 
 # Background
 
@@ -138,6 +131,12 @@ interested parties to build there own networks starting with either the
   [here](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b).
   A high level introduction to these resources can be found on the [USGS
   Water Data blog](https://waterdata.usgs.gov/blog/hydrofabric/).
+
+# Hydrofabric Subsetter
+
+We have created a NextGen hydrofabric subsetter. GO binaries of these
+can be installed at the [release
+page](https://github.com/LynkerIntel/hfsubset/releases).
 
 <img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
 
