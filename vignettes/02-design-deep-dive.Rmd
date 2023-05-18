@@ -64,19 +64,20 @@ knitr::include_graphics('../man/figures/level1.png')
 ```
 
 ### 1. Reference Features
+
   - Simple, valid, representations of all `flowpath` and `divide` features
   
   - Must be derived from a *source* hydrographic dataset (e.g. NHDPLus, or)
   
   - Currently, these are built out from the NHDPlusV2 features
   
-    - **Waterbodies** are simplified, islands are dissolved, and they are unioned on GNIS_ID.
+  - **Waterbodies** are simplified, islands are dissolved, and they are unioned on GNIS_ID.
     
 ```{r, echo = FALSE}
 knitr::include_graphics("../man/figures/cleaning_waterbodies.gif")
 ```
 
-    - **Catchments** are simplifed, and DEM fragments are dissolved into the proper adjoining catchments.
+   - **Catchments** are simplifed, and DEM fragments are dissolved into the proper adjoining catchments.
     
 ```{r, echo = FALSE}
 knitr::include_graphics("../man/figures/cleaning_catchments.gif")

@@ -198,8 +198,7 @@ t = tbl(db, "divides") %>%
       filter(if_any(any_of(c('divide_id', 'id', 'ds_id')), ~ . %in% ids)) %>%
       collect()
 
-st_as_sf(t, crs = 5070) %>% 
-  mapview()
+st_as_sf(t, crs = 5070) %>%  mapview()
 ```
 
 
@@ -225,6 +224,10 @@ lapply(xx, names)
 ```
 
 # Example for Poudre River!
+
+```{r, echo = FALSE}
+rm(xx)
+```
 
 ```{r}
 system.time({
