@@ -69,9 +69,9 @@
 <!-- badges: start -->
 
 <p><br></p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Johnson, J. <span class="fu">M.</span> (<span class="dv">2022</span>). National Hydrologic Geospatial <span class="fu">Fabric</span> (hydrofabric)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> the Next <span class="fu">Generation</span> (NextGen) Hydrologic Modeling Framework,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>HydroShare, http<span class="sc">:</span><span class="er">//</span>www.hydroshare.org<span class="sc">/</span>resource<span class="sc">/</span>129787b468aa4d55ace7b124ed27dbde</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>Johnson, J. <span class="fu">M.</span> (<span class="dv">2022</span>). National Hydrologic Geospatial <span class="fu">Fabric</span> (hydrofabric)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="cf">for</span> the Next <span class="fu">Generation</span> (NextGen) Hydrologic Modeling Framework,</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>HydroShare, http<span class="sc">:</span><span class="er">//</span>www.hydroshare.org<span class="sc">/</span>resource<span class="sc">/</span>129787b468aa4d55ace7b124ed27dbde</span></code></pre></div>
 <div class="section level3">
 <h3 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h3>
@@ -97,18 +97,18 @@
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">hydrofabric</a></span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="do">## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ dplyr         1.1.2      ✔ nhdplusTools  0.6.2 </span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ terra         1.7.21     ✔ hydrofab      0.5.0 </span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ ngen.hydrofab 0.0.3      ✔ zonal         0.0.2 </span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ climateR      0.3.0      ✔ glue          1.6.2 </span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="do">## ✔ sf            1.0.12</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="do">## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ terra::intersect() masks dplyr::intersect()</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ glue::trim()       masks terra::trim()</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="do">## ✖ terra::union()     masks dplyr::union()</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="do">## ✔ dplyr         1.1.2      ✔ nhdplusTools  0.6.2 </span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="do">## ✔ terra         1.7.21     ✔ hydrofab      0.5.0 </span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="do">## ✔ ngen.hydrofab 0.0.3      ✔ zonal         0.0.2 </span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="do">## ✔ climateR      0.3.0      ✔ glue          1.6.2 </span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="do">## ✔ sf            1.0.12</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="do">## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="do">## ✖ terra::intersect() masks dplyr::intersect()</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="do">## ✖ glue::trim()       masks terra::trim()</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="do">## ✖ terra::union()     masks dplyr::union()</span></span></code></pre></div>
 <p><code><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">library(hydrofabric)</a></code> will load the core packages:</p>
 <ul>
 <li>
