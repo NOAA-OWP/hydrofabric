@@ -192,7 +192,7 @@ read_sf("poudre/poudre-subset.gpkg", "flowpath_attributes") %>%
   right_join(network)
 ```
 
-The `id` can be used to extract the complete/partial _flowpath view_  if and when its needed:
+The `id` can be used to extract the complete/partial _flowpath view_ if and when its needed:
 
 ```{r}
 read_sf(f, "flowpaths") %>% 
@@ -200,9 +200,9 @@ read_sf(f, "flowpaths") %>%
    mapview()
 ```
 
-# Reporting (Task 3)
+# Reporting (Task 4)
 
-The last task is one that is NOT  well facilitated by the existing NWM and that is how do you find the locations of know Points of Interest (POIs).
+The last task is one that is NOT well facilitated by the existing NWM and that is how do you find the locations of know Points of Interest (POIs).
 
 For example, lets say we wanted to find the USGS gages present in the Poudre Basin. To do this we could search the hydrolocations view for instances of type `Gages`.
 
