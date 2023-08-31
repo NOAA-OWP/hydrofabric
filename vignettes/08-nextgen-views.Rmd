@@ -30,7 +30,9 @@ The data model we are proposing, and enforcing, is aimed to allow flexible reali
   2. Storing multiple layers of data in a self contained data format.
   3. Using opaque identifiers to reference realizations of the same hydrologic unit across layers
   
-> **_NOTE:_**  All layers in the GPKG are realizations of the hydrologic landscape. Ultimetly there is one **principle realization** that defines the principle unit (e.g. flowpath) of the hydrologic landscape Moreover, one is a **viewed realization** - that is - the one that is being operated on. These do not have to be the same.
+> **_NOTE:_**  All layers in the GPKG are realizations of the hydrologic landscape. Ultimetly there is one **principle realization** that defines the principle unit (e.g. flowpath) of the hydrologic landscape Moreover, one is a **viewed realization** - that is - the one that is being operated on. These do not have to be the same.concpets of 
+
+The definition of a **view** - which is outside of the HY Features spec - is needed when applying concrete representations of the abstract conceptual features. Fundamentally, the way the world is digitally represented dictates the types of operations, inquires, and analysis that can be done and aligning the aims of these analysis, with a view of the abstract hydrologic feature, is critical for efficiency. 
 
 ## NextGen
 
