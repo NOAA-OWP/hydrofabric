@@ -153,7 +153,7 @@ From this, configuration files can be used to assign model formulations that the
 In this case, the _viewed_ realization is the divide complex, but the _principle_ realization remains the flowpath network.
 Since we are not interested in geometries, we drop the geometry column. 
 
-> Had we used SQLite directly to access this layer, rather than `sf`, we could avoid reading the geometry column entirely.
+> Had we used SQLite directly to access this layer, rather than `sf`, we could have avoided reading the geometry column entirely.
 
 ```{r}
 read_sf(f, "divides") %>%
