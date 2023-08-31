@@ -21,6 +21,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# TL;DR
+
+- `realization` -> identification and concepts 
+- `view` -> representation and operations 
+
+# Intro
+
 The [NextGen Hydrofabric Data Model](https://noaa-owp.github.io/hydrofabric/articles/04-data-model-deep-dive.html) aims to support a multi-realization
 view of the river network and landscape using the concepts outlined in the [OGC HY Features Standard](https://docs.ogc.org/is/14-111r6/14-111r6.html).
 
@@ -75,7 +82,7 @@ library(dplyr)   # SQL syntax on data.frames
 #> Some (R -> Python) equivalents for these packages are:
 #> - sf      -> geopandas/shapely/Fiona
 #> - map view -> folio
-#> - arrow   -> yarrow
+#> - arrow   -> pyarrow
 #> - dplyr   -> pandas/polar
 ```
 
