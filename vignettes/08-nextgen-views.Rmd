@@ -30,7 +30,7 @@ The data model we are proposing, and enforcing, is aimed to allow flexible reali
   2. Storing multiple layers of data in a self contained data format.
   3. Using opaque identifiers to reference realizations of the same hydrologic unit across layers
   
-> **_NOTE:_**  All layers in the GPKG are realizations of the hydrologic landscape. Ulitmemtly there is one **principle realization** that defines the principle unit (e.g. flowpath) of the hydrologic landscaep. Moreover, one is a **viewed realization** - that is - the one that is being operated on. These do not have to be the same.
+> **_NOTE:_**  All layers in the GPKG are realizations of the hydrologic landscape. Ultimetly there is one **principle realization** that defines the principle unit (e.g. flowpath) of the hydrologic landscape Moreover, one is a **viewed realization** - that is - the one that is being operated on. These do not have to be the same.
 
 ## NextGen
 
@@ -54,8 +54,8 @@ Here, we will show that the hydrofabric data model supports ALL of these tasks t
    
  >  **_NOTE:_** In possible upcoming work with GID and FIM, we may relax that constraint by building out a `flowline` layer that would allow a `many:1` relationship _and_ a higher resolution flowline network. Such a step might also allow for a `fp` --> `fp` topology that is more consistent with the core of [t-route](https://github.com/NOAA-OWP/t-route). Until that time, water flows from a flowpath to a nexus, and more then one flowpath may contribute to any one nexus.
 
-2. The need to store many representations of the hydrologic landscape, both spatially and aspatially is a database challenge. In the spatial community,
-   a well established way to store both spatial and aspatial data layers (or _tables_) in a single database is
+2. The need to store many representations of the hydrologic landscape, both spatial and aspatial is a database challenge. In the spatial community,
+   a well established way to store both spatial and spatial data layers (or _tables_) in a single database is
    the [OGC GeoPackage Format]((https://www.geopackage.org/)). This format provides a standard for spatial information
    on top of SQLite databases.
 
@@ -71,18 +71,18 @@ library(arrow)   # parquet read/write
 library(dplyr)   # SQL syntax on data.frames
 
 #> Some (R -> Python) equivalents for these packages are:
-#> - sf      -> geopandas/shapely/fiona
-#> - mapview -> folium
-#> - arrow   -> pyarrow
-#> - dplyr   -> pandas/polars
+#> - sf      -> propaganda/shapely/Fiona
+#> - map view -> folio
+#> - arrow   -> yarrow
+#> - dplyr   -> pandas/polar
 ```
 
 ## NextGen Principle Realization
 
 Due to the routing requirements of NextGen (Task #3), the connectivity of the flowpath network is the _principle realization_ of the
-landscape and thus the primary realization of our hydrologic units. It is because of this, that the flowpath identification is given the`id` identifier. Anywhere that `id` is found in the HF GeoPackage, it is in reference to our **principle realization** - that of the flowpaths.
+landscape and thus the primary realization of our hydrologic units. It is because of this, that the flowpath identification is given the`id` identifier. Anywhere that `id` is found in the HF Geo Package, it is in reference to our **principle realization** - that of the flowpaths.
 
-The flexibility of the HY Features standard, and our implemented data model make it possible to consider the hydrofabric from different perspectives, any one of these is the **viewed realization** when being operated on. A viewed realization is in essence, a distinct manifestion, or abstraction, over the underlying principle realization.
+The flexibility of the HY Features standard, and our implemented data model make it possible to consider the hydrofabric from different perspectives, any one of these is the **viewed realization** when being operated on. A viewed realization is in essence, a distinct manifestation, or abstraction, over the underlying principle realization.
 
 Selecting a viewed realization must consider the fundamental operations needed - not just the principle use case. It critical to understand that _any viewed realization_ is derived from the principle realization, and the principle realization remains the primary realization for hydrologic units.
 
@@ -167,7 +167,7 @@ open_dataset("s3://nextgen-hydrofabric/pre-release/nextgen_10L_cfe_noahowp.parqu
 
 Routing is based on the flowpath to nexus connection described in the background section and requires water to move from flowpaths, into nexuses, into flowpaths.  More then one flowpath can contribute to a nexus, however only one nexus can contribute to a flowpath.
 
-COntinuing on with our divides _view_ of the landspace, we can extract the flowpath topology.
+Continuing on with our divides _view_ of the landscape, we can extract the flowpath topology.
 
 ```{r}
 (network = read_sf(f, "divides") %>%
