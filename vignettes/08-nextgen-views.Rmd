@@ -73,7 +73,7 @@ library(arrow)   # parquet read/write
 library(dplyr)   # SQL syntax on data.frames
 
 #> Some (R -> Python) equivalents for these packages are:
-#> - sf      -> propaganda/shapely/Fiona
+#> - sf      -> geopandas/shapely/Fiona
 #> - map view -> folio
 #> - arrow   -> yarrow
 #> - dplyr   -> pandas/polar
