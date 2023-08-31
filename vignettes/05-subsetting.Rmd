@@ -8,7 +8,7 @@ author:
     affiliation: Lynker, NOAA-Affiliate
     affiliation_url: https://lynker.com
   - name: "Justin Singh"
-    url: https://github.com/--program
+    url: https://github.com/program--
     affiliation: Lynker, NOAA-Affiliate
     affiliation_url: https://lynker.com
 output: distill::distill_article
