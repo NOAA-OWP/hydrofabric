@@ -61,7 +61,7 @@ Here, we will show that the hydrofabric data model supports ALL of these tasks t
 1. NextGen uses a `flowpath` --> `nexus` topology. This is a requirement of aggregating the divide complex to the desired
    spatial scale while avoiding a `many:1` `flowline` to `divide` relation.
    
- >  **_NOTE:_** In possible upcoming work with GID and FIM, we may relax that constraint by building out a `flowline` layer that would allow a `many:1` relationship _and_ a higher resolution flowline network. Such a step might also allow for a `fp` --> `fp` topology that is more consistent with the core of [t-route](https://github.com/NOAA-OWP/t-route). Until that time, water flows from a flowpath to a nexus, and more then one flowpath may contribute to any one nexus.
+ >  **_NOTE:_** In possible upcoming work with GID and FIM, we may relax that constraint by building out a `flowline` layer that would allow a `many:1` relationship _and_ a higher resolution flowline network. Such a step might also allow for a `fp` --> `fp` topology that is more consistent with the core of [t-route](https://github.com/NOAA-OWP/t-route). Until that time, water flows from a flowpath to a nexus, and more than one flowpath may contribute to any one nexus.
 
 2. The need to store many representations of the hydrologic landscape, both spatial and aspatial is a database challenge. In the spatial community,
    a well established way to store both spatial and spatial data layers (or _tables_) in a single database is
@@ -122,14 +122,14 @@ hfsubset -l divides,nexus,flowpaths,flowpath_attributes,hydrolocations \
 (f = list.files("poudre", pattern = ".gpkg", full.names = TRUE))
 ```
 
-### Whats in it?
+### What's in it?
 
 ```{r}
 st_layers(f)
 ```
 
 
-### Lets map it! 
+### Let's map it!
 
 ```{r, echo = FALSE}
 knitr::include_graphics("../man/figures/hydrofabric.png")
@@ -138,7 +138,7 @@ knitr::include_graphics("../man/figures/hydrofabric.png")
 
 # Forcing (Task 1)
 
-To generate the forcing mesh (currently using EMSF) the forcing workstream needs the divide complex geometries and associated
+To generate the forcing mesh (currently using ESMF) the forcing workstream needs the divide complex geometries and associated
 `divide_id` of each unit. These can be pulled directly from the `divides` layer!
 
 ```{r}
@@ -164,7 +164,7 @@ read_sf(f, "divides") %>%
 
 Once divides are located, and models assigned, there is often a need to populate the configuration file with some pre-computed information. One example of this is operating the [NOAH OWP Modular](https://github.com/NOAA-OWP/noah-owp-modular) and [CFE ](https://github.com/NOAA-OWP/cfe) models which require a suite of divide-summarized data. This data lives adjacent to the core hydrofabric GPKG's but can be accessed using a set of `divide_id`.
 
-For example, lets say we want CFE and NOAH OWP data for `cat-280570`:
+For example, let's say we want CFE and NOAH OWP data for `cat-280570`:
 
 ```{r}
 open_dataset("s3://nextgen-hydrofabric/pre-release/nextgen_10L_cfe_noahowp.parquet") %>%
@@ -174,7 +174,7 @@ open_dataset("s3://nextgen-hydrofabric/pre-release/nextgen_10L_cfe_noahowp.parqu
 
 # Routing (Task 3)
 
-Routing is based on the flowpath to nexus connection described in the background section and requires water to move from flowpaths, into nexuses, into flowpaths.  More then one flowpath can contribute to a nexus, however only one nexus can contribute to a flowpath.
+Routing is based on the flowpath to nexus connection described in the background section and requires water to move from flowpaths, into nexuses, into flowpaths.  More than one flowpath can contribute to a nexus, however only one nexus can contribute to a flowpath.
 
 Continuing on with our divides _view_ of the landscape, we can extract the flowpath topology.
 
@@ -201,7 +201,7 @@ read_sf("poudre/poudre-subset.gpkg", "flowpath_attributes") %>%
   right_join(network)
 ```
 
-The `id` can be used to extract the complete/partial _flowpath view_ if and when its needed:
+The `id` can be used to extract the complete/partial _flowpath view_ if and when it's needed:
 
 ```{r}
 read_sf(f, "flowpaths") %>% 
@@ -211,9 +211,9 @@ read_sf(f, "flowpaths") %>%
 
 # Reporting (Task 4)
 
-The last task is one that is NOT well facilitated by the existing NWM and that is how do you find the locations of know Points of Interest (POIs).
+The last task is one that is NOT well facilitated by the existing NWM and that is how do you find the locations of known Points of Interest (POIs).
 
-For example, lets say we wanted to find the USGS gages present in the Poudre Basin. To do this we could search the hydrolocations view for instances of type `Gages`.
+For example, let's say we wanted to find the USGS gages present in the Poudre Basin. To do this we could search the hydrolocations view for instances of type `Gages`.
 
 ```{r}
 (gages = read_sf(f, "hydrolocations") %>%
