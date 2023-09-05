@@ -19,6 +19,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(glue)
 ```
 
 # TL;DR
@@ -64,7 +65,7 @@ Here, we will show that the hydrofabric data model supports ALL of these tasks t
  >  **_NOTE:_** In possible upcoming work with GID and FIM, we may relax that constraint by building out a `flowline` layer that would allow a `many:1` relationship _and_ a higher resolution flowline network. Such a step might also allow for a `fp` --> `fp` topology that is more consistent with the core of [t-route](https://github.com/NOAA-OWP/t-route). Until that time, water flows from a flowpath to a nexus, and more then one flowpath may contribute to any one nexus.
 
 2. The need to store many representations of the hydrologic landscape, both spatial and aspatial is a database challenge. In the spatial community,
-   a well established way to store both spatial and spatial data layers (or _tables_) in a single database is
+   a well established way to store both spatial and aspatial data layers (or _tables_) in a single database is
    the [OGC GeoPackage Format]((https://www.geopackage.org/)). This format provides a standard for spatial information
    on top of SQLite databases.
 
@@ -91,9 +92,7 @@ library(dplyr)   # SQL syntax on data.frames
 Due to the routing requirements of NextGen (Task #3), the connectivity of the flowpath network is the _principle realization_ of the
 landscape and thus the primary realization of our hydrologic units. It is because of this, that the flowpath identification is given the`id` identifier. Anywhere that `id` is found in the HF Geo Package, it is in reference to our **principle realization** - that of the flowpaths.
 
-The flexibility of the HY Features standard, and our implemented data model make it possible to consider the hydrofabric from different perspectives, any one of these is the **viewed realization** when being operated on. A viewed realization is in essence, a distinct manifestation, or abstraction, over the underlying principle realization.
-
-Selecting a viewed realization must consider the fundamental operations needed - not just the principle use case. It critical to understand that _any viewed realization_ is derived from the principle realization, and the principle realization remains the primary realization for hydrologic units.
+The flexibility of the HY Features standard, and our implemented data model make it possible to consider the hydrofabric from different perspectives, any one of these is the **viewed realization** when being operated on. A viewed realization is in essence an application based  abstraction over the principle realization. Selecting a viewed realization must consider the fundamental operations needed - not just the principle use case. 
 
 In our example, the flowpath realization is the principle realization, however the need for divide geometries in the forcing (and likely rainfall runoff task) dictate a divide view of the product for our operations. The divide realization of flowpaths are uniquely identified by a `divide_id`. 
 
@@ -101,15 +100,13 @@ In our example, the flowpath realization is the principle realization, however t
 
 ## Build a subset
 
-To help with this example, we create a cutout of the Poudre River Basin using the hydrofabric subsetter found [here](https://github.com/LynkerIntel/hfsubset). This basin is defined as the upstream area of the NWIS location `Gages=06752260`, Colorado to extract a sample of the [CONUS NextGen Hydrofabric](https://nextgen-hydrofabric.s3.amazonaws.com/index.html).
-The USGS Next Generation Monitoring Location Page for this site is [here](https://waterdata.usgs.gov/monitoring-location/06752260/)
-and the Geoconnex PID can be found [here](https://reference.geoconnex.us/collections/gages/items?provider_id=06752260)
+To help with this example, we create a cutout of the Poudre River Basin using the hydrofabric subsetter found [here](https://github.com/LynkerIntel/hfsubset) to extract a sample of the [CONUS NextGen Hydrofabric](https://nextgen-hydrofabric.s3.amazonaws.com/index.html). This basin is defined as the upstream area of the NWIS location `Gages=06752260`. The USGS Next Generation Monitoring Location Page for this site is [here](https://waterdata.usgs.gov/monitoring-location/06752260/) and the Geoconnex PID can be found [here](https://reference.geoconnex.us/collections/gages/items?provider_id=06752260)
 
 ```bash
 mkdir poudre
 cd poudre
 
-hfsubset -l divides,nexus,flowpaths,flowpath_attributes,hydrolocations \
+hfsubset -l divides,nexus,flowpaths, network,flowpath_attributes,hydrolocations \
          -o ./poudre-subset.gpkg \
          -r "pre-release" \
          -t hl \
@@ -122,19 +119,36 @@ hfsubset -l divides,nexus,flowpaths,flowpath_attributes,hydrolocations \
 (f = list.files("poudre", pattern = ".gpkg", full.names = TRUE))
 ```
 
-### Whats in it?
+### What's in it?
 
 ```{r}
 st_layers(f)
 ```
 
 
-### Lets map it! 
+### Let's map it! 
 
 ```{r, echo = FALSE}
 knitr::include_graphics("../man/figures/hydrofabric.png")
 ```
 
+# Defining the network
+
+The exhaustive `realization` set (e.g identification and concepts) of a given network are contained in the `network` layer. This layer has _no_ spatial information and is the link between all flowpath, divide, and nexus realizations contained within an area.
+
+```{r}
+(net = read_sf(f, "network"))
+```
+Notably, this file carries the **full** reference fabric, through manipulation, through data modeling steps. Here we see the "hf_source" (or reference fabric) was the NHDPlusV2. 
+
+The resulting `r nrow(net)` row table stores the needed information for `r length(unique(net$divide_id))` divides, `r length(unique(net$id))` flowpaths and `r length(unique(net$toid))` nexus 
+
+If a walk back to the source hf is not needed, a reduced set can be extracted, for example:
+
+```{r}
+select(net, id, toid, divide_id, hl_uri, vpu, areasqkm) %>% 
+  distinct()
+```
 
 # Forcing (Task 1)
 
@@ -143,16 +157,14 @@ To generate the forcing mesh (currently using EMSF) the forcing workstream needs
 
 ```{r}
 read_sf(f, "divides") %>% 
-  select(divide_id)
+  select(divide_id) %>% 
+  filter(divide_id %in% net$divide_id)
 ```
-
 # Rainfall Runoff Modeling (Task 2)
 
 The NextGen rainfall runoff modeling tasks require the ability to identify a unit of the divide complex, and its associated draining flowpath. From this, configuration files can be used to assign and/or build model formulations associated with a given `divide_id`.
 
 While NextGen remains a primarily lumped basin model, operating at the divide scale, the _divide_ view is the ideal _viewed realization_. However, since we are not explicitly interested in geometries here, we drop them. 
-
-> **_NOTE:_** Had we used SQLite directly to access this layer, rather than `sf`, we could have avoided reading the geometry column entirely.
 
 ```{r}
 read_sf(f, "divides") %>%
@@ -160,91 +172,98 @@ read_sf(f, "divides") %>%
   st_drop_geometry()
 ```
 
-## Working across model formulations
-
-Once divides are located, and models assigned, there is often a need to populate the configuration file with some pre-computed information. One example of this is operating the [NOAH OWP Modular](https://github.com/NOAA-OWP/noah-owp-modular) and [CFE ](https://github.com/NOAA-OWP/cfe) models which require a suite of divide-summarized data. This data lives adjacent to the core hydrofabric GPKG's but can be accessed using a set of `divide_id`.
-
-For example, lets say we want CFE and NOAH OWP data for `cat-280570`:
+> **_NOTE:_** Had we used SQLite directly to access this layer, rather than reading the complete layer with `sf`, we could have avoided reading the geometry column entirely.
 
 ```{r}
-open_dataset("s3://nextgen-hydrofabric/pre-release/nextgen_10L_cfe_noahowp.parquet") %>%
+read_sf(f, query = "SELECT divide_id, id FROM divides")
+```
+
+## Working across model formulations
+
+Once divides are located, and models assigned, there is often a need to populate the configuration file with some pre-computed information. One example of this is operating the [NOAH OWP Modular](https://github.com/NOAA-OWP/noah-owp-modular) and [CFE ](https://github.com/NOAA-OWP/cfe) models which require a suite of divide-summarized data. This data lives adjacent to the core hydrofabric GPKG's but can be accessed using a set of `divide_id`(s).
+
+For example, let's say we want CFE and NOAH OWP data for `cat-280570`, we can use the naming convention of our files, the network based VPU distinction, and general parquet/s3 access patterns.
+
+```{r}
+base = 's3://nextgen-hydrofabric/pre-release'
+
+open_dataset(glue("{base}/nextgen_{unique(net$vpu)}_cfe_noahowp.parquet")) %>%
   filter(divide_id == "cat-280570") %>%
   collect()
 ```
 
 # Routing (Task 3)
 
-Routing is based on the flowpath to nexus connection described in the background section and requires water to move from flowpaths, into nexuses, into flowpaths.  More then one flowpath can contribute to a nexus, however only one nexus can contribute to a flowpath.
-
-Continuing on with our divides _view_ of the landscape, we can extract the flowpath topology.
-
-```{r}
-(network = read_sf(f, "divides") %>%
-  select(divide_id, id, toid) %>%
-  st_drop_geometry())
-```
+Routing is based on the flowpath to nexus connection described in the background section and requires water to move from flowpaths, into nexuses, into flowpaths. More then one flowpath can contribute to a nexus, however only one nexus can contribute to a flowpath.
 
 A hard requirement of `ngen` is that the network remains dendritic (e.g a [DAG](https://en.wikipedia.org/wiki/Directed_acyclic_graph)).
 We can ensure  the resultant flowpath topology, extracted from the divides view, is compliant:
 
 ```{r}
-select(network, id, toid) %>%
-    igraph::graph_from_data_frame(directed = TRUE) %>%
-    igraph::is.dag()
+library(igraph); library(visNetwork)
+
+g = select(net, id, toid) %>%
+    graph_from_data_frame(directed = TRUE) 
+
+is.dag(g)
+
+visIgraph(g)
 ```
 
 Much like the NOAH-OWP/CFE example, knowing the connectivity of the flowpath network is half of the challenge. To successful route water through it, a range of attributes need to be supplied. Currently, these are provided within the `flowpath_attributes` layer of the hydrofabric data model:
 
 ```{r}
 read_sf("poudre/poudre-subset.gpkg", "flowpath_attributes") %>%
-  filter(id %in% network$id) %>%
-  right_join(network)
+  filter(id %in% unique(net$id))
 ```
 
 The `id` can be used to extract the complete/partial _flowpath view_ if and when its needed:
 
 ```{r}
-read_sf(f, "flowpaths") %>% 
-  filter(id == 'wb-280570') %>%
-   mapview()
+fp = read_sf(f, "flowpaths") %>% 
+  filter(id == net$id[1]) 
+
+div = read_sf(f, "divides") %>% 
+  filter(divide_id == net$divide_id[1])
+
+mapview(div) + fp
 ```
 
 # Reporting (Task 4)
 
-The last task is one that is NOT well facilitated by the existing NWM and that is how do you find the locations of know Points of Interest (POIs).
+The last task is one that is NOT well facilitated by the existing NWM and that is how do you find the locations of known Points of Interest (POIs).
 
 For example, lets say we wanted to find the USGS gages present in the Poudre Basin. To do this we could search the hydrolocations view for instances of type `Gages`.
 
 ```{r}
-(gages = read_sf(f, "hydrolocations") %>%
-   filter(hl_reference == "Gages"))
+(gages = filter(net, grepl("Gages", hl_uri)))
 ```
 
-Note that the `id` of the hydrolocations is the `toid` in the flow network topology!
-
-In total there are `r nrow(gages)` gages in the Poudre River basin. If we want to map these, and their contributing flowpaths and divides, we simply need to walk across layers:
+In total there are `r length(unique(gages))` gages in the Poudre River basin. If we want to map these, and their contributing flowpaths and divides, we simply need to walk across layers:
 
 ```{r}
-(net = read_sf(f, "divides") %>%
-   filter(toid %in% gages$id))
-```
+# Divides are indexed by divide_id
+(div = read_sf(f, "divides") %>%
+   filter(divide_id %in% gages$divide_id))
 
-```{r}
+# flowpaths are indexed by id
 (fps = read_sf(f, "flowpaths") %>%
-   filter(id %in% net$id))
-```
+   filter(id %in% gages$id))
 
-```{r, echo = FALSE}
-mapview() + gages + net + fps
+# Nexus locations are indexed by toid
+(hl = read_sf(f, "nexus") %>%
+   filter(id %in% gages$toid))
+
+mapview() + hl + div + fps
 ```
 
 # Conclusion
 
-While there are many layers presented with a hydrofabric, all views needed can be found in the divides layer. This supplies everything needed to run ngen from start to finish, and allow introspection of the results!
+While there are many layers presented with a hydrofabric, all views can extracted through a combination of the network layer, and or through the "viewed" layer itself. This supplies everything needed to run ngen from start to finish, and allow introspection of the results!
 
 It is able to do this through a clear implementation of HY Features concepts, within a detailed yet flexible data model. Taking advantage of this requires an understanding that:
 
-  (1) the principle view of the data set is the flowpath network due to the topology requirements of both ngen and t-route ,
+  (1) the principle view of our data set is the flowpath network due to the topology requirements of both ngen and t-route. This means that flowpaths and nexus locations are uniquely identified by `id`, and divides are uniquely identified by `divide_id`.
   (2) viewing the divide "view" of the data still provides the ability to access the flowpath and nexus realizations by their identifiers,
   (3) auxiliary data can be built in relation to the appropriate realization (e.g. id, or divide_id) providing the ability for a larger data system to scaffold.
 
