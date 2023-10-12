@@ -34,7 +34,7 @@ dir.create(base, showWarnings = FALSE)
 
     1. NOAA NextGen (in its infinite flavors); 
     2. the USGS NHM; 
-    3. the USGS SPPARROW model; 
+    3. the USGS SPARROW model; 
     4. and eventually NOAA FIM.
     
 # The USGS-NOAA Reference Fabric
@@ -67,7 +67,7 @@ knitr::include_graphics('../man/figures/level1.png')
 
   - Simple, valid, representations of all `flowpath` and `divide` features
   
-  - Must be derived from a *source* hydrographic dataset (e.g. NHDPLus, or)
+  - Must be derived from a *source* hydrographic dataset (e.g. NHDPLus, or TDXhydro)
   
   - Currently, these are built out from the NHDPlusV2 features
   
@@ -179,7 +179,7 @@ ggplot(data = vpu_boundaries[1:21,]) +
 
 All hydrographic networks have VPU-esque discritizations. The key is that the source hydrofabric discritization can be retained through the manipulation process.
 
-Below we show the tiling and drainage basin approaches of MERIT-hydro, BasinMaker, and NGA-TDX-hydro.
+Below we show the tiling and drainage basin approaches of MERIT-hydro, BasinMaker, and NGA's TDX-hydro.
 
 ```{r, echo=FALSE, out.width="32%",fig.cap="caption",fig.show='hold',fig.align='center'}
 knitr::include_graphics(c('../man/figures/merit-hydro.png', '../man/figures/basinmaker.png',  '../man/figures/nga-tdx.png'))

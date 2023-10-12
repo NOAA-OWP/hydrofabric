@@ -31,7 +31,7 @@ knitr::include_graphics('../man/figures/level2.png')
 
 # Getting the reference fabric
 
-All reference and (precanned) refactored data products live on ScienceBase. They can be accessed with the web interface or can be downloaded programatically. The `hydrofab::get_hydrofabric()` utility will download the most current geofabric for a Vector Processing Unit (VPU). Options include downloading the "refactored" (default) or "reference" data. If the requested file already exists, the file path will be returned. 
+All reference and (precomputed) refactored data products live on ScienceBase. They can be accessed with the web interface or can be downloaded programatically. The `hydrofab::get_hydrofabric()` utility will download the most current geofabric for a Vector Processing Unit (VPU). Options include downloading the "refactored" (default) or "reference" data. If the requested file already exists, the file path will be returned. 
 
 ## Example
 
@@ -96,14 +96,14 @@ refactor = refactor(gpkg = "cihro-data/reference.gpkg",
                     split_flines_meters = 10000, 
                     collapse_flines_meters = 1000, 
                     collapse_flines_main_meters = 1000,
-                    fac = '/vsis3/nextgen-hydrofabric/DEM-products/fac.vrt',
-                    fdr = '/vsis3/nextgen-hydrofabric/DEM-products/fdr.vrt',
+                    fac = '/vsis3/nextgen-hydrofabric/gridded-resources/fac.vrt',
+                    fdr = '/vsis3/nextgen-hydrofabric/gridded-resources/fdr.vrt',
                     outfile = "cihro-data/refactor.gpkg")
 ```
 
 ## Outputs 
 
-To get a high level understanding of what happend with this "refactor", we can look at the length distributions:
+To get a high level understanding of what happened with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
 reference = read_hydrofabric("cihro-data/reference.gpkg")
@@ -154,6 +154,7 @@ ggplot() +
 ```
 
 Lastly, we look at the feature count of the network:
+
 ```{r, echo = FALSE}
 
 d = data.frame(type = c("Reference", "Refactor"), num = c(nrow(reference$catchments), nrow(refactor$catchments)))
@@ -207,11 +208,12 @@ aggregate_to_distribution(gpkg = "cihro-data/refactor.gpkg",
                           min_length_km = 1, 
                           min_area_sqkm = 3, 
                           outfile = "cihro-data/aggregate.gpkg")
+
 ```
 
 ## Outputs 
 
-To get a high level understanding of what happend with this "refactor", we can look at the length distributions:
+To get a high level understanding of what happens with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
 agg = read_hydrofabric("cihro-data/aggregate.gpkg")
@@ -219,7 +221,7 @@ agg = read_hydrofabric("cihro-data/aggregate.gpkg")
 ggplot() + 
   geom_density(data = refactor$flowpaths, aes(x = LENGTHKM), color = "blue", lwd = 3) + 
   geom_density(data = reference$flowpaths, aes(x = LENGTHKM), color = "red", lwd = 3) + 
-   geom_density(data = agg$flowpaths, aes(x = lengthkm), color = "green", lwd = 3) + 
+  geom_density(data = agg$flowpaths, aes(x = lengthkm), color = "green", lwd = 3) + 
   xlim(0,10) +
   ylim(0,.75) +
   geom_vline(xintercept = 1, size = 1) + 
@@ -279,7 +281,7 @@ data.frame(class=rep(c("Flowpath Length", "Divide Area"), each=3),
                   type=rep(c("Reference", "Refactored", 'Aggregated'),2),
                   num = c(sum(reference$flowpaths$LENGTHKM),
 sum(refactor$flowpaths$LENGTHKM),
-sum(agg$flowpaths$LENGTHKM),
+sum(agg$flowpaths$lengthkm),
 sum(reference$catchments$AREASQKM),
 sum(refactor$catchments$areasqkm),
 sum(agg$catchments$areasqkm))) %>% 
@@ -309,7 +311,6 @@ And example of this can be seen below:
 
 ```{r, echo=FALSE,out.width="49%",fig.cap="caption",fig.show='hold',fig.align='center'}
 knitr::include_graphics(c('../man/figures/topology.png', '../man/figures/topology2.png'))
-
 ```
 
 ## Character based indentification
@@ -372,19 +373,20 @@ For example, if a 75m flowline has a roughness of 0.05 and a 25m flowline with a
 Flowpaths attributes and lake parameters can be added by pointing to a set of NWM domain files like those found [here](https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/nwm.v2.2.3/parm/domain/)
 
 ```{r, eval = FALSE}
-add_flowpath_attributes("cihro-data/nextgen.gpkg", rl_path = "~/RouteLink_nwm_v2_2_3.nc") %>%
-   add_lake_attributes(lake_path = '~/LAKEPARM_CONUS.nc')
+add_flowpath_attributes("cihro-data/nextgen.gpkg", 
+                        rl_path = "/Volumes/MyBook/nextgen/RouteLink_nwm_v2_2_3.fst") %>%
+   add_lake_attributes(lake_path = '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc')
 ```
 
 
 ## CFE/NOAH-OWP attributes
 
-Catchment attribute data is needed to run some formuatations like CFE and NOAH-OWP. These can be computed using the following logic. 
+Catchment attribute data is needed to run some formulations like CFE and NOAH-OWP. These can be computed using the following logic. 
 
 ```{r, eval = FALSE}
  add_cfe_noahowp_attributes(gpkg        = 'cihro-data/nextgen.gpkg"',
-                                  nwm_dir     = "nwm-data",
-                                  outfile     = 'cihro-data/nextgen.gpkg"/cfe_noahowp.parquet')
+                            nwm_dir     = "/Volumes/Transcend/nwmCONUS-v216/",
+                            outfile     = 'cihro-data/cfe_noahowp.parquet')
 ```
 
 By default, this code take the gridded data supplied by the `soilproperties_CONUS_FullRouting.nc`, `wrfinput_CONUS`, and `GWBUCKPARM_CONUS_FullRouting.nc` and computes the following summaries:
@@ -437,20 +439,23 @@ reference_gpkg = get_hydrofabric(VPU = "10L",  type = "reference", dir = "cihro-
 list(featureSource = "nwis", featureID = "06752260") %>% 
   # Subset Reference
   subset_reference(gpkg = reference_gpkg,
-                   export_gpkg = "cihro-data/reference.gpkg") %>% 
-  refactor(split_flines_meters = 10000, 
+                   export_gpkg = "cihro-data/reference.gpkg")
+
+
+  refactor(gpkg = "cihro-data/reference.gpkg",
+           split_flines_meters = 10000, 
            collapse_flines_meters = 1000, 
            collapse_flines_main_meters = 1000,
-           fac = '/vsis3/nextgen-hydrofabric/DEM-products/fac.vrt',
-           fdr = '/vsis3/nextgen-hydrofabric/DEM-products/fdr.vrt',
+           fac = '/vsis3/nextgen-hydrofabric/gridded-resources/fac.vrt',
+           fdr = '/vsis3/nextgen-hydrofabric/gridded-resources/fdr.vrt',
            outfile = "cihro-data/refactor.gpkg") %>% 
   aggregate_to_distribution(ideal_size_sqkm = 10, 
                           min_length_km = 1, 
                           min_area_sqkm = 3, 
                           outfile = "cihro-data/aggregate.gpkg") %>% 
   apply_nexus_topology(export_gpkg = "cihro-data/nextgen.gpkg") %>% 
-  add_flowpath_attributes() %>%
-  add_lake_attributes(lake_path = '~/LAKEPARM_CONUS.nc') %>%
+  add_flowpath_attributes(rl_path = "/Volumes/MyBook/nextgen/RouteLink_nwm_v2_2_3.fst") %>%
+  add_lake_attributes(lake_path = '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc') %>%
   append_style(layer_names = c("nexus", "hydrolocations", "flowpaths", "divides", "lakes"))
 
 add_cfe_noahowp_attributes(gpkg        = 'cihro-data/nextgen.gpkg"',
@@ -470,8 +475,6 @@ nhdplusTools::add_plus_network_attributes()
 nhdplusTools::get_streamorder()
 nhdplusTools::calculate_total_drainage_area()
 nhdplusTools::get_sorted()
-...
-
 ```
 
 ```{r, echo = FALSE}

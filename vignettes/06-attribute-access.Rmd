@@ -20,16 +20,16 @@ Ok so we have established how to build a subset hydrofabric product. Now, we are
 
 We will focus on three high level examples:
 
-1. Precanned data
+1. Precomputed data
 2. Building your own
 3. Leveraging legacy data
 
 
-# 1. Precanned Data 
+# 1. Precomputed Data 
 
 The intention with NextGen is to provide a suite of precomputed, useful information related to each release of the hydrofabric. To date these include the attributes needed to run CFE/NOAH-OWP, and will eventually include the attributes found in the CAMELS dataset.
 
-Precanned data with live in the same directory as the released hydrofabric artifacts and will follow the same VPU segmentation.
+Precomputed data with live in the same directory as the released hydrofabric artifacts and will follow the same VPU segmentation.
 
 Here, we can see how to extract information for CFE for our Poudre subset.
 
@@ -45,7 +45,7 @@ x = read_sf("cihro-data/poudre.gpkg", "network")
 attr = 'cfe_noahowp'
 
 # define path 
-p = glue("s3://nextgen-hydrofabric/pre-release/nextgen_{x$vpu[1]}_{attr}.parquet")
+p = glue("s3://lynker-spatial/pre-release/nextgen_{x$vpu[1]}_{attr}.parquet")
 ```
 
 ### Access and Join
@@ -66,6 +66,9 @@ divides = open_dataset(p) %>%
 ```{r}
 glimpse(divides)
 
+```
+
+```{r, echo = FALSE}
 plot(divides[grep('quartz_soil_layers', names(divides), value = TRUE)], border = NA)
 
 plot(divides[grep('smcmax', names(divides), value = TRUE)], border = NA)
@@ -145,29 +148,31 @@ The climateR-catalogs provide a vast catalog of resources that can be accessed.
 If you can find the catalog element you want, it can be passed to the more general `dap` utilities.
 
 ```{r}
-glimpse(params)
+glimpse(read_live_catalog())
 ```
 
 ### POLARIS Soils
 
 ```{r}
-(cat = params %>% filter(id == "polaris", grepl("alpha_mean", asset)) )
+cat = filter(catalog, id == "polaris", grepl("mean alpha", variable))
 
-alpha = dap(catalog = cat[1], AOI = divides)
+alpha = dap(catalog = cat, AOI = divides)
 
-plot(alpha$alpha_mean_0_5)
+plot(alpha)
+```
 
+```{r}
 soil = execute_zonal(alpha, geom = divides, fun = "mean", ID = "divide_id")
 
-plot(soil['alpha_mean_0_5'])
+plot(soil[grepl('alpha', names(soil))], border = NA)
 ```
 
 ### USGS DEMs
 
 ```{r}
-(cat = params %>%  filter(asset == "30m CONUS DEM"))
+(cat = catalog %>%  filter(asset == "30m CONUS DEM"))
 
-dem = dap(catalog = cat[1], AOI = divides)
+dem = dap(catalog = cat, AOI = divides)
 
 plot(dem[[1]])
 ```
@@ -197,9 +202,9 @@ knitr::include_graphics("../man/figures/usgs-twi.png")
 net = read_sf("cihro-data/poudre.gpkg", "network") 
 
 twi = data.frame(comid = unique(net$hf_id)) %>% 
-  left_join(get_vaa('areasqkm')) %>% 
+  left_join(get_vaa('areasqkm'), by = "comid") %>% 
   left_join(read_parquet('cihro-data/56f97be4e4b0a6037df06b70_tot.parquet'), by = c("comid"="COMID")) %>% 
-  select(comid, areasqkm, TOT_TWI)
+  select(hf_id = comid, s_areasqkm = areasqkm, TOT_TWI)
 
 ```
 
@@ -207,11 +212,10 @@ twi = data.frame(comid = unique(net$hf_id)) %>%
 ## Reference fabric data
 
 ```{r}
-ref = get_hydrofabric(VPU = "10L", type = "reference", dir = "cihro-data") %>% 
-  read_hydrofabric(realization = "catchments") %>% 
-  magrittr::extract2(1) %>% 
-  filter(FEATUREID %in% twi$comid) %>% 
-  left_join(twi, by = c("FEATUREID"="comid"))
+ref = get_fabric(VPU = "10L", base_s3 = 's3://lynker-spatial/01_reference/', cache_dir  = "cihro-data") %>% 
+  read_sf("reference_catchment") %>% 
+  filter(FEATUREID %in% twi$hf_id) %>% 
+  left_join(twi, by = c("FEATUREID"="hf_id"))
 
 plot(ref['TOT_TWI'], border = NA, main = paste(nrow(ref), " reference catchments"))
 ```
@@ -219,33 +223,44 @@ plot(ref['TOT_TWI'], border = NA, main = paste(nrow(ref), " reference catchments
 ## Area averaging reference fabric to NextGen
 
 ```{r}
-
-twi2 = select(net, comid = hf_id, divide_id, areasqkm_full = areasqkm) %>% 
+full = net %>% 
+  select(divide_id, hf_id, areasqkm) %>% 
   distinct() %>% 
-  left_join(twi) %>%
-  mutate(wTWI = TOT_TWI *pmin(1, areasqkm / areasqkm_full)) %>% 
-  group_by(divide_id) %>% 
-  summarise(twi = sum(wTWI, na.rm = TRUE))  %>% 
-  right_join(divides) %>% 
+  left_join(twi, by = "hf_id")
+
+
+f1 = aggregate_zones(data = full, 
+                     geom = NULL,  
+                     crosswalk = select(full, hf_id, divide_id, areasqkm, s_areasqkm),
+                     ID = "divide_id") %>% 
+  right_join(divides, 
+             by = "divide_id") %>% 
   st_as_sf()
 
 
-plot(twi2['twi'], border = NA, main = paste(nrow(twi2), " reference catchments"))
-
+plot(f1['TOT_TWI'], border = NA, main = paste(nrow(f1), "nextgen catchments"))
 ```
 
 We are not limited to just TWI. The nhdplusTools package provides a archive of NHDPlusV2 based catchment datasets that can be used:
 
 ```{r}
-
 xx = discover_nldi_characteristics("all") 
 
 lapply(xx, nrow)
 
 xx$total$characteristic_id[1:10]
-
 ```
 
+Further Lynker provides a reformatted archive of the EPA streamcat data:
+
+```{r}
+xx = aws.s3::get_bucket_df(bucket = 's3://nextgen-hydrofabric', prefix = 'streamcats') %>% 
+  filter(!grepl("old|data", Key))
+
+nrow(xx)
+
+xx$Key[2:11]
+```
 
 
 ## Summary

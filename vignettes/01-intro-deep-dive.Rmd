@@ -84,12 +84,8 @@ knitr::include_graphics('../man/figures/hyfeature.png')
  
  - The OGC Engineering Report ["Hydrologic Modeling and River Corridor Applications of HY_Features Concepts"](https://docs.ogc.org/per/22-040.html)
 
-
-```{r, echo = FALSE}
-knitr::include_graphics('../man/figures/hyfeature.png')
-```
-
  - The Network Linked Data Index (NLDI) [here](https://waterdata.usgs.gov/blog/nldi-intro/), and [here](https://rconnect.usgs.gov/dataRetrieval/articles/nldi.html) and [here](https://hyriver.readthedocs.io/en/latest/autoapi/pynhd/pynhd/index.html)
+ 
  - The [Geoconnex Registry](https://geoconnex.internetofwater.dev)
  
 

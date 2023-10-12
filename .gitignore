@@ -7,5 +7,5 @@ depriciate
 .DS_Store
 dead
 inst/doc
-vingettes/cihro-data
+vignettes/cihro-data
 data

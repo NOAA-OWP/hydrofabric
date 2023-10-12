@@ -370,7 +370,7 @@ df[match(names(nexus), df$Attribute),] %>%
 
 ## Consequense of Network Aggregation
 
- More then one divide/flowpath (e.g. catchment) can contribute to a single nexus
+More then one divide/flowpath (e.g. catchment) can contribute to a single nexus:
 
 ```{r, echo = FALSE}
 count = sort(table(divides$toid), decreasing= TRUE) 
@@ -425,6 +425,7 @@ df[match(names(hydrolocations), df$Attribute),] %>%
 ```{r}
 hl = filter(hydrolocations, id == outflow$toid)
 
+filter(hydrolocations, hl_uri == "Gages-06752260")
 glimpse(hl)
 
 (pid = glue('https://reference.geoconnex.us/collections/{tolower(hl$hl_reference)}/items?provider_id={hl$hl_link}'))

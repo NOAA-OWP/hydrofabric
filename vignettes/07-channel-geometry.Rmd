@@ -3,35 +3,30 @@ title: "Channel FHG - Machine Learning Model"
 description: |
   "An ML model to estimate FHG coefficients and reproduce channel shape using Ding../man's r coefficient"
 author:
-  - name: "Arash Modaresi Rad" and "Mike Johnson"
-    url: https://github.com/LynkerIntel/conus-fhg.git
+  - name: "Arash Modaresi Rad"
+    url: https://github.com/program--
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
     affiliation: Lynker, NOAA-Affiliate
     affiliation_url: https://lynker.com
 output: distill::distill_article
 ---
 
 # A ML approach to estimate channel geometry
-**Check out our [website](https://sites.google.com/u.boisestate.edu/conus-fhg/home) that provides details of our approuch.** 
-- [Repo](#Repository)
-  * [Cloning](#Cloning)
-  * [Example](#Example)
-- [Overview](#Overview)
-- [Input data](#Input-data)
-- [ML model](#ML-model)
-  * [AutoEncoder](#Reducing-feature-space)
-  * [Overfit](#Preventing-overfit)
-  * [Ensemble](#Ensemble-learning)
-- [Results](#Results)
-  * [Importance](#Feature-importance)
-  * [Evaluation](#Evaluation)
-- [Channel shape](#Channel-Shape)
+
+**Check out our [website](https://sites.google.com/u.boisestate.edu/conus-fhg/home) that provides details of our approach.** 
+
 
 ## What is FHG?
+
 The feature hydraulic geometry (FHG) is an extension of the work by [Leopold and Maddock, 1953](https://books.google.com/books?hl=en&lr=&id=K496gE_YsJoC&oi=fnd&pg=PA1&dq=Leopold,+L.B.,+Maddock,+Jr.,+T.,+1953.+The+hydraulic+geometry+of+stream+channels+and+some+physiographic+implications.+US+Geological+Survey+Professional+Paper+252.&ots=FjrJEtp6Cj&sig=82Sl3dnacB4uUM4DY59nObbi6mQ) to apply the learned hydraulic geometry relations to other locations with the same holistic hydrologic feature. 
 
 The hydraulic geometry relations suggest that measured hydraulic characteristics at a channel cross-section including width, depth, and velocity vary with discharge as a simple power-law function. These relations present an opportunity to develop a time-varying representation of channel depth and width and in turn, can determine the shape of the channel. 
 
 ## Why build a machine learning model?
+
 Currently, Digital Elevation Model's (DEM) can be used to extract floodplain topology but DEMs cannot penetrate deep into the water and thus we have a missing bathymetry at bankfull and below bankfull conditions. This missing bathymetry can through off modeling efforts by not accounting for the missing volume. The hydraulic geometry method offers a solution to capture the missing bathymetry and resolve this issue.
 
 Deriving hydraulic geometry relations is only possible where there are measurements of width, depth, and velocity at different discharge values such as few selected USGS sites or locations where there are frequent measurements of Acoustic Doppler Current Profiler (ADCP). A great source of such a dataset is the USGS HYDRoacoustic dataset in support of the Surface Water Oceanographic Topography satellite mission [HYDRoSWOT](https://data.usgs.gov/datacatalog/data/USGS:57435ae5e4b07e28b660af55). This limits the applicability of this approach only to sites where such measurements have taken place. 

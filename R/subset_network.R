@@ -61,7 +61,7 @@ subset_network = function(id = NULL,
                           hl_uri = NULL,
                           nldi_feature = NULL,
                           loc = NULL,
-                          base_s3 = 's3://nextgen-hydrofabric/pre-release/',
+                          base_s3 = 's3://lynker-spatial/pre-release/',
                           lyrs  = c(
                             "divides",
                             "nexus",

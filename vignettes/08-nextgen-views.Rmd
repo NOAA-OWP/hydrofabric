@@ -107,7 +107,7 @@ mkdir poudre
 cd poudre
 
 hfsubset -l divides,nexus,flowpaths, network,flowpath_attributes,hydrolocations \
-         -o ./poudre-subset.gpkg \
+         -o ./cihro-data/poudre.gpkg \
          -r "pre-release" \
          -t hl \
          "Gages-06752260"
@@ -116,7 +116,7 @@ hfsubset -l divides,nexus,flowpaths, network,flowpath_attributes,hydrolocations 
 ### Did we create it?
 
 ```{r}
-(f = list.files("poudre", pattern = ".gpkg", full.names = TRUE))
+(f = list.files("cihro-data", pattern = "poudre.gpkg", full.names = TRUE))
 ```
 
 ### What's in it?
@@ -203,6 +203,7 @@ We can ensure  the resultant flowpath topology, extracted from the divides view,
 library(igraph); library(visNetwork)
 
 g = select(net, id, toid) %>%
+    distinct() %>% 
     graph_from_data_frame(directed = TRUE) 
 
 is.dag(g)
@@ -213,7 +214,7 @@ visIgraph(g)
 Much like the NOAH-OWP/CFE example, knowing the connectivity of the flowpath network is half of the challenge. To successful route water through it, a range of attributes need to be supplied. Currently, these are provided within the `flowpath_attributes` layer of the hydrofabric data model:
 
 ```{r}
-read_sf("poudre/poudre-subset.gpkg", "flowpath_attributes") %>%
+read_sf(f, "flowpath_attributes") %>%
   filter(id %in% unique(net$id))
 ```
 

@@ -187,15 +187,10 @@ Feature conceptual model</a>.</li>
 logical model</a></p></li>
 <li><p>The OGC Engineering Report <a href="https://docs.ogc.org/per/22-040.html" class="external-link">“Hydrologic Modeling and
 River Corridor Applications of HY_Features Concepts”</a></p></li>
-</ul>
-<p><img src="../reference/figures/hyfeature.png" width="100%"></p>
-<ul>
-<li>The Network Linked Data Index (NLDI) <a href="https://waterdata.usgs.gov/blog/nldi-intro/" class="external-link">here</a>, and <a href="https://rconnect.usgs.gov/dataRetrieval/articles/nldi.html" class="external-link">here</a>
-and <a href="https://hyriver.readthedocs.io/en/latest/autoapi/pynhd/pynhd/index.html" class="external-link">here</a>
-</li>
-<li>The <a href="https://geoconnex.internetofwater.dev" class="external-link">Geoconnex
-Registry</a>
-</li>
+<li><p>The Network Linked Data Index (NLDI) <a href="https://waterdata.usgs.gov/blog/nldi-intro/" class="external-link">here</a>, and <a href="https://rconnect.usgs.gov/dataRetrieval/articles/nldi.html" class="external-link">here</a>
+and <a href="https://hyriver.readthedocs.io/en/latest/autoapi/pynhd/pynhd/index.html" class="external-link">here</a></p></li>
+<li><p>The <a href="https://geoconnex.internetofwater.dev" class="external-link">Geoconnex
+Registry</a></p></li>
 </ul>
 </div>
 <div class="section level4">
@@ -247,10 +242,10 @@ attributes:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">hydrofabric</a></span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ── <span style="font-weight: bold;">Attaching packages</span> ────────────────────────────────────── hydrofabric0.0.6 ──</span></span></code></pre>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr        </span> 1.1.2      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">nhdplusTools </span> 0.6.2 </span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">terra        </span> 1.7.21     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">hydrofab     </span> 0.5.0 </span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ngen.hydrofab</span> 0.0.3      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">zonal        </span> 0.0.2 </span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">climateR     </span> 0.3.0      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">glue         </span> 1.6.2</span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr        </span> 1.1.3       <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">nhdplusTools </span> 1.0.1  </span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">terra        </span> 1.7.46      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">hydrofab     </span> 0.5.0  </span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ngen.hydrofab</span> 0.0.3       <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">zonal        </span> 0.0.2  </span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">climateR     </span> 0.3.1.<span style="color: #BB0000;">4</span>     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">glue         </span> 1.6.2</span></span></code></pre>
 <pre><code><span><span class="co">## ── <span style="font-weight: bold;">Conflicts</span> ──────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
 <span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">terra</span>::<span style="color: #00BB00;">intersect()</span> masks <span style="color: #0000BB;">dplyr</span>::intersect()</span></span>
 <span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">glue</span>::<span style="color: #00BB00;">trim()</span>       masks <span style="color: #0000BB;">terra</span>::trim()</span></span>

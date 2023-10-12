@@ -83,18 +83,18 @@ Now, we are focused on how to add extra information to this data to
 support modeling and science applications.</p>
 <p>We will focus on three high level examples:</p>
 <ol style="list-style-type: decimal">
-<li>Precanned data</li>
+<li>Precomputed data</li>
 <li>Building your own</li>
 <li>Leveraging legacy data</li>
 </ol>
 <div class="section level2">
-<h2 id="precanned-data">1. Precanned Data<a class="anchor" aria-label="anchor" href="#precanned-data"></a>
+<h2 id="precomputed-data">1. Precomputed Data<a class="anchor" aria-label="anchor" href="#precomputed-data"></a>
 </h2>
 <p>The intention with NextGen is to provide a suite of precomputed,
 useful information related to each release of the hydrofabric. To date
 these include the attributes needed to run CFE/NOAH-OWP, and will
 eventually include the attributes found in the CAMELS dataset.</p>
-<p>Precanned data with live in the same directory as the released
+<p>Precomputed data with live in the same directory as the released
 hydrofabric artifacts and will follow the same VPU segmentation.</p>
 <p>Here, we can see how to extract information for CFE for our Poudre
 subset.</p>
@@ -119,7 +119,7 @@ subset.</p>
 <span><span class="va">attr</span> <span class="op">=</span> <span class="st">'cfe_noahowp'</span></span>
 <span></span>
 <span><span class="co"># define path </span></span>
-<span><span class="va">p</span> <span class="op">=</span> <span class="fu">glue</span><span class="op">(</span><span class="st">"s3://nextgen-hydrofabric/pre-release/nextgen_{x$vpu[1]}_{attr}.parquet"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">p</span> <span class="op">=</span> <span class="fu">glue</span><span class="op">(</span><span class="st">"s3://lynker-spatial/pre-release/nextgen_{x$vpu[1]}_{attr}.parquet"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="access-and-join">Access and Join<a class="anchor" aria-label="anchor" href="#access-and-join"></a>
@@ -187,12 +187,7 @@ subset.</p>
 <span><span class="co">## $ tot_drainage_areasqkm       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 20.08124, 51.43679, 87.73334, 186.33094, 2…</span></span>
 <span><span class="co">## $ has_flowline                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">## $ geom                        <span style="color: #949494; font-style: italic;">&lt;MULTIPOLYGON [m]&gt;</span> MULTIPOLYGON (((-823365 197..…</span></span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">divides</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">'quartz_soil_layers'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">divides</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">divides</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">'smcmax'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">divides</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-3-2.png" width="700"></p>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-4-1.png" width="700"><img src="06-attribute-access_files/figure-html/unnamed-chunk-4-2.png" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="unique-use-cases">2. Unique Use Cases<a class="anchor" aria-label="anchor" href="#unique-use-cases"></a>
@@ -234,68 +229,69 @@ resources</td>
 <div class="section level4">
 <h4 id="single-day">Single Day<a class="anchor" aria-label="anchor" href="#single-day"></a>
 </h4>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">r</span> <span class="op">=</span> <span class="fu">getGridMET</span><span class="op">(</span>AOI <span class="op">=</span> <span class="va">divides</span>, varname <span class="op">=</span> <span class="st">"srad"</span>, startDate <span class="op">=</span> <span class="st">"2020-10-29"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">daily_mean_shortwave_radiation_at_surface</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">srad</span> <span class="op">=</span> <span class="fu">execute_zonal</span><span class="op">(</span><span class="va">r</span>, geom <span class="op">=</span> <span class="va">divides</span>, fun <span class="op">=</span> <span class="st">"mean"</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">srad</span><span class="op">[</span><span class="st">'srad_2020-10-29'</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-4-2.png" width="700"></p>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-5-2.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="through-time">Through time<a class="anchor" aria-label="anchor" href="#through-time"></a>
 </h4>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">=</span> <span class="fu">getGridMET</span><span class="op">(</span>AOI <span class="op">=</span> <span class="va">divides</span>, varname <span class="op">=</span> <span class="st">"pr"</span>, startDate <span class="op">=</span> <span class="st">"2023-05-10"</span>, endDate <span class="op">=</span> <span class="st">"2023-05-13"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">precipitation_amount</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pr</span> <span class="op">=</span> <span class="fu">execute_zonal</span><span class="op">(</span><span class="va">p</span>, geom <span class="op">=</span> <span class="va">divides</span>, fun <span class="op">=</span> <span class="st">"mean"</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pr</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">'pr'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pr</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-5-2.png" width="700"></p>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-6-2.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="on-the-fly-exploration">On the fly exploration<a class="anchor" aria-label="anchor" href="#on-the-fly-exploration"></a>
 </h4>
 <p>Here we want rank map the NextGen Catchments by the amount of rain
 they received over the last few days</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pr</span><span class="op">$</span><span class="va">cumpr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="fu">st_drop_geometry</span><span class="op">(</span><span class="va">pr</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">'pr'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pr</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pr</span><span class="op">[</span><span class="st">'cumpr'</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-7-1.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="beyond-gridmet">Beyond Gridmet<a class="anchor" aria-label="anchor" href="#beyond-gridmet"></a>
 </h4>
 <p>climateR provides a range of short cut functions to common datasets.
 These are simply shortcuts to make access faster:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"get"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="st">"package:climateR"</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##  [1] "dap_get"             "get_data"            "getBCCA"            </span></span>
-<span><span class="co">##  [4] "getCHIRPS"           "getDaymet"           "getDodsrcPath"      </span></span>
-<span><span class="co">##  [7] "getGLDAS"            "getGridMET"          "getLivneh"          </span></span>
-<span><span class="co">## [10] "getLivneh_fluxes"    "getLOCA"             "getLOCA_hydro"      </span></span>
-<span><span class="co">## [13] "getMACA"             "getMODIS"            "getNetrcPath"       </span></span>
-<span><span class="co">## [16] "getNLDAS"            "getPRISM"            "getTerraClim"       </span></span>
-<span><span class="co">## [19] "getTerraClimNormals" "getVIC"              "go_get_dap_data"    </span></span>
-<span><span class="co">## [22] "vrt_crop_get"</span></span></code></pre>
+<pre><code><span><span class="co">##  [1] "dap_get"             "get_data"            "get3DEP"            </span></span>
+<span><span class="co">##  [4] "getBCCA"             "getCHIRPS"           "getDaymet"          </span></span>
+<span><span class="co">##  [7] "getDodsrcPath"       "getGLDAS"            "getGridMET"         </span></span>
+<span><span class="co">## [10] "getLCMAP"            "getLivneh"           "getLivneh_fluxes"   </span></span>
+<span><span class="co">## [13] "getLOCA"             "getLOCA_hydro"       "getMACA"            </span></span>
+<span><span class="co">## [16] "getMODIS"            "getNASADEM"          "getNetrcPath"       </span></span>
+<span><span class="co">## [19] "getNLCD"             "getNLDAS"            "getPRISM"           </span></span>
+<span><span class="co">## [22] "getTerraClim"        "getTerraClimNormals" "getVIC"             </span></span>
+<span><span class="co">## [25] "getWorldClim"        "go_get_dap_data"     "vrt_crop_get"</span></span></code></pre>
 <div class="section level5">
 <h5 id="mean-monthly-normals">Mean Monthly Normals<a class="anchor" aria-label="anchor" href="#mean-monthly-normals"></a>
 </h5>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ppt</span> <span class="op">=</span> <span class="fu">getTerraClimNormals</span><span class="op">(</span>AOI <span class="op">=</span> <span class="va">divides</span>,  varname <span class="op">=</span> <span class="st">"ppt"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">execute_zonal</span><span class="op">(</span>geom <span class="op">=</span> <span class="va">divides</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ppt</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"ppt"</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">ppt</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: plotting the first 10 out of 12 attributes; use max.plot = 12 to plot</span></span>
 <span><span class="co">## all</span></span></code></pre>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
 </div>
 </div>
 <div class="section level4">
@@ -305,126 +301,74 @@ These are simply shortcuts to make access faster:</p>
 accessed.</p>
 <p>If you can find the catalog element you want, it can be passed to the
 more general <code>dap</code> utilities.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="va">params</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Rows: 107,857</span></span>
-<span><span class="co">## Columns: 28</span></span>
-<span><span class="co">## $ id          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "maca_day", "maca_day", "maca_day", "maca_day", "maca_day"…</span></span>
-<span><span class="co">## $ asset       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "agg_macav2metdata_huss_BNU-ESM_r1i1p1_historical_1950_200…</span></span>
-<span><span class="co">## $ URL         <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span> "http://thredds.northwestknowledge.net:8080/thredds/dodsC…</span></span>
-<span><span class="co">## $ type        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "opendap", "opendap", "opendap", "opendap", "opendap", "op…</span></span>
-<span><span class="co">## $ varname     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "specific_humidity", "specific_humidity", "specific_humidi…</span></span>
-<span><span class="co">## $ variable    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "huss", "huss", "huss", "huss", "huss", "huss", "huss", "h…</span></span>
-<span><span class="co">## $ description <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Daily Mean Near-Surface Specific Humidity", "Daily Mean N…</span></span>
-<span><span class="co">## $ units       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "kg kg-1", "kg kg-1", "kg kg-1", "kg kg-1", "kg kg-1", "kg…</span></span>
-<span><span class="co">## $ model       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "BNU-ESM", "CNRM-CM5", "CSIRO-Mk3-6-0", "bcc-csm1-1", "Can…</span></span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="fu">read_live_catalog</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Rows: 37,010</span></span>
+<span><span class="co">## Columns: 29</span></span>
+<span><span class="co">## $ id          <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> bcca, bcca, bcca, bcca, bcca, bcca, bcca, bcca, bcca, bcca…</span></span>
+<span><span class="co">## $ asset       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">## $ URL         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "https://cida.usgs.gov/thredds/dodsC/cmip5_bcca/future", "…</span></span>
+<span><span class="co">## $ type        <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> opendap, opendap, opendap, opendap, opendap, opendap, open…</span></span>
+<span><span class="co">## $ varname     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "BCCA_0-125deg_pr_day_ACCESS1-0_rcp45_r1i1p1", "BCCA_0-125…</span></span>
+<span><span class="co">## $ variable    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> pr, pr, pr, pr, pr, pr, pr, pr, pr, pr, pr, pr, pr, pr, pr…</span></span>
+<span><span class="co">## $ description <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Precipitation", "Precipitation", "Precipitation", "Precip…</span></span>
+<span><span class="co">## $ units       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mm/d", "mm/d", "mm/d", "mm/d", "mm/d", "mm/d", "mm/d", "m…</span></span>
+<span><span class="co">## $ model       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "ACCESS1-0", "ACCESS1-0", "bcc-csm1-1", "bcc-csm1-1", "bcc…</span></span>
 <span><span class="co">## $ ensemble    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "r1i1p1", "r1i1p1", "r1i1p1", "r1i1p1", "r1i1p1", "r1i1p1"…</span></span>
-<span><span class="co">## $ scenario    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "historical", "historical", "historical", "historical", "h…</span></span>
+<span><span class="co">## $ scenario    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "rcp45", "rcp85", "rcp26", "rcp45", "rcp60", "rcp85", "rcp…</span></span>
 <span><span class="co">## $ T_name      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "time", "time", "time", "time", "time", "time", "time", "t…</span></span>
-<span><span class="co">## $ duration    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1950-01-01/2005-12-31", "1950-01-01/2005-12-31", "1950-01…</span></span>
+<span><span class="co">## $ duration    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2006-01-01 12:00:00/2100-12-31 12:00:00", "2006-01-01 12:…</span></span>
 <span><span class="co">## $ interval    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1 days", "1 days", "1 days", "1 days", "1 days", "1 days"…</span></span>
-<span><span class="co">## $ nT          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 20454, 20454, 20454, 20454, 20454, 20454, 20454, 20454, 20…</span></span>
-<span><span class="co">## $ X_name      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "lon", "lon", "lon", "lon", "lon", "lon", "lon", "lon", "l…</span></span>
-<span><span class="co">## $ Y_name      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "lat", "lat", "lat", "lat", "lat", "lat", "lat", "lat", "l…</span></span>
-<span><span class="co">## $ X1          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> -124.7722, -124.7722, -124.7722, -124.7722, -124.7722, -12…</span></span>
-<span><span class="co">## $ Xn          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> -67.06476, -67.06476, -67.06476, -67.06476, -67.06476, -67…</span></span>
-<span><span class="co">## $ Y1          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 25.06308, 25.06308, 25.06308, 25.06308, 25.06308, 25.06308…</span></span>
-<span><span class="co">## $ Yn          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 49.39602, 49.39602, 49.39602, 49.39602, 49.39602, 49.39602…</span></span>
-<span><span class="co">## $ resX        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.04166599, 0.04166599, 0.04166599, 0.04166599, 0.04166599…</span></span>
-<span><span class="co">## $ resY        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.041666, 0.041666, 0.041666, 0.041666, 0.041666, 0.041666…</span></span>
-<span><span class="co">## $ ncols       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1386, 1386, 1386, 1386, 1386, 1386, 1386, 1386, 1386, 1386…</span></span>
-<span><span class="co">## $ nrows       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 585, 585, 585, 585, 585, 585, 585, 585, 585, 585, 585, 585…</span></span>
+<span><span class="co">## $ nT          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 34698, 34698, 34698, 34698, 34698, 34698, 34698, 34698, 34…</span></span>
+<span><span class="co">## $ X_name      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "longitude", "longitude", "longitude", "longitude", "longi…</span></span>
+<span><span class="co">## $ Y_name      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "latitude", "latitude", "latitude", "latitude", "latitude"…</span></span>
+<span><span class="co">## $ X1          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> -124.6875, -124.6875, -124.6875, -124.6875, -124.6875, -12…</span></span>
+<span><span class="co">## $ Xn          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> -67.0625, -67.0625, -67.0625, -67.0625, -67.0625, -67.0625…</span></span>
+<span><span class="co">## $ Y1          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 25.1875, 25.1875, 25.1875, 25.1875, 25.1875, 25.1875, 25.1…</span></span>
+<span><span class="co">## $ Yn          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 52.8125, 52.8125, 52.8125, 52.8125, 52.8125, 52.8125, 52.8…</span></span>
+<span><span class="co">## $ resX        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.…</span></span>
+<span><span class="co">## $ resY        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.…</span></span>
+<span><span class="co">## $ ncols       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 462, 462, 462, 462, 462, 462, 462, 462, 462, 462, 462, 462…</span></span>
+<span><span class="co">## $ nrows       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 222, 222, 222, 222, 222, 222, 222, 222, 222, 222, 222, 222…</span></span>
 <span><span class="co">## $ crs         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "+proj=longlat +a=6378137 +f=0.00335281066474748 +pm=0 +no…</span></span>
 <span><span class="co">## $ toptobottom <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE…</span></span>
-<span><span class="co">## $ tiled       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T", "T"…</span></span></code></pre>
+<span><span class="co">## $ tiled       <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T…</span></span>
+<span><span class="co">## $ dim_order   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> TYX, TYX, TYX, TYX, TYX, TYX, TYX, TYX, TYX, TYX, TYX, TYX…</span></span></code></pre>
 </div>
 <div class="section level4">
 <h4 id="polaris-soils">POLARIS Soils<a class="anchor" aria-label="anchor" href="#polaris-soils"></a>
 </h4>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">cat</span> <span class="op">=</span> <span class="va">params</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">id</span> <span class="op">==</span> <span class="st">"polaris"</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"alpha_mean"</span>, <span class="va">asset</span><span class="op">)</span><span class="op">)</span> <span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##         id              asset</span></span>
-<span><span class="co">## 1: polaris     alpha_mean_0_5</span></span>
-<span><span class="co">## 2: polaris    alpha_mean_5_15</span></span>
-<span><span class="co">## 3: polaris   alpha_mean_15_30</span></span>
-<span><span class="co">## 4: polaris   alpha_mean_30_60</span></span>
-<span><span class="co">## 5: polaris  alpha_mean_60_100</span></span>
-<span><span class="co">## 6: polaris alpha_mean_100_200</span></span>
-<span><span class="co">##                                                                                          URL</span></span>
-<span><span class="co">## 1:     /vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_0_5.vrt</span></span>
-<span><span class="co">## 2:    /vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_5_15.vrt</span></span>
-<span><span class="co">## 3:   /vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_15_30.vrt</span></span>
-<span><span class="co">## 4:   /vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_30_60.vrt</span></span>
-<span><span class="co">## 5:  /vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_60_100.vrt</span></span>
-<span><span class="co">## 6: /vsicurl/http://hydrology.cee.duke.edu/POLARIS/PROPERTIES/v1.0/vrt/alpha_mean_100_200.vrt</span></span>
-<span><span class="co">##    type              varname             variable</span></span>
-<span><span class="co">## 1:  vrt     mean alpha 0-5cm     mean alpha 0-5cm</span></span>
-<span><span class="co">## 2:  vrt    mean alpha 5-15cm    mean alpha 5-15cm</span></span>
-<span><span class="co">## 3:  vrt   mean alpha 15-30cm   mean alpha 15-30cm</span></span>
-<span><span class="co">## 4:  vrt   mean alpha 30-60cm   mean alpha 30-60cm</span></span>
-<span><span class="co">## 5:  vrt  mean alpha 60-100cm  mean alpha 60-100cm</span></span>
-<span><span class="co">## 6:  vrt mean alpha 100-200cm mean alpha 100-200cm</span></span>
-<span><span class="co">##                                                                     description</span></span>
-<span><span class="co">## 1: scale parameter inversely proportional to mean pore diameter (van genuchten)</span></span>
-<span><span class="co">## 2: scale parameter inversely proportional to mean pore diameter (van genuchten)</span></span>
-<span><span class="co">## 3: scale parameter inversely proportional to mean pore diameter (van genuchten)</span></span>
-<span><span class="co">## 4: scale parameter inversely proportional to mean pore diameter (van genuchten)</span></span>
-<span><span class="co">## 5: scale parameter inversely proportional to mean pore diameter (van genuchten)</span></span>
-<span><span class="co">## 6: scale parameter inversely proportional to mean pore diameter (van genuchten)</span></span>
-<span><span class="co">##           units model ensemble scenario T_name duration interval nT X_name</span></span>
-<span><span class="co">## 1: log10(kPa-1)  &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; NA   &lt;NA&gt;</span></span>
-<span><span class="co">## 2: log10(kPa-1)  &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; NA   &lt;NA&gt;</span></span>
-<span><span class="co">## 3: log10(kPa-1)  &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; NA   &lt;NA&gt;</span></span>
-<span><span class="co">## 4: log10(kPa-1)  &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; NA   &lt;NA&gt;</span></span>
-<span><span class="co">## 5: log10(kPa-1)  &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; NA   &lt;NA&gt;</span></span>
-<span><span class="co">## 6: log10(kPa-1)  &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;   &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt; NA   &lt;NA&gt;</span></span>
-<span><span class="co">##    Y_name   X1  Xn   Y1 Yn         resX         resY  ncols nrows</span></span>
-<span><span class="co">## 1:   &lt;NA&gt; -125 -66 -125 50 0.0002777778 0.0002777778 212400 97200</span></span>
-<span><span class="co">## 2:   &lt;NA&gt; -125 -66 -125 50 0.0002777778 0.0002777778 212400 97200</span></span>
-<span><span class="co">## 3:   &lt;NA&gt; -125 -66 -125 50 0.0002777778 0.0002777778 212400 97200</span></span>
-<span><span class="co">## 4:   &lt;NA&gt; -125 -66 -125 50 0.0002777778 0.0002777778 212400 97200</span></span>
-<span><span class="co">## 5:   &lt;NA&gt; -125 -66 -125 50 0.0002777778 0.0002777778 212400 97200</span></span>
-<span><span class="co">## 6:   &lt;NA&gt; -125 -66 -125 50 0.0002777778 0.0002777778 212400 97200</span></span>
-<span><span class="co">##                                    crs toptobottom tiled</span></span>
-<span><span class="co">## 1: +proj=longlat +datum=WGS84 +no_defs          NA      </span></span>
-<span><span class="co">## 2: +proj=longlat +datum=WGS84 +no_defs          NA      </span></span>
-<span><span class="co">## 3: +proj=longlat +datum=WGS84 +no_defs          NA      </span></span>
-<span><span class="co">## 4: +proj=longlat +datum=WGS84 +no_defs          NA      </span></span>
-<span><span class="co">## 5: +proj=longlat +datum=WGS84 +no_defs          NA      </span></span>
-<span><span class="co">## 6: +proj=longlat +datum=WGS84 +no_defs          NA</span></span></code></pre>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">alpha</span> <span class="op">=</span> <span class="fu">dap</span><span class="op">(</span>catalog <span class="op">=</span> <span class="va">cat</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, AOI <span class="op">=</span> <span class="va">divides</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">catalog</span>, <span class="va">id</span> <span class="op">==</span> <span class="st">"polaris"</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"mean alpha"</span>, <span class="va">variable</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">$</span><span class="va">alpha_mean_0_5</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<span><span class="va">alpha</span> <span class="op">=</span> <span class="fu">dap</span><span class="op">(</span>catalog <span class="op">=</span> <span class="va">cat</span>, AOI <span class="op">=</span> <span class="va">divides</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">)</span></span></code></pre></div>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">soil</span> <span class="op">=</span> <span class="fu">execute_zonal</span><span class="op">(</span><span class="va">alpha</span>, geom <span class="op">=</span> <span class="va">divides</span>, fun <span class="op">=</span> <span class="st">"mean"</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">soil</span><span class="op">[</span><span class="st">'alpha_mean_0_5'</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-10-2.png" width="700"></p>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">soil</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">'alpha'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">soil</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="usgs-dems">USGS DEMs<a class="anchor" aria-label="anchor" href="#usgs-dems"></a>
 </h4>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">cat</span> <span class="op">=</span> <span class="va">params</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">asset</span> <span class="op">==</span> <span class="st">"30m CONUS DEM"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##           id         asset</span></span>
-<span><span class="co">## 1: USGS 3DEP 30m CONUS DEM</span></span>
-<span><span class="co">##                                                                                                  URL</span></span>
-<span><span class="co">## 1: /vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt</span></span>
-<span><span class="co">##    type   varname  variable   description  units model ensemble scenario T_name</span></span>
-<span><span class="co">## 1:  vrt elevation elevation 30m CONUS DEM meters  &lt;NA&gt;     &lt;NA&gt;     &lt;NA&gt;   &lt;NA&gt;</span></span>
-<span><span class="co">##    duration interval nT X_name Y_name        X1       Xn        Y1       Yn</span></span>
-<span><span class="co">## 1:     &lt;NA&gt;     &lt;NA&gt; NA   &lt;NA&gt;   &lt;NA&gt; -171.0017 164.0017 -171.0017 84.00167</span></span>
-<span><span class="co">##            resX         resY   ncols  nrows                                 crs</span></span>
-<span><span class="co">## 1: 0.0002777778 0.0002777778 1206012 356412 +proj=longlat +datum=NAD83 +no_defs</span></span>
-<span><span class="co">##    toptobottom tiled</span></span>
-<span><span class="co">## 1:          NA</span></span></code></pre>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dem</span> <span class="op">=</span> <span class="fu">dap</span><span class="op">(</span>catalog <span class="op">=</span> <span class="va">cat</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, AOI <span class="op">=</span> <span class="va">divides</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">cat</span> <span class="op">=</span> <span class="va">catalog</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">asset</span> <span class="op">==</span> <span class="st">"30m CONUS DEM"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 29</span></span></span>
+<span><span class="co">##   id        asset  URL   type  varname variable description units model ensemble</span></span>
+<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">1</span> USGS 3DEP 30m C… /vsi… vrt   elevat… elevati… 30m CONUS … mete… <span style="color: #BB0000;">NA</span>    <span style="color: #BB0000;">NA</span>      </span></span>
+<span><span class="co">## <span style="color: #949494;"># ℹ 19 more variables: scenario &lt;chr&gt;, T_name &lt;chr&gt;, duration &lt;chr&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   interval &lt;chr&gt;, nT &lt;int&gt;, X_name &lt;chr&gt;, Y_name &lt;chr&gt;, X1 &lt;dbl&gt;, Xn &lt;dbl&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   Y1 &lt;dbl&gt;, Yn &lt;dbl&gt;, resX &lt;dbl&gt;, resY &lt;dbl&gt;, ncols &lt;int&gt;, nrows &lt;int&gt;,</span></span></span>
+<span><span class="co">## <span style="color: #949494;">#   crs &lt;chr&gt;, toptobottom &lt;lgl&gt;, tiled &lt;fct&gt;, dim_order &lt;fct&gt;</span></span></span></code></pre>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dem</span> <span class="op">=</span> <span class="fu">dap</span><span class="op">(</span>catalog <span class="op">=</span> <span class="va">cat</span>, AOI <span class="op">=</span> <span class="va">divides</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">dem</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="beyond-r">Beyond R<a class="anchor" aria-label="anchor" href="#beyond-r"></a>
@@ -444,54 +388,56 @@ catchment network.</p>
 <p>One of these that is of particular interest to NextGen is <a href="https://www.sciencebase.gov/catalog/item/56f97be4e4b0a6037df06b70" class="external-link">TWI</a>.</p>
 <p>While TOPMODEL requires a distribution, a quick and dirty way to get
 NextGen catchment TWI estimates is of immense value.</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html" class="external-link">include_graphics</a></span><span class="op">(</span><span class="st">"../man/figures/usgs-twi.png"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="../reference/figures/usgs-twi.png" width="550"></p>
 <div class="section level3">
 <h3 id="twi-joined-to-the-poudre-river-network">TWI joined to the Poudre River Network<a class="anchor" aria-label="anchor" href="#twi-joined-to-the-poudre-river-network"></a>
 </h3>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">net</span> <span class="op">=</span> <span class="fu">read_sf</span><span class="op">(</span><span class="st">"cihro-data/poudre.gpkg"</span>, <span class="st">"network"</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="va">twi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>comid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">net</span><span class="op">$</span><span class="va">hf_id</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">left_join</span><span class="op">(</span><span class="fu">get_vaa</span><span class="op">(</span><span class="st">'areasqkm'</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">left_join</span><span class="op">(</span><span class="fu">get_vaa</span><span class="op">(</span><span class="st">'areasqkm'</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"comid"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">left_join</span><span class="op">(</span><span class="fu"><a href="https://arrow.apache.org/docs/r/reference/read_parquet.html" class="external-link">read_parquet</a></span><span class="op">(</span><span class="st">'cihro-data/56f97be4e4b0a6037df06b70_tot.parquet'</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"comid"</span><span class="op">=</span><span class="st">"COMID"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">select</span><span class="op">(</span><span class="va">comid</span>, <span class="va">areasqkm</span>, <span class="va">TOT_TWI</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Joining with `by = join_by(comid)`</span></span></code></pre>
+<span>  <span class="fu">select</span><span class="op">(</span>hf_id <span class="op">=</span> <span class="va">comid</span>, s_areasqkm <span class="op">=</span> <span class="va">areasqkm</span>, <span class="va">TOT_TWI</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="reference-fabric-data">Reference fabric data<a class="anchor" aria-label="anchor" href="#reference-fabric-data"></a>
 </h3>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">ref</span> <span class="op">=</span> <span class="fu">get_hydrofabric</span><span class="op">(</span>VPU <span class="op">=</span> <span class="st">"10L"</span>, type <span class="op">=</span> <span class="st">"reference"</span>, dir <span class="op">=</span> <span class="st">"cihro-data"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">read_hydrofabric</span><span class="op">(</span>realization <span class="op">=</span> <span class="st">"catchments"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">magrittr</span><span class="fu">::</span><span class="fu"><a href="https://magrittr.tidyverse.org/reference/aliases.html" class="external-link">extract2</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FEATUREID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">twi</span><span class="op">$</span><span class="va">comid</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">left_join</span><span class="op">(</span><span class="va">twi</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FEATUREID"</span><span class="op">=</span><span class="st">"comid"</span><span class="op">)</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ref</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_fabric.html">get_fabric</a></span><span class="op">(</span>VPU <span class="op">=</span> <span class="st">"10L"</span>, base_s3 <span class="op">=</span> <span class="st">'s3://lynker-spatial/01_reference/'</span>, cache_dir  <span class="op">=</span> <span class="st">"cihro-data"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">read_sf</span><span class="op">(</span><span class="st">"reference_catchment"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FEATUREID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">twi</span><span class="op">$</span><span class="va">hf_id</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">left_join</span><span class="op">(</span><span class="va">twi</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"FEATUREID"</span><span class="op">=</span><span class="st">"hf_id"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">ref</span><span class="op">[</span><span class="st">'TOT_TWI'</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">ref</span><span class="op">)</span>, <span class="st">" reference catchments"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="area-averaging-reference-fabric-to-nextgen">Area averaging reference fabric to NextGen<a class="anchor" aria-label="anchor" href="#area-averaging-reference-fabric-to-nextgen"></a>
 </h3>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">twi2</span> <span class="op">=</span> <span class="fu">select</span><span class="op">(</span><span class="va">net</span>, comid <span class="op">=</span> <span class="va">hf_id</span>, <span class="va">divide_id</span>, areasqkm_full <span class="op">=</span> <span class="va">areasqkm</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">full</span> <span class="op">=</span> <span class="va">net</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">select</span><span class="op">(</span><span class="va">divide_id</span>, <span class="va">hf_id</span>, <span class="va">areasqkm</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">distinct</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">left_join</span><span class="op">(</span><span class="va">twi</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">mutate</span><span class="op">(</span>wTWI <span class="op">=</span> <span class="va">TOT_TWI</span> <span class="op">*</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">areasqkm</span> <span class="op">/</span> <span class="va">areasqkm_full</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">group_by</span><span class="op">(</span><span class="va">divide_id</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">summarise</span><span class="op">(</span>twi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">wTWI</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>  <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">right_join</span><span class="op">(</span><span class="va">divides</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
-<span>  <span class="fu">st_as_sf</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Joining with `by = join_by(comid)`</span></span>
-<span><span class="co">## Joining with `by = join_by(divide_id)`</span></span></code></pre>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">twi2</span><span class="op">[</span><span class="st">'twi'</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">twi2</span><span class="op">)</span>, <span class="st">" reference catchments"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<span>  <span class="fu">left_join</span><span class="op">(</span><span class="va">twi</span>, by <span class="op">=</span> <span class="st">"hf_id"</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">f1</span> <span class="op">=</span> <span class="fu">aggregate_zones</span><span class="op">(</span>data <span class="op">=</span> <span class="va">full</span>, </span>
+<span>                     geom <span class="op">=</span> <span class="cn">NULL</span>,  </span>
+<span>                     crosswalk <span class="op">=</span> <span class="fu">select</span><span class="op">(</span><span class="va">full</span>, <span class="va">hf_id</span>, <span class="va">divide_id</span>, <span class="va">areasqkm</span>, <span class="va">s_areasqkm</span><span class="op">)</span>,</span>
+<span>                     ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">right_join</span><span class="op">(</span><span class="va">divides</span>, </span>
+<span>             by <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu">st_as_sf</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">f1</span><span class="op">[</span><span class="st">'TOT_TWI'</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">f1</span><span class="op">)</span>, <span class="st">"nextgen catchments"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="06-attribute-access_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 <p>We are not limited to just TWI. The nhdplusTools package provides a
 archive of NHDPlusV2 based catchment datasets that can be used:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xx</span> <span class="op">=</span> <span class="fu">discover_nldi_characteristics</span><span class="op">(</span><span class="st">"all"</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">xx</span>, <span class="va">nrow</span><span class="op">)</span></span></code></pre></div>
@@ -503,11 +449,31 @@ archive of NHDPlusV2 based catchment datasets that can be used:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## $divergence_routed</span></span>
 <span><span class="co">## [1] 126</span></span></code></pre>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xx</span><span class="op">$</span><span class="va">total</span><span class="op">$</span><span class="va">characteristic_id</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "TOT_BFI"        "TOT_PET"        "TOT_CONTACT"    "TOT_EWT"       </span></span>
 <span><span class="co">##  [5] "TOT_IEOF"       "TOT_RECHG"      "TOT_SATOF"      "TOT_TWI"       </span></span>
 <span><span class="co">##  [9] "TOT_WB5100_ANN" "TOT_FUNGICIDE"</span></span></code></pre>
+<p>Further Lynker provides a reformatted archive of the EPA streamcat
+data:</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">xx</span> <span class="op">=</span> <span class="fu">aws.s3</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/aws.s3/man/get_bucket.html" class="external-link">get_bucket_df</a></span><span class="op">(</span>bucket <span class="op">=</span> <span class="st">'s3://nextgen-hydrofabric'</span>, prefix <span class="op">=</span> <span class="st">'streamcats'</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"old|data"</span>, <span class="va">Key</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">xx</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## [1] 139</span></span></code></pre>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">xx</span><span class="op">$</span><span class="va">Key</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">11</span><span class="op">]</span></span></code></pre></div>
+<pre><code><span><span class="co">##  [1] "streamcats/streamcat_AgriculturalNitrogen_cat.parquet"   </span></span>
+<span><span class="co">##  [2] "streamcats/streamcat_Aquifers_cat.parquet"               </span></span>
+<span><span class="co">##  [3] "streamcats/streamcat_BFI_cat.parquet"                    </span></span>
+<span><span class="co">##  [4] "streamcats/streamcat_CanalDensity_cat.parquet"           </span></span>
+<span><span class="co">##  [5] "streamcats/streamcat_CoalMines_cat.parquet"              </span></span>
+<span><span class="co">##  [6] "streamcats/streamcat_Dams_cat.parquet"                   </span></span>
+<span><span class="co">##  [7] "streamcats/streamcat_EPA_FRSRipBuf100_cat.parquet"       </span></span>
+<span><span class="co">##  [8] "streamcats/streamcat_EPA_FRS_cat.parquet"                </span></span>
+<span><span class="co">##  [9] "streamcats/streamcat_Elevation_cat.parquet"              </span></span>
+<span><span class="co">## [10] "streamcats/streamcat_FirePerimetersRipBuf100_cat.parquet"</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>

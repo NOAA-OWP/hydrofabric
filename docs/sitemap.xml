@@ -34,6 +34,12 @@
     <loc>/articles/06-attribute-access.html</loc>
   </url>
   <url>
+    <loc>/articles/07-channel-geometry.html</loc>
+  </url>
+  <url>
+    <loc>/articles/08-nextgen-views.html</loc>
+  </url>
+  <url>
     <loc>/articles/cs_dm.html</loc>
   </url>
   <url>
@@ -58,6 +64,9 @@
     <loc>/reference/cs_dm.html</loc>
   </url>
   <url>
+    <loc>/reference/get_fabric.html</loc>
+  </url>
+  <url>
     <loc>/reference/hf_dm.html</loc>
   </url>
   <url>
@@ -71,5 +80,8 @@
   </url>
   <url>
     <loc>/reference/subset_network.html</loc>
+  </url>
+  <url>
+    <loc>/reference/subset_reference.html</loc>
   </url>
 </urlset>

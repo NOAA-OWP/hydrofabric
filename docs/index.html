@@ -83,7 +83,11 @@
 <h2 id="how-do-i-get-it">How do I get it?<a class="anchor" aria-label="anchor" href="#how-do-i-get-it"></a>
 </h2>
 <p>NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relevant to a hydrofabric data model</p>
-<p><a href="https://nextgen-hydrofabric.s3.amazonaws.com/index.html" class="external-link">NextGen Data Artifacts</a></p>
+<div class="section level3">
+<h3 id="lynkers-nextgen-data-artifacts">
+<a href="https://lynker-spatial.s3.amazonaws.com/index.html" class="external-link">Lynker’s NextGen Data Artifacts</a><a class="anchor" aria-label="anchor" href="#lynkers-nextgen-data-artifacts"></a>
+</h3>
+</div>
 </div>
 <div class="section level2">
 <h2 id="package-installation">Package Installation<a class="anchor" aria-label="anchor" href="#package-installation"></a>
@@ -97,18 +101,25 @@
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">hydrofabric</a></span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="do">## ✔ dplyr         1.1.2      ✔ nhdplusTools  0.6.2 </span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="do">## ✔ terra         1.7.21     ✔ hydrofab      0.5.0 </span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="do">## ✔ ngen.hydrofab 0.0.3      ✔ zonal         0.0.2 </span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="do">## ✔ climateR      0.3.0      ✔ glue          1.6.2 </span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="do">## ✔ sf            1.0.12</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="do">## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="do">## ✖ terra::intersect() masks dplyr::intersect()</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="do">## ✖ glue::trim()       masks terra::trim()</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="do">## ✖ terra::union()     masks dplyr::union()</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">## The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="do">## which was just loaded, were retired in October 2023.</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="do">## Please refer to R-spatial evolution reports for details, especially</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="do">## https://r-spatial.org/r/2023/05/15/evolution4.html.</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="do">## It may be desirable to make the sf package available;</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="do">## package maintainers should consider adding sf to Suggests:.</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="do">## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="do">## ✔ dplyr         1.1.3       ✔ nhdplusTools  1.0.0  </span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="do">## ✔ terra         1.7.46      ✔ hydrofab      0.5.0  </span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="do">## ✔ ngen.hydrofab 0.0.3       ✔ zonal         0.0.2  </span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="do">## ✔ climateR      0.3.1.4     ✔ glue          1.6.2  </span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="do">## ✔ sf            1.0.14</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="do">## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="do">## ✖ terra::intersect() masks dplyr::intersect()</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="do">## ✖ glue::trim()       masks terra::trim()</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="do">## ✖ terra::union()     masks dplyr::union()</span></span></code></pre></div>
 <p><code><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">library(hydrofabric)</a></code> will load the core packages:</p>
 <ul>
 <li>

@@ -22,14 +22,13 @@ library(RSQLite)
 library(mapview)
 ```
 
-
 We are now at the point where we have a common understanding of how hydrofabrics are sourced, manipulated for a given modeling task, and generated on a VPU basis.
 
 This aim of this section is that each of us can build a subset network for a hydrolocation of interest. Doing this requires an understanding of the following:
 
 1. The CONUS network file
 2. General topological sorts and pitfalls
-3. The R base `hydrofabric::subset_network`
+3. The R based `hydrofabric::subset_network`
 4. The CLI, Go based, utility for micro service subsets.
 
 # The CONUS network file
@@ -51,14 +50,12 @@ In the above table you'll see that every relationship between the features in th
 For example, we can look at the flowpath `wb-1002` and find that it is defined by the aggregation of NHDPlusV2 COMID 2239831 and 2239831.
 
 ```{r}
-filter(net, id == "wb-1002") %>% 
-  glimpse()
+glimpse(filter(net, id == "wb-1002"))
 ```
 Or, that the terminal outflow of 'HUC12-010100100101' occurs at `tnx-1000000019` which is fed by an aggregate flowpath made up of three source flowpaths (`COMID={816563, 816417, 816415}`)
 
 ```{r}
-filter(net, hl_uri == 'HUC12-010100100101') %>% 
-  glimpse()
+glimpse(filter(net, hl_uri == 'HUC12-010100100101'))
 ```
 ## Why do it this way?
 
@@ -141,7 +138,7 @@ While the "many-to-many" relationship of the network file allows for fast indexi
 # Most downstream feature associated with 
 (wbd = filter(net, hl_uri == "HUC12-180600130201") %>% 
    select(id, toid, hl_uri, vpu, hydroseq) %>% 
-   slice_max(hydroseq, with_ties = TRUE))
+   slice_max(hydroseq, with_ties = TRUE)) 
 ```
 
 Seeking just the topology of the network would be impractical/wrong
@@ -190,7 +187,7 @@ Once you have a set of IDs, the SQL backing of GPKG allows for quickly extractin
 
 ```{r}
 ## USE GET HYDROFABRIC HERE
-(gpkg = get_hydrofabric(VPU = wbd$vpu, type = "nextgen", dir = "cihro-data"))
+(gpkg = get_fabric(VPU = wbd$vpu,  cache_dir = "cihro-data"))
   
 db <- dbConnect(SQLite(), gpkg)
 
@@ -198,7 +195,8 @@ t = tbl(db, "divides") %>%
       filter(if_any(any_of(c('divide_id', 'id', 'ds_id')), ~ . %in% ids)) %>%
       collect()
 
-st_as_sf(t, crs = 5070) %>%  mapview()
+st_as_sf(t, crs = 5070) %>%  
+  mapview()
 ```
 
 
@@ -211,11 +209,12 @@ In these cases, we provide a subset_network function that works o n
 ```{r}
 system.time({
   xx = subset_network(id = wbd$toid, 
-                      network = "../data/conus_net.parquet",
-                      pattern = '/Volumes/Transcend/ngen/CONUS-hydrofabric/05_nextgen/nextgen_{vpu}.gpkg',
-                      lyrs = c("divides", "nexus", "flowpaths", "lakes", "flowpath_attributes"))
+                      lyrs = c("divides", "nexus", "flowpaths", "lakes", "flowpath_attributes"),
+                      cache_dir = "cihro-data")
 })
+```
 
+```{r, echo = F}
 mapview(xx$divides) + xx$nexus + xx$flowpaths
 ```
 
@@ -231,10 +230,10 @@ rm(xx)
 
 ```{r}
 system.time({
-  xx = subset_network(hl_id = 'Gages-06752260', 
-                      network ="../data/conus_net.parquet",
-                      export_gpkg = "cihro-data/poudre-sub.gpkg",
-                      lyrs = c("divides", "nexus", "flowpaths"))
+  xx = subset_network(hl_uri = 'Gages-06752260', 
+                      lyrs = c("divides", "nexus", "flowpaths"),
+                      cache_dir = "cihro-data",
+                      outfile = "cihro-data/poudre-subset.gpkg")
 })
 
 st_layers(xx)
@@ -289,9 +288,11 @@ cd poudre
 
 hfsubset -l divides,nexus,flowpath_attributes -o ./poudre-subset.gpkg -r "pre-release" -t hl "Gages-06752260"
 
-ogr2ogr -f GeoJSON catchments.geojson poudre-subset.gpkg -nln divides  
-ogr2ogr -f GeoJSON nexus.geojson poudre-subset.gpkg -nln nexus
-ogr2ogr -f CSV flowpath_attributes.csv poudre-subset.gpkg -nln flowpath_attributes
+ogr2ogr -f GeoJSON flowpath.geojson poudre-subset.gpkg flowpath
+
+ogr2ogr -f GeoJSON catchments.geojson poudre-subset.gpkg divides  
+ogr2ogr -f GeoJSON nexus.geojson poudre-subset.gpkg nexus
+ogr2ogr -f CSV flowpath_attributes.csv poudre-subset.gpkg flowpath_attributes
 
 ls poudre
 ```
