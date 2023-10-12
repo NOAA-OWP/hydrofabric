@@ -19,6 +19,7 @@ Depends:
 Imports: 
     cli (>= 2.4.0),
     arrow,
+    aws.s3,
     crayon (>= 1.4.1),
     dplyr,
     DBI,
@@ -42,9 +43,11 @@ Remotes:
     mikejohnson51/climateR
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat (>= 3.0.0)
 VignetteBuilder: 
     knitr
 Encoding: UTF-8
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 LazyData: true
+Config/testthat/edition: 3

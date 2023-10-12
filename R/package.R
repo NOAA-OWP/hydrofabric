@@ -18,5 +18,6 @@
 #' @importFrom DBI dbConnect dbDisconnect
 #' @importFrom RSQLite SQLite
 #' @importFrom arrow open_dataset
+#' @importFrom aws.s3 get_bucket_df save_object
 
 NULL

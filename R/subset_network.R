@@ -1,161 +1,181 @@
 #' Subset Hydrofabric Network
-#' @param id hydrofabric id
-#' @param comid NHDPlusV2 COMID
-#' @param hl_id Hydrolocation URI
-#' @param network Network Parquet file
-#' @param pattern Pattern for distributed VPU based GPKGS
-#' @param lyrs layers to extract
-#' @param export_gpkg file path to write to
-#'
-#' @return file path or list 
+#' @param id hydrofabric id (relevant only to nextgen fabrics)
+#' @param comid NHDPlusV2 COMID 
+#' @param hl_id hydrolocation URI (relevant only to nextgen fabrics)
+#' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.
+#' @param loc Location given as vector of XY in CRS 4326 (long, lat)
+#' @param base_s3 the base hydrofabric directory to access in Lynker's s3
+#' @param lyrs layers to extract. Default is all possible in the hydrofabric GPKG data model
+#' @param outfile file path to write to. Must have ".gpkg" extension
+#' @param cache_dir should data be cached to a locat directory? Will speed up multiple subsets in the same region
+#' @param cache_overwrite description. Should a cached file be overwritten
+#' @return file path (outfile) or list of features
 #' @export
 
-subset_reference = function(nldi_feature,
-                            gpkg = NULL,
-                            pattern = '/Volumes/Transcend/ngen/CONUS-hydrofabric/01_reference/reference_{vpu}.gpkg',
-                            export_gpkg = NULL) {
-  
-  feat =  get_nldi_feature(nldi_feature)
-  vpu =  st_join(feat, st_transform(vpu_boundaries, st_crs(feat))) %>% 
-    pull(VPUID)
-  
-  if(is.null(gpkg)){
-    gpkg = glue(pattern, vpu = vpu)
-  }
-  
-
-  flowpaths = grep("flowpath|flowline", st_layers(gpkg)$name, value = TRUE)
-  flowpaths = flowpaths[!grepl("attributes|edge_list", flowpaths)]
-  
-  if (length(flowpaths) > 1) {
-    stop("Multiple flowpath names found.")
-  }
-  
-  catchments = grep("divide|catchment", st_layers(gpkg)$name, value = TRUE)
-  catchments = catchments[!grepl("network", catchments)]
-  if (length(catchments) > 1) {
-    stop("Multiple catchment names found.")
-  }
-  
-  UT_COMIDs <-  navigate_nldi(nldi_feature = nldi_feature, mode = "UT", distance_km = 1000)$UT$nhdplus_comid
-  
-  id_list      <- paste0("'", UT_COMIDs, "'", collapse = ",")
-  
-  query_suffix <- paste(glue("COMID IN ({id_list})"), collapse = " OR ")
-  query        <- glue("SELECT * FROM {flowpaths} WHERE {query_suffix}")
-  flowlines            <- st_read(gpkg, query = query, quiet = TRUE)
-  
-  query_suffix <- paste(glue("FEATUREID IN ({id_list})"), collapse = " OR ")
-  query        <- glue("SELECT * FROM {catchments} WHERE {query_suffix}")
-  catchments           <- st_read(gpkg, query = query, quiet = TRUE)
-  
-  
-  if(!is.null(export_gpkg)){
-    write_hydrofabric(list(flowlines = flowlines, catchments = catchments), export_gpkg, enforce_dm = FALSE)
-  } else {
-    return(list(flowpaths = flowlines, catchments = catchments))
-  }
-}
-
-
-#' Subset Hydrofabric Network
-#' @param id hydrofabric id
-#' @param comid NHDPlusV2 COMID
-#' @param hl_id Hydrolocation URI
-#' @param network Network Parquet file
-#' @param pattern Pattern for distributed VPU based GPKGS
-#' @param lyrs layers to extract
-#' @param export_gpkg file path to write to
-#'
-#' @return file path or list 
-#' @export
-
-subset_network = function(id = NULL, 
-                          comid = NULL, 
+subset_network = function(id = NULL,
+                          comid = NULL,
                           hl_id = NULL,
-                          network = 'data/conus_net.parquet',
-                          pattern = '/Volumes/Transcend/ngen/CONUS-hydrofabric/05_nextgen/nextgen_{vpu}.gpkg',
-                          lyrs  = c("divides", "nexus", "flowpaths", "network", "hydrolocations"),
-                          export_gpkg = NULL
-                         ){
+                          nldi_feature = NULL,
+                          loc = NULL,
+                          base_s3 = 's3://nextgen-hydrofabric/pre-release/',
+                          lyrs  = c(
+                            "divides",
+                            "nexus",
+                            "flowpaths",
+                            "network",
+                            "hydrolocations",
+                            "reference_flowline",
+                            "reference_catchment"
+                          ),
+                          outfile = NULL,
+                          cache_dir = NULL,
+                          cache_overwrite = FALSE) {
   
-  origin = NULL
+  net = tryCatch({
+    open_dataset(glue(base_s3, "conus_net.parquet")) %>%
+      select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) %>%
+      collect() %>%
+      distinct()
+  }, error = function(e) {
+    NULL
+  })
   
-  net = open_dataset(network) %>% 
-      select(id, toid, hf_id, hl_uri, hydroseq, vpu) %>% 
-      collect()
+  if (!is.null(id) & !is.null(net)) {
+    comid = filter(net, id == !!id | toid == !!id) %>%
+      slice_max(hf_hydroseq) %>%
+      pull(hf_id)
+  }
   
-  if(!is.null(comid)){
-    origin = filter(net, hf_id == comid) %>% 
-      slice_max(hydroseq) %>% 
-      # We want everthing that flows to this ID
-      pull(id) %>% 
+  if (!is.null(nldi_feature)) {
+    comid = get_nldi_feature(nldi_feature)$comid
+  }
+  
+  if (!is.null(loc)) {
+    comid = discover_nhdplus_id(point = st_sfc(st_point(c(loc[1], loc[2])), crs = 4326))
+  }
+  
+  if (!is.null(hl_id) & !is.null(net)) {
+    tmp = filter(net, hl_uri == !!hl_id) %>%
+      slice_max(hf_hydroseq) %>%
+      pull(toid) %>%
+      unique()
+    
+    origin = filter(net, id == tmp) %>%
+      pull(toid) %>%
       unique()
   }
   
-  if(!is.null(hl_id)){
-    origin = filter(net, hl_uri == !!hl_id) %>% 
-      slice_max(hydroseq) %>% 
-      # We want everything that flows to this HL, HL are nexus.
-      pull(toid) %>% 
+  if (!is.null(comid) & !is.null(net)) {
+    origin = filter(net, hf_id == comid) %>%
+      slice_max(hf_hydroseq) %>%
+      pull(id) %>%
       unique()
+  } else if (is.null(net)) {
+    origin = comid
   }
   
-  if(!is.null(id)){ origin = id }
+  if (is.null(origin)) {
+    stop("origin not found")
+  }
   
   message("Starting from: `",  origin, "`")
-
-  vpuid = unique(pull(filter(net, id == origin | toid == origin), vpu))
   
-  sub_net = select(filter(net, vpu == vpuid), -vpu)
+  if (is.null(net)) {
+    xx = suppressMessages({
+      get_nhdplus(comid = comid)
+    })
 
-  tmap = get_sorted(
-    distinct(select(sub_net, id, toid)), 
-    outlets = origin
-  )
-  
-  if(!grepl("nex-", tmap$toid[nrow(tmap)])){
-    tmap = tmap[-nrow(tmap),]
+    vpuid = vpu_boundaries$VPUID[which(lengths(st_intersects(st_transform(vpu_boundaries, st_crs(xx)), xx)) > 0)]
+  } else {
+    vpuid = unique(pull(filter(net, id == origin |
+                                 toid == origin), vpu))
   }
   
-  ids = unique(c(unlist(tmap)))
-  
-  gpkg = glue(pattern, vpu = vpuid)
+  if (!is.null(base_s3)) {
+    xx = get_bucket_df(bucket = dirname(base_s3), prefix = basename(base_s3)) %>%
+      filter(grepl(basename(base_s3), Key) &
+               grepl(paste0(vpuid, ".gpkg$"), Key)) %>%
+      filter(!grepl("[.]_", Key)) %>%
+      filter(!grepl("/", dirname(Key)))
+    
+    if (!is.null(cache_dir)) {
+      dir.create(cache_dir,
+                 recursive = TRUE,
+                 showWarnings = FALSE)
+      gpkg = glue("{cache_dir}/{basename(xx$Key)}")
+      if (cache_overwrite) {
+        unlink(gpkg)
+      }
+      temp = FALSE
+    } else {
+      gpkg = tempfile(fileext  = ".gpkg")
+      temp = TRUE
+    }
+    
+    if (!file.exists(gpkg)) {
+      save_object(bucket = xx$Bucket,
+                  object = xx$Key,
+                  file = gpkg)
+    }
+    
+    lyrs = lyrs[lyrs %in% st_layers(gpkg)$name]
+    flowpaths = lyrs[grepl("flowline|flowpath", lyrs)]
+    catchments = lyrs[grepl("divides|catchment", lyrs)]
+  }
   
   db <- dbConnect(SQLite(), gpkg)
   on.exit(dbDisconnect(db))
   
+  if (!is.null(net)) {
+    sub_net = distinct(select(filter(net, vpu == vpuid), id, toid))
+  } else {
+    sub_net = tbl(db, flowpaths) %>%
+      select(any_of(c("id", "toid", 'COMID', 'toCOMID'))) %>%
+      collect() %>%
+      rename(id = COMID, toid = toCOMID)
+  }
+  
+  tmap = suppressWarnings({ get_sorted(distinct(sub_net), outlets = origin) })
+  
+  ids = unique(c(unlist(tmap)))
+  
   hydrofabric = list()
   
-  for(j in 1:length(lyrs)){
+  for (j in 1:length(lyrs)) {
     hyaggregate_log("INFO", glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
     
     crs = st_layers(gpkg)$crs
     
     t = tbl(db, lyrs[j]) %>%
-      filter(if_any(any_of(c('divide_id', 'id', 'ds_id')), ~ . %in% ids)) %>%
+      filter(if_any(any_of(
+        c('COMID',  'FEATUREID', 'divide_id', 'id', 'ds_id')
+      ), ~ . %in% ids)) %>%
       collect()
     
-    if(all(!any(is.na(as.character(crs[[j]]))), nrow(t) > 0 )){
-      if(any(c("geometry", "geom") %in% names(t))){
+    if (all(!any(is.na(as.character(crs[[j]]))), nrow(t) > 0)) {
+      if (any(c("geometry", "geom") %in% names(t))) {
         t = st_as_sf(t, crs = crs[[j]])
       } else {
         t = t
       }
     }
     
-    if(!is.null(export_gpkg)){
-      write_sf(t, export_gpkg, lyrs[j])
+    if (!is.null(outfile)) {
+      write_sf(t, outfile, lyrs[j])
     } else {
       hydrofabric[[lyrs[j]]] = t
     }
   }
   
-  if(!is.null(export_gpkg)){ 
-    export_gpkg = append_style(export_gpkg, layer_names = lyrs)
-    return(export_gpkg)
+  if(temp){
+    unlink(gpkg)
+  }
+  
+  if (!is.null(outfile)) {
+    outfile = append_style(outfile, layer_names = lyrs)
+    return(outfile)
   } else {
     hydrofabric
   }
+  
 }
-

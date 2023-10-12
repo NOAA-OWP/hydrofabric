@@ -5,7 +5,7 @@
 **/.DS_Store
 depriciate
 .DS_Store
-tmp
 dead
 inst/doc
 vingettes/cihro-data
+data

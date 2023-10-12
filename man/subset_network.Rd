@@ -8,29 +8,39 @@ subset_network(
   id = NULL,
   comid = NULL,
   hl_id = NULL,
-  network = "data/conus_net.parquet",
-  pattern = "/Volumes/Transcend/ngen/CONUS-hydrofabric/05_nextgen/nextgen_{vpu}.gpkg",
-  lyrs = c("divides", "nexus", "flowpaths", "network", "hydrolocations"),
-  export_gpkg = NULL
+  nldi_feature = NULL,
+  loc = NULL,
+  base_s3 = "s3://nextgen-hydrofabric/pre-release/",
+  lyrs = c("divides", "nexus", "flowpaths", "network", "hydrolocations",
+    "reference_flowline", "reference_catchment"),
+  outfile = NULL,
+  cache_dir = NULL,
+  cache_overwrite = FALSE
 )
 }
 \arguments{
-\item{id}{hydrofabric id}
+\item{id}{hydrofabric id (relevant only to nextgen fabrics)}
 
 \item{comid}{NHDPlusV2 COMID}
 
-\item{hl_id}{Hydrolocation URI}
+\item{hl_id}{hydrolocation URI (relevant only to nextgen fabrics)}
 
-\item{network}{Network Parquet file}
+\item{nldi_feature}{list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.}
 
-\item{pattern}{Pattern for distributed VPU based GPKGS}
+\item{loc}{Location given as vector of XY in CRS 4326 (long, lat)}
 
-\item{lyrs}{layers to extract}
+\item{base_s3}{the base hydrofabric directory to access in Lynker's s3}
 
-\item{export_gpkg}{file path to write to}
+\item{lyrs}{layers to extract. Default is all possible in the hydrofabric GPKG data model}
+
+\item{outfile}{file path to write to. Must have ".gpkg" extension}
+
+\item{cache_dir}{should data be cached to a locat directory? Will speed up multiple subsets in the same region}
+
+\item{cache_overwrite}{description. Should a cached file be overwritten}
 }
 \value{
-file path or list
+file path (outfile) or list of features
 }
 \description{
 Subset Hydrofabric Network
