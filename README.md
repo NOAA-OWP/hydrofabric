@@ -39,8 +39,7 @@ NextGen artifacts are publicly available through a partnership with
 Lynker and the NOAA OWP. For each VPU a geopackage that contains all
 tables, spatial data, and lookups relevant to a hydrofabric data model
 
-[NextGen Data
-Artifacts](https://nextgen-hydrofabric.s3.amazonaws.com/index.html)
+### [Lynker’s NextGen Data Artifacts](https://lynker-spatial.s3.amazonaws.com/index.html)
 
 ## Package Installation
 
@@ -55,13 +54,20 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 library(hydrofabric)
 ```
 
+    ## The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,
+    ## which was just loaded, were retired in October 2023.
+    ## Please refer to R-spatial evolution reports for details, especially
+    ## https://r-spatial.org/r/2023/05/15/evolution4.html.
+    ## It may be desirable to make the sf package available;
+    ## package maintainers should consider adding sf to Suggests:.
+
     ## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──
 
-    ## ✔ dplyr         1.1.2      ✔ nhdplusTools  0.6.2 
-    ## ✔ terra         1.7.21     ✔ hydrofab      0.5.0 
-    ## ✔ ngen.hydrofab 0.0.3      ✔ zonal         0.0.2 
-    ## ✔ climateR      0.3.0      ✔ glue          1.6.2 
-    ## ✔ sf            1.0.12
+    ## ✔ dplyr         1.1.3       ✔ nhdplusTools  1.0.0  
+    ## ✔ terra         1.7.46      ✔ hydrofab      0.5.0  
+    ## ✔ ngen.hydrofab 0.0.3       ✔ zonal         0.0.2  
+    ## ✔ climateR      0.3.1.4     ✔ glue          1.6.2  
+    ## ✔ sf            1.0.14
 
     ## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──
     ## ✖ terra::intersect() masks dplyr::intersect()

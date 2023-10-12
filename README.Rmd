@@ -42,7 +42,7 @@ NextGen artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**
 
 NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relevant to a hydrofabric data model 
 
-[NextGen Data Artifacts](https://nextgen-hydrofabric.s3.amazonaws.com/index.html)
+### [Lynker's NextGen Data Artifacts](https://lynker-spatial.s3.amazonaws.com/index.html)
 
 
 ## Package Installation
@@ -108,10 +108,8 @@ knitr::include_graphics("man/figures/logos.png")
 
 ## Questions:
 
-<a href = "mailto:mike.johnson@noaa.gov?subject=Nexgen Hydrofabric Questions">
-Mike Johnson</a> (Hydrofabric Lead), <a href = "mailto:trey.flowers@noaa.gov?subject=Nexgen Hydrofabric Questions"> Trey Flowers </a> (Director, OWP Analysis and Prediction Division),  <a href = "mailto:fernando.salas@noaa.gov?subject=Nexgen Hydrofabric Questions">
- Fernando Salas </a> (Director, OWP Geospatial Intellegence Division)
- 
+<a href = "mailto:jjohnson@lynker.com?subject=Nexgen Hydrofabric Questions">
+Mike Johnson</a> (Hydrofabric Lead), <a href = "mailto:trey.flowers@noaa.gov?subject=Nexgen Hydrofabric Questions"> Trey Flowers </a> (Director, OWP Analysis and Prediction Division)
  
 **Disclaimer**: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that neither NOAA, the USGS, nor the U.S. Government shall be held liable for any damages resulting from the authorized or unauthorized use of the data.
 

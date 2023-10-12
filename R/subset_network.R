@@ -1,20 +1,64 @@
+#' Access Hydrofabric Network
+#' @param VPU Vector Processing Unit
+#' @param base_s3 the base hydrofabric directory to access in Lynker's s3
+#' @param cache_dir should data be cached to a local directory? Will speed up multiple subsets in the same region
+#' @param cache_overwrite description. Should a cached file be overwritten
+#' @return file path
+#' @export
+
+get_fabric = function(VPU,
+                      base_s3 = 's3://lynker-spatial/pre-release/',
+                      cache_dir = NULL,
+                      cache_overwrite = FALSE){
+  
+  xx = get_bucket_df(bucket = dirname(base_s3), prefix = basename(base_s3), region = 'us-west-2') %>%
+    filter(grepl(basename(base_s3), Key) &
+             grepl(paste0(VPU, ".gpkg$"), Key)) %>%
+    filter(!grepl("[.]_", Key)) %>%
+    filter(!grepl("/", dirname(Key)))
+  
+  if (!is.null(cache_dir)) {
+    dir.create(cache_dir,
+               recursive = TRUE,
+               showWarnings = FALSE)
+    gpkg = glue("{cache_dir}/{basename(xx$Key)}")
+    if (cache_overwrite) {
+      unlink(gpkg)
+    }
+    temp = FALSE
+  } else {
+    gpkg = tempfile(fileext  = ".gpkg")
+    temp = TRUE
+  }
+  
+  if (!file.exists(gpkg)) {
+    save_object(bucket = xx$Bucket,
+                object = xx$Key,
+                file = gpkg,
+                region = 'us-west-2')
+  }
+  
+  return(gpkg)
+  
+}
+
 #' Subset Hydrofabric Network
 #' @param id hydrofabric id (relevant only to nextgen fabrics)
 #' @param comid NHDPlusV2 COMID 
-#' @param hl_id hydrolocation URI (relevant only to nextgen fabrics)
+#' @param hl_uri hydrolocation URI (relevant only to nextgen fabrics)
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.
 #' @param loc Location given as vector of XY in CRS 4326 (long, lat)
 #' @param base_s3 the base hydrofabric directory to access in Lynker's s3
 #' @param lyrs layers to extract. Default is all possible in the hydrofabric GPKG data model
 #' @param outfile file path to write to. Must have ".gpkg" extension
-#' @param cache_dir should data be cached to a locat directory? Will speed up multiple subsets in the same region
+#' @param cache_dir should data be cached to a local directory? Will speed up multiple subsets in the same region
 #' @param cache_overwrite description. Should a cached file be overwritten
 #' @return file path (outfile) or list of features
 #' @export
 
 subset_network = function(id = NULL,
                           comid = NULL,
-                          hl_id = NULL,
+                          hl_uri = NULL,
                           nldi_feature = NULL,
                           loc = NULL,
                           base_s3 = 's3://nextgen-hydrofabric/pre-release/',
@@ -25,7 +69,9 @@ subset_network = function(id = NULL,
                             "network",
                             "hydrolocations",
                             "reference_flowline",
-                            "reference_catchment"
+                            "reference_catchment",
+                            "refactored_flowpaths",
+                            "refactored_divides"
                           ),
                           outfile = NULL,
                           cache_dir = NULL,
@@ -54,13 +100,9 @@ subset_network = function(id = NULL,
     comid = discover_nhdplus_id(point = st_sfc(st_point(c(loc[1], loc[2])), crs = 4326))
   }
   
-  if (!is.null(hl_id) & !is.null(net)) {
-    tmp = filter(net, hl_uri == !!hl_id) %>%
+  if (!is.null(hl_uri) & !is.null(net)) {
+    origin = filter(net, hl_uri == !!hl_uri) %>%
       slice_max(hf_hydroseq) %>%
-      pull(toid) %>%
-      unique()
-    
-    origin = filter(net, id == tmp) %>%
       pull(toid) %>%
       unique()
   }
@@ -77,8 +119,7 @@ subset_network = function(id = NULL,
   if (is.null(origin)) {
     stop("origin not found")
   }
-  
-  message("Starting from: `",  origin, "`")
+
   
   if (is.null(net)) {
     xx = suppressMessages({
@@ -91,51 +132,39 @@ subset_network = function(id = NULL,
                                  toid == origin), vpu))
   }
   
-  if (!is.null(base_s3)) {
-    xx = get_bucket_df(bucket = dirname(base_s3), prefix = basename(base_s3)) %>%
-      filter(grepl(basename(base_s3), Key) &
-               grepl(paste0(vpuid, ".gpkg$"), Key)) %>%
-      filter(!grepl("[.]_", Key)) %>%
-      filter(!grepl("/", dirname(Key)))
-    
-    if (!is.null(cache_dir)) {
-      dir.create(cache_dir,
-                 recursive = TRUE,
-                 showWarnings = FALSE)
-      gpkg = glue("{cache_dir}/{basename(xx$Key)}")
-      if (cache_overwrite) {
-        unlink(gpkg)
-      }
-      temp = FALSE
-    } else {
-      gpkg = tempfile(fileext  = ".gpkg")
-      temp = TRUE
-    }
-    
-    if (!file.exists(gpkg)) {
-      save_object(bucket = xx$Bucket,
-                  object = xx$Key,
-                  file = gpkg)
-    }
-    
-    lyrs = lyrs[lyrs %in% st_layers(gpkg)$name]
-    flowpaths = lyrs[grepl("flowline|flowpath", lyrs)]
-    catchments = lyrs[grepl("divides|catchment", lyrs)]
-  }
   
+  gpkg = get_fabric(VPU = vpuid, base_s3 = base_s3, cache_dir = cache_dir, cache_overwrite = cache_overwrite)
+  lyrs = lyrs[lyrs %in% st_layers(gpkg)$name]
+
   db <- dbConnect(SQLite(), gpkg)
   on.exit(dbDisconnect(db))
   
   if (!is.null(net)) {
     sub_net = distinct(select(filter(net, vpu == vpuid), id, toid))
   } else {
-    sub_net = tbl(db, flowpaths) %>%
-      select(any_of(c("id", "toid", 'COMID', 'toCOMID'))) %>%
+    
+    lookup <- c(id = "ID", id = "COMID", toid = "toID", toid = "toCOMID")
+    
+    sub_net = tbl(db, lyrs[grepl("flowline|flowpath", lyrs)]) %>%
+      select(any_of(c("id", "toid", 'COMID', 'toCOMID', "ID", "toID", "member_COMID"))) %>%
       collect() %>%
-      rename(id = COMID, toid = toCOMID)
+      rename(any_of(lookup))
+    
+    if("member_COMID" %in% names(sub_net)){
+      origin = filter(sub_net, grepl(origin, member_COMID)) %>% 
+        pull(id)
+      
+      sub_net = select(sub_net, -member_COMID)
+    }
   }
   
+  message("Starting from: `",  origin, "`")
+  
   tmap = suppressWarnings({ get_sorted(distinct(sub_net), outlets = origin) })
+  
+  if(grepl("nex", tail(tmap$id,1))){
+    tmap = head(tmap, -1)
+  }
   
   ids = unique(c(unlist(tmap)))
   
@@ -148,7 +177,7 @@ subset_network = function(id = NULL,
     
     t = tbl(db, lyrs[j]) %>%
       filter(if_any(any_of(
-        c('COMID',  'FEATUREID', 'divide_id', 'id', 'ds_id')
+        c('COMID',  'FEATUREID', 'divide_id', 'id', 'ds_id', "ID")
       ), ~ . %in% ids)) %>%
       collect()
     
@@ -167,7 +196,7 @@ subset_network = function(id = NULL,
     }
   }
   
-  if(temp){
+  if(is.null(cache_dir)){
     unlink(gpkg)
   }
   

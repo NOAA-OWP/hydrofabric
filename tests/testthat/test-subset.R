@@ -3,13 +3,15 @@ pt = st_coordinates(get_nldi_feature(nldi_feature))
 
 test_that("Reference Subset Works", {
   
-  s3 = 's3://nextgen-hydrofabric/01_reference/'
+  s3 = 's3://lynker-spatial/01_reference/'
   
   expect_error(subset_network(id = "wb-1282898", base_s3 = s3, cache_dir = "data"))
   
   expect_error(subset_network(hl_id = "USGS-05428500", base_s3 = s3, cache_dir = "data"))
   
-  xx_comid = subset_network(comid = 13293750, base_s3 = s3, cache_dir = "data")
+  xx_comid = subset_network(comid = 13293750, base_s3 = s3, 
+                            cache_dir = "data", 
+                            cache_overwrite = TRUE)
     expect_equal(length(xx_comid), 2)
     expect_equal(nrow(xx_comid$reference_flowline), 169)
     expect_equal(nrow(xx_comid$reference_catchment), 168)
@@ -27,9 +29,38 @@ test_that("Reference Subset Works", {
 })
 
 
+test_that("Refactor Subset Works", {
+  
+  s3 = 's3://lynker-spatial/02_refactored/'
+  
+  expect_error(subset_network(id = "wb-1282898", base_s3 = s3, cache_dir = "data"))
+  
+  expect_error(subset_network(hl_id = "USGS-05428500", base_s3 = s3, cache_dir = "data"))
+  
+  xx_comid = subset_network(comid = 13293750, base_s3 = s3, 
+                            cache_dir = "data", 
+                            cache_overwrite = F)
+  expect_equal(length(xx_comid), 2)
+  expect_equal(nrow(xx_comid$refactored_flowpaths), 121)
+  expect_equal(nrow(xx_comid$refactored_flowpaths), 121)
+  
+  xx_nldi = subset_network(nldi_feature = nldi_feature,  base_s3 = s3, cache_dir = "data")
+  expect_equal(length(xx_nldi), 2)
+  expect_equal(nrow(xx_nldi$refactored_flowpaths), 121)
+  expect_equal(nrow(xx_nldi$refactored_flowpaths), 121)
+  
+  xx_loc = subset_network(loc = pt, base_s3 = s3)
+  expect_equal(length(xx_loc), 2) 
+  expect_equal(nrow(xx_loc$refactored_flowpaths), 121)
+  expect_equal(nrow(xx_loc$refactored_flowpaths), 121)
+  
+})
+
+
+
 test_that("NextGen Subset Works", {
   
-  s3 = 's3://nextgen-hydrofabric/pre-release/'
+  s3 = 's3://lynker-spatial/pre-release/'
   
   xx_id = subset_network(id = "wb-1282898", base_s3 = s3, cache_dir = "data")
     expect_equal(length(xx_id), 5)

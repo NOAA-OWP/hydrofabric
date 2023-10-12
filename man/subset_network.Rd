@@ -7,12 +7,13 @@
 subset_network(
   id = NULL,
   comid = NULL,
-  hl_id = NULL,
+  hl_uri = NULL,
   nldi_feature = NULL,
   loc = NULL,
   base_s3 = "s3://nextgen-hydrofabric/pre-release/",
   lyrs = c("divides", "nexus", "flowpaths", "network", "hydrolocations",
-    "reference_flowline", "reference_catchment"),
+    "reference_flowline", "reference_catchment", "refactored_flowpaths",
+    "refactored_divides"),
   outfile = NULL,
   cache_dir = NULL,
   cache_overwrite = FALSE
@@ -23,7 +24,7 @@ subset_network(
 
 \item{comid}{NHDPlusV2 COMID}
 
-\item{hl_id}{hydrolocation URI (relevant only to nextgen fabrics)}
+\item{hl_uri}{hydrolocation URI (relevant only to nextgen fabrics)}
 
 \item{nldi_feature}{list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.}
 
@@ -35,7 +36,7 @@ subset_network(
 
 \item{outfile}{file path to write to. Must have ".gpkg" extension}
 
-\item{cache_dir}{should data be cached to a locat directory? Will speed up multiple subsets in the same region}
+\item{cache_dir}{should data be cached to a local directory? Will speed up multiple subsets in the same region}
 
 \item{cache_overwrite}{description. Should a cached file be overwritten}
 }
