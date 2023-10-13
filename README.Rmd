@@ -7,16 +7,15 @@ output: github_document
 ```{r, include = FALSE}
 options(width=100)
 knitr::opts_chunk$set(
-  #collapse = TRUE,
-  #comment = "#>",
-  #fig.path = "man/figures"
+  #warning = FALSE,
+  message = TRUE
 )
 
 ```
 
 <br>
 
-## NOAA Next Generation Modeling Framework Hydrofabric
+## Next Generation Water Resource Modeling Framework Hydrofabric(s)
 
 <!-- badges: start -->
 
@@ -44,6 +43,9 @@ NextGen artifacts are publicly available through a partnership with Lynker and t
 
 ### [Lynker's NextGen Data Artifacts](https://lynker-spatial.s3.amazonaws.com/index.html)
 
+```{r, fig.align='center', echo = FALSE}
+knitr::include_graphics("man/figures/lynker-spatial.png")
+```
 
 ## Package Installation
 
@@ -110,6 +112,8 @@ knitr::include_graphics("man/figures/logos.png")
 
 <a href = "mailto:jjohnson@lynker.com?subject=Nexgen Hydrofabric Questions">
 Mike Johnson</a> (Hydrofabric Lead), <a href = "mailto:trey.flowers@noaa.gov?subject=Nexgen Hydrofabric Questions"> Trey Flowers </a> (Director, OWP Analysis and Prediction Division)
+
+
  
-**Disclaimer**: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that neither NOAA, the USGS, nor the U.S. Government shall be held liable for any damages resulting from the authorized or unauthorized use of the data.
+## Disclaimer: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that the U.S. Government shall not be held liable for any damages resulting from use of the data.
 

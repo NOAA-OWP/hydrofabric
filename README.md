@@ -41,6 +41,8 @@ tables, spatial data, and lookups relevant to a hydrofabric data model
 
 ### [Lynker’s NextGen Data Artifacts](https://lynker-spatial.s3.amazonaws.com/index.html)
 
+<img src="man/figures/lynker-spatial.png" width="1529" style="display: block; margin: auto;" />
+
 ## Package Installation
 
 ``` r
@@ -63,7 +65,7 @@ library(hydrofabric)
 
     ## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──
 
-    ## ✔ dplyr         1.1.3       ✔ nhdplusTools  1.0.0  
+    ## ✔ dplyr         1.1.3       ✔ nhdplusTools  1.0.1  
     ## ✔ terra         1.7.46      ✔ hydrofab      0.5.0  
     ## ✔ ngen.hydrofab 0.0.3       ✔ zonal         0.0.2  
     ## ✔ climateR      0.3.1.4     ✔ glue          1.6.2  
@@ -148,12 +150,10 @@ page](https://github.com/LynkerIntel/hfsubset/releases).
 
 ## Questions:
 
-<a href = "mailto:mike.johnson@noaa.gov?subject=Nexgen Hydrofabric Questions">
+<a href = "mailto:jjohnson@lynker.com?subject=Nexgen Hydrofabric Questions">
 Mike Johnson</a> (Hydrofabric Lead),
 <a href = "mailto:trey.flowers@noaa.gov?subject=Nexgen Hydrofabric Questions">
-Trey Flowers </a> (Director, OWP Analysis and Prediction Division),
-<a href = "mailto:fernando.salas@noaa.gov?subject=Nexgen Hydrofabric Questions">
-Fernando Salas </a> (Director, OWP Geospatial Intellegence Division)
+Trey Flowers </a> (Director, OWP Analysis and Prediction Division)
 
 **Disclaimer**: These data are preliminary or provisional and are
 subject to revision. They are being provided to meet the need for timely

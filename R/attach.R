@@ -1,5 +1,6 @@
 core <- c("dplyr",  "terra",  "ngen.hydrofab","climateR",  
-          "sf", "nhdplusTools",  "hydrofab","zonal", "glue")
+          "sf", "nhdplusTools",  "hydrofab","zonal", 
+          "glue", 'arrow')
 
 core_unloaded <- function() {
   search <- paste0("package:", core)

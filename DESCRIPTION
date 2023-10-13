@@ -36,7 +36,6 @@ Imports:
     purrr,
     magrittr
 Remotes: 
-    USGS-R/nhdplusTools,
     mikejohnson51/hydrofab,
     mikejohnson51/ngen.hydrofab,
     mikejohnson51/zonal,

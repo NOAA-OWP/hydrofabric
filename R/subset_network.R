@@ -11,6 +11,8 @@ get_fabric = function(VPU,
                       cache_dir = NULL,
                       cache_overwrite = FALSE){
   
+  Key <- NULL
+  
   xx = get_bucket_df(bucket = dirname(base_s3), prefix = basename(base_s3), region = 'us-west-2') %>%
     filter(grepl(basename(base_s3), Key) &
              grepl(paste0(VPU, ".gpkg$"), Key)) %>%
@@ -77,6 +79,8 @@ subset_network = function(id = NULL,
                           cache_dir = NULL,
                           cache_overwrite = FALSE) {
   
+  Key <- hf_hydroseq <- hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- NULL
+  
   net = tryCatch({
     open_dataset(glue(base_s3, "conus_net.parquet")) %>%
       select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) %>%
@@ -126,7 +130,9 @@ subset_network = function(id = NULL,
       get_nhdplus(comid = comid)
     })
 
-    vpuid = vpu_boundaries$VPUID[which(lengths(st_intersects(st_transform(vpu_boundaries, st_crs(xx)), xx)) > 0)]
+    v = nhdplusTools::vpu_boundaries
+    
+    vpuid = v$VPUID[which(lengths(st_intersects(st_transform(v, st_crs(xx)), xx)) > 0)]
   } else {
     vpuid = unique(pull(filter(net, id == origin |
                                  toid == origin), vpu))
