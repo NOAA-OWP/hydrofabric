@@ -184,7 +184,7 @@ subset_network = function(id = NULL,
     t = tbl(db, lyrs[j]) %>%
       filter(if_any(any_of(
         c('COMID',  'FEATUREID', 'divide_id', 'id', 'ds_id', "ID")
-      ), ~ . %in% ids)) %>%
+      ), ~ . %in% !!ids)) %>%
       collect()
     
     if (all(!any(is.na(as.character(crs[[j]]))), nrow(t) > 0)) {
