@@ -177,7 +177,7 @@ subset_network = function(id = NULL,
   hydrofabric = list()
   
   for (j in 1:length(lyrs)) {
-    hyaggregate_log("INFO", glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
+    message(glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
     
     crs = st_layers(gpkg)$crs
     
