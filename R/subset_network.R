@@ -136,6 +136,7 @@ subset_network = function(id = NULL,
                           ),
                           outfile = NULL,
                           cache_dir = NULL,
+                          qml_dir = qml_dir = system.file("qml", package = "hydrofabric"),
                           cache_overwrite = FALSE) {
   
   Key <- hf_hydroseq <- hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- NULL
@@ -266,7 +267,7 @@ subset_network = function(id = NULL,
   }
   
   if (!is.null(outfile)) {
-    outfile = append_style(outfile, layer_names = lyrs)
+    outfile = append_style(outfile, qml_dir = qml_dir, layer_names = lyrs)
     return(outfile)
   } else {
     hydrofabric
