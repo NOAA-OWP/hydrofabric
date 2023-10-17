@@ -136,7 +136,7 @@ subset_network = function(id = NULL,
                           ),
                           outfile = NULL,
                           cache_dir = NULL,
-                          qml_dir = qml_dir = system.file("qml", package = "hydrofabric"),
+                          qml_dir = system.file("qml", package = "hydrofabric"),
                           cache_overwrite = FALSE) {
   
   Key <- hf_hydroseq <- hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- NULL
