@@ -191,7 +191,7 @@ plot(sf::read_sf(o, "nexus")$geom, col = "red", pch = 16, add = TRUE)
 }
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](man/figures/unnamed-chunk-6-1.png)<!-- -->
 
 We have *also* created cloud based community subsetter. GO binaries of
 these can be installed at the [release
