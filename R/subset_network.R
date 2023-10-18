@@ -1,3 +1,7 @@
+is.url <-function(x) {
+  grepl("www.|http:|https:", x)
+}
+
 read_qml = function (qml_file)  {
   paste(readLines(qml_file), collapse = "\n")
 }
@@ -175,7 +179,12 @@ subset_network = function(id = NULL,
   }
   
   if (!is.null(nldi_feature)) {
-    comid = nhdplusTools::get_nldi_feature(nldi_feature)$comid
+    
+    if(is.url(nldi_feature)){
+      comid = sf::read_sf(nldi_feature)$nhdpv2_comid
+    } else {
+      comid = nhdplusTools::get_nldi_feature(nldi_feature)$comid
+    }
   }
   
   if (!is.null(loc)) {
@@ -183,25 +192,31 @@ subset_network = function(id = NULL,
   }
   
   if (!is.null(hl_uri) & !is.null(net)) {
-    origin = dplyr::filter(net, hl_uri == !!hl_uri) |>
-      dplyr::slice_max(hf_hydroseq) |>
-      dplyr::pull(toid) |>
-      unique()
+    
+    if(is.url(hl_uri)){
+      comid = sf::read_sf(hl_uri)$nhdpv2_comid
+    } else {
+      origin = dplyr::filter(net, hl_uri == !!hl_uri) |>
+        dplyr::slice_max(hf_hydroseq) |>
+        dplyr::pull(toid) |>
+        unique()
+    }
   }
   
   if (!is.null(comid) & !is.null(net)) {
     origin = dplyr::filter(net, hf_id == comid) |>
-      dplyr::slice_max(hf_hydroseq) |>
+      dplyr::arrange(hf_hydroseq, hydroseq) |>
+      dplyr::slice(1) |>
       dplyr::pull(id) |>
       unique()
   } else if (is.null(net)) {
     origin = comid
   }
   
-  if (is.null(origin)) {
-    stop("origin not found")
+  if (is.null(origin) | length(origin) > 1) {
+    stop("Single origin not found")
+    print(origin)
   }
-  
   
   if (is.null(net)) {
     xx = suppressMessages({
@@ -218,13 +233,13 @@ subset_network = function(id = NULL,
                                                toid == origin), vpu))
   }
   
-  
   gpkg = get_fabric(
     VPU = vpuid,
     base_s3 = base_s3,
     cache_dir = cache_dir,
     cache_overwrite = cache_overwrite
   )
+  
   lyrs = lyrs[lyrs %in% sf::st_layers(gpkg)$name]
   
   db <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
