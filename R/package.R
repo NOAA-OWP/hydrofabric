@@ -6,6 +6,11 @@
 
 "cs_dm"
 
+
+#' Hydrofabric Data Model Meta
+
+"meta"
+
 #' @import climateR
 #' @import hydrofab
 #' @import ngen.hydrofab

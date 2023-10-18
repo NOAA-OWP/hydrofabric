@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(hydrofabric)
 ```
 
-Ok so we have established how to build a subset hydrofabric product. Now, we are focused on how to add extra information to this data to support modeling and science applications.
+We have established how to build a subset hydrofabric product. Now, we are focused on how to add extra information to this data to support modeling and science applications.
 
 We will focus on three high level examples:
 
@@ -65,7 +65,6 @@ divides = open_dataset(p) %>%
 
 ```{r}
 glimpse(divides)
-
 ```
 
 ```{r, echo = FALSE}

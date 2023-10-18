@@ -88,3 +88,7 @@ test_that("NextGen Subset Works", {
     expect_equal(nrow(xx_loc$divides), 66)
   
 })
+
+
+subset_network(nldi_feature = 'https://reference.geoconnex.us/collections/gages/items?provider_id=06752260')
+subset_network(hl_uri = 'https://reference.geoconnex.us/collections/gages/items?provider_id=06752260')

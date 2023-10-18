@@ -18,8 +18,7 @@ knitr::opts_chunk$set(
 ## Next Generation Water Resource Modeling Framework Hydrofabric(s)
 
 <!-- badges: start -->
-
-[![R-CMD-check](https://github.com/NOAA-OWP/hydrofabric/workflows/R-CMD-check/badge.svg)](https://github.com/NOAA-OWP/hydrofabric/actions)
+[![R CMD Check](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 <br>
@@ -36,12 +35,14 @@ This repository serves two purpose. (1) It provides a dedicated landing page to 
 
 NextGen artifacts are distributed by _NHDPlusV2_ **V**ector **P**rocessing **U**nits and are generated from a set of national reference datasets built in collaboration between NOAA, the USGS, and Lynker for federal water modeling efforts. These artifacts are designed to be easily updated, manipulated, and quality controlled to meet the needs of a wide range of modeling tasks while leveraging the best possible input data.
 
+A wide range of documentation including the hydrofabric and cross section data model, the origins and development of the product, subsetting, and attribute creation can be found on this products main [landing page](https://noaa-owp.github.io/hydrofabric/) under [articles](https://noaa-owp.github.io/hydrofabric/articles/index.html).
+
 
 ## How do I get it?
 
-NextGen artifacts are publicly available through a partnership with Lynker and the NOAA OWP. For each VPU a geopackage that contains all tables, spatial data, and lookups relevant to a hydrofabric data model 
+NextGen artifacts are publicly available through Lynker (www.lynker-spatial.com). For each VPU a geopackage that contains all tables, spatial data, and lookups relevant to a hydrofabric data model 
 
-### [Lynker's NextGen Data Artifacts](https://lynker-spatial.s3.amazonaws.com/index.html)
+### [NextGen Data Artifacts](https://lynker-spatial.com)
 
 ```{r, fig.align='center', echo = FALSE}
 knitr::include_graphics("man/figures/lynker-spatial.png")
@@ -62,13 +63,19 @@ library(hydrofabric)
 
 `library(hydrofabric)` will load the core packages: 
 
-* [nhdplusTools](https://github.com/usgs-r/nhdplusTools/) for network manipulation
-* [hydrofab](https://github.com/mikejohnson51/hydrofab) a tool set for "fabricating" multiscale hydrofabrics
-* [ngen.hydrofab](https://github.com/mikejohnson51/ngen.hydrofab) NextGen extensions for hydrofab
+* [nhdplusTools](https://github.com/doi-usgs/nhdplusTools/) for network manipulation
+* [hydrofab](https://github.com/NOAA-OWP/hydrofab) a tool set for "fabricating" multiscale hydrofabrics
+* [ngen.hydrofab](https://github.com/NOAA-OWP/ngen.hydrofab) NextGen extensions for hydrofab
 * [climateR](https://github.com/mikejohnson51/climateR) for accessing remote data resources for parameter and attributes estimation
 * [zonal](https://github.com/mikejohnson51/zonal) for catchment parameter estimation
 
-Additionally it will load key spatial data science libraries: `arrow`, `terra`, `sf`, `dplyr` and `glue`
+Additionally it will load key spatial data science libraries: 
+
+* `arrow`
+* `terra`
+* `sf`
+* `dplyr`
+* `glue`
 
 # Background
 
@@ -90,7 +97,33 @@ While these two aggregations serve a wide range of federal modeling needs, our f
 
 # Hydrofabric Subsetter
 
-We have created a NextGen hydrofabric subsetter. GO binaries of these can be installed at the [release page](https://github.com/LynkerIntel/hfsubset/releases).
+```{r}
+# A hydrolocation URI
+hl = 'Gages-04185000'
+
+# The output directory
+o = "data/gray_test.gpkg"
+
+# Build subset
+## caching the downloaded VPU files to "data" and writing all layers to "o"
+subset_network(hl_uri = hl, cache_dir = "data", outfile = o)
+
+{
+plot(sf::read_sf(o, "divides")$geom)
+plot(sf::read_sf(o, "flowpaths")$geom, col = "blue", add = TRUE)
+plot(sf::read_sf(o, "nexus")$geom, col = "red", pch = 16, add = TRUE)
+}
+
+```
+
+We have _also_ created cloud based community subsetter. GO binaries of these can be installed at the [release page](https://github.com/LynkerIntel/hfsubset/releases).
+
+
+## Hydrofabric Characteristic Data
+
+A wide range of data can be appended to the hydrofabric (subsets) from resources including NOAA core modules, streamcat, hydroatlas, USGS catchment characteristics, and more. 
+
+Preliminary documentation of these can be found [here](https://github.com/NOAA-OWP/hydrofabric/wiki/Data-Access-Patterns).
 
 
 ```{r, eval = FALSE, echo = FALSE}
@@ -110,10 +143,12 @@ knitr::include_graphics("man/figures/logos.png")
 
 ## Questions:
 
-<a href = "mailto:jjohnson@lynker.com?subject=Nexgen Hydrofabric Questions">
-Mike Johnson</a> (Hydrofabric Lead), <a href = "mailto:trey.flowers@noaa.gov?subject=Nexgen Hydrofabric Questions"> Trey Flowers </a> (Director, OWP Analysis and Prediction Division)
+<a href = "mailto:jjohnson@lynker.com?subject=NextGen Hydrofabric Questions">
+Mike Johnson</a> (Hydrofabric Lead) <a href = "mailto:trey.flowers@noaa.gov?subject=NextGen Hydrofabric Questions"> and 
+Trey Flowers</a> (Director, OWP Analysis and Prediction Division)
 
+<br>
+<br>
 
- 
-## Disclaimer: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that the U.S. Government shall not be held liable for any damages resulting from use of the data.
+**Disclaimer**: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that the U.S. Government shall not be held liable for any damages resulting from use of the data.
 

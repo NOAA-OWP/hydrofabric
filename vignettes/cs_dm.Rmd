@@ -53,7 +53,7 @@ meta = tibble::tribble(
 "geometry",      "Simple Features Geometry (LINESTRING)",
 "cs_source",     "Source of transect information",
 "cs_id",         "Identifier, unique to a hy_id, that increases from the inlet to the outlet",
-"cs_measure",    "Percent along the flowpath from inlet",
+"cs_measure",    "Percent along the flowpath from outlet",
 "cs_length",     "Width (in meters) of cross section transect",
 'pt_id',         "Identifier, unique to cs_id, that increases from left band to right bank",
 'pt_measure',    "Percent along the transect from left bank (0-1)",
@@ -88,7 +88,6 @@ meta = left_join(meta, df, by = "Attribute")
 
 ## Proposed Data Model 
 ### (`r Sys.Date()`)
-#### `red`: spatial data; `gray`: tabular data
 
 <br><br><br>
 
