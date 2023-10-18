@@ -266,11 +266,11 @@ subset_network = function(id = NULL,
   message("Starting from: `",  origin, "`")
   
   tmap = suppressWarnings({
-    get_sorted(distinct(sub_net), outlets = origin)
+    nhdplusTools::get_sorted(dplyr::distinct(sub_net), outlets = origin)
   })
   
-  if (grepl("nex", tail(tmap$id, 1))) {
-    tmap = head(tmap, -1)
+  if (grepl("nex", utils::tail(tmap$id, 1))) {
+    tmap = utils::head(tmap, -1)
   }
   
   ids = unique(c(unlist(tmap)))
@@ -278,9 +278,9 @@ subset_network = function(id = NULL,
   hydrofabric = list()
   
   for (j in 1:length(lyrs)) {
-    message(glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
+    message(glue::glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
     
-    crs = st_layers(gpkg)$crs
+    crs = sf::st_layers(gpkg)$crs
     
     t =     dplyr::tbl(db, lyrs[j]) |>
       dplyr::filter(dplyr::if_any(dplyr::any_of(
