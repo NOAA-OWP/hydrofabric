@@ -133,7 +133,7 @@ get_fabric = function(VPU,
 #' @param comid NHDPlusV2 COMID
 #' @param hl_uri hydrolocation URI (relevant only to nextgen fabrics)
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.
-#' @param loc Location given as vector of XY in CRS 4326 (long, lat)
+#' @param xy Location given as vector of XY in CRS 4326 (long, lat)
 #' @param base_s3 the base hydrofabric directory to access in Lynker's s3
 #' @param lyrs layers to extract. Default is all possible in the hydrofabric GPKG data model
 #' @param outfile file path to write to. Must have ".gpkg" extension
@@ -146,7 +146,7 @@ subset_network = function(id = NULL,
                           comid = NULL,
                           hl_uri = NULL,
                           nldi_feature = NULL,
-                          loc = NULL,
+                          xy = NULL,
                           base_s3 = 's3://lynker-spatial/pre-release/',
                           lyrs  = c(
                             "divides",
@@ -187,8 +187,8 @@ subset_network = function(id = NULL,
     }
   }
   
-  if (!is.null(loc)) {
-    comid = nhdplusTools::discover_nhdplus_id(point = sf::st_sfc(sf::st_point(c(loc[1], loc[2])), crs = 4326))
+  if (!is.null(xy)) {
+    comid = nhdplusTools::discover_nhdplus_id(point = sf::st_sfc(sf::st_point(c(xy[1], xy[2])), crs = 4326))
   }
   
   if (!is.null(hl_uri) & !is.null(net)) {
