@@ -135,6 +135,7 @@ get_fabric = function(VPU,
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.
 #' @param xy Location given as vector of XY in CRS 4326 (long, lat)
 #' @param base_s3 the base hydrofabric directory to access in Lynker's s3
+#' @param base_dir the base hydrofabric directory
 #' @param lyrs layers to extract. Default is all possible in the hydrofabric GPKG data model
 #' @param outfile file path to write to. Must have ".gpkg" extension
 #' @param cache_dir should data be cached to a local directory? Will speed up multiple subsets in the same region
@@ -148,6 +149,7 @@ subset_network = function(id = NULL,
                           nldi_feature = NULL,
                           xy = NULL,
                           base_s3 = 's3://lynker-spatial/pre-release/',
+                          base_dir = NULL,
                           lyrs  = c(
                             "divides",
                             "nexus",
@@ -167,10 +169,28 @@ subset_network = function(id = NULL,
     hf_hydroseq <-
     hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- NULL
   
-  net = arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
-    dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
-    dplyr::collect() |>
-    dplyr::distinct()
+  if(!is.null(base_dir)){
+    base = data.frame(file = list.files(base_dir, full.names = TRUE)) |>
+      dplyr::mutate(base = basename(file))
+    
+    if("conus_net.parquet" %in% base$base){
+      net = filter(base, base == "conus_net.parquet") %>% 
+        pull(file) %>% 
+        arrow::open_dataset() |>
+        dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
+        dplyr::collect() |>
+        dplyr::distinct()
+    } else {
+      stop("conus_net.parquet not found in ", base_dir)
+    } 
+  } else {
+    net = arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
+      dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
+      dplyr::collect() |>
+      dplyr::distinct()
+  }
+  
+ 
   
   if (!is.null(id) & !is.null(net)) {
     comid = dplyr::filter(net, id == !!id | toid == !!id) |>
@@ -233,12 +253,19 @@ subset_network = function(id = NULL,
                                                toid == origin), vpu))
   }
   
-  gpkg = get_fabric(
-    VPU = vpuid,
-    base_s3 = base_s3,
-    cache_dir = cache_dir,
-    cache_overwrite = cache_overwrite
-  )
+  
+  if(!is.null(base_dir)){
+    gpkg = filter(base, grepl(vpuid, base) & grepl("gpkg", base))$file
+    
+  } else {
+    gpkg = get_fabric(
+      VPU = vpuid,
+      base_s3 = base_s3,
+      cache_dir = cache_dir,
+      cache_overwrite = cache_overwrite
+    )
+  }
+ 
   
   lyrs = lyrs[lyrs %in% sf::st_layers(gpkg)$name]
   

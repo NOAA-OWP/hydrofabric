@@ -21,10 +21,24 @@ HydroShare, http://www.hydroshare.org/resource/129787b468aa4d55ace7b124ed27dbde
 
 ### Overview
 
-This repository serves two purpose. (1) It provides a dedicated landing
-page to access the Next Generation Modeling Framework (NextGen)
-hydrofabric artifacts and (2) a meta package of R packages that are
-designed for hydroscience.
+This repository serves a few main purposes.
+
+1.  Hydrofabric processes are intentionally modular. This package
+    provides a collection of R package that are designed for
+    hydroscience. (e.g. tidyverse for hydrofabric development)
+
+2.  It provides the utilities to subset an area upstream of a location
+    (XY), hydrofabric ID, indexed hydrolocation (e.g. NWIS gage, HUC12
+    or NID) or NHDPlus COMID from the full CONUS data product.
+
+3.  It provides a wide range of documentation including the hydrofabric
+    and cross section data model, the origins and development of the
+    product, subsetting, and attribute creation can be found on this
+    products main [landing
+    page](https://noaa-owp.github.io/hydrofabric/) under
+    [articles](https://noaa-owp.github.io/hydrofabric/articles/index.html).
+
+## Cloud Native Data Archives
 
 NextGen artifacts are distributed by *NHDPlusV2* **V**ector
 **P**rocessing **U**nits and are generated from a set of national
@@ -34,14 +48,6 @@ to be easily updated, manipulated, and quality controlled to meet the
 needs of a wide range of modeling tasks while leveraging the best
 possible input data.
 
-A wide range of documentation including the hydrofabric and cross
-section data model, the origins and development of the product,
-subsetting, and attribute creation can be found on this products main
-[landing page](https://noaa-owp.github.io/hydrofabric/) under
-[articles](https://noaa-owp.github.io/hydrofabric/articles/index.html).
-
-## How do I get it?
-
 NextGen artifacts are publicly available through Lynker
 (www.lynker-spatial.com). For each VPU a geopackage that contains all
 tables, spatial data, and lookups relevant to a hydrofabric data model
@@ -50,14 +56,12 @@ tables, spatial data, and lookups relevant to a hydrofabric data model
 
 <img src="man/figures/lynker-spatial.png" width="1533" style="display: block; margin: auto;" />
 
-## Package Installation
+## R Package Installation and Use
 
 ``` r
 # install.packages("remotes")
 remotes::install_github("NOAA-OWP/hydrofabric")
 ```
-
-## Usage
 
 ``` r
 library(hydrofabric)
@@ -104,6 +108,61 @@ Additionally it will load key spatial data science libraries:
 - `sf`
 - `dplyr`
 - `glue`
+
+# Hydrofabric Subsetter
+
+``` r
+# A hydrolocation URI
+hl = 'Gages-04185000'
+
+# The output directory
+o = "data/gray_test.gpkg"
+
+# Build subset
+## caching the downloaded VPU files to "data" and writing all layers to "o"
+subset_network(hl_uri = hl, cache_dir = "data", outfile = o)
+```
+
+    ## Starting from: `nex-870116`
+
+    ## Subsetting: divides (1/5)
+
+    ## Subsetting: nexus (2/5)
+
+    ## Subsetting: flowpaths (3/5)
+
+    ## Subsetting: network (4/5)
+
+    ## Subsetting: hydrolocations (5/5)
+
+    ## Deleting layer `layer_styles' using driver `GPKG'
+
+    ## [1] "data/gray_test.gpkg"
+
+``` r
+{
+plot(sf::read_sf(o, "divides")$geom)
+plot(sf::read_sf(o, "flowpaths")$geom, col = "blue", add = TRUE)
+plot(sf::read_sf(o, "nexus")$geom, col = "red", pch = 16, add = TRUE)
+}
+```
+
+![](man/figures/unnamed-chunk-5-1.png)<!-- -->
+
+We have *also* created cloud based community subsetter. GO binaries of
+these can be installed at the [release
+page](https://github.com/LynkerIntel/hfsubset/releases).
+
+## Hydrofabric Characteristic Data
+
+A wide range of data can be appended to the hydrofabric (subsets) from
+resources including NOAA core modules, streamcat, hydroatlas, USGS
+catchment characteristics, and more.
+
+Preliminary documentation of these can be found
+[here](https://github.com/NOAA-OWP/hydrofabric/wiki/Data-Access-Patterns).
+
+<img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
 
 # Background
 
@@ -152,61 +211,6 @@ interested parties to build there own networks starting with either the
   [here](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b).
   A high level introduction to these resources can be found on the [USGS
   Water Data blog](https://waterdata.usgs.gov/blog/hydrofabric/).
-
-# Hydrofabric Subsetter
-
-``` r
-# A hydrolocation URI
-hl = 'Gages-04185000'
-
-# The output directory
-o = "data/gray_test.gpkg"
-
-# Build subset
-## caching the downloaded VPU files to "data" and writing all layers to "o"
-subset_network(hl_uri = hl, cache_dir = "data", outfile = o)
-```
-
-    ## Starting from: `nex-870116`
-
-    ## Subsetting: divides (1/5)
-
-    ## Subsetting: nexus (2/5)
-
-    ## Subsetting: flowpaths (3/5)
-
-    ## Subsetting: network (4/5)
-
-    ## Subsetting: hydrolocations (5/5)
-
-    ## Deleting layer `layer_styles' using driver `GPKG'
-
-    ## [1] "data/gray_test.gpkg"
-
-``` r
-{
-plot(sf::read_sf(o, "divides")$geom)
-plot(sf::read_sf(o, "flowpaths")$geom, col = "blue", add = TRUE)
-plot(sf::read_sf(o, "nexus")$geom, col = "red", pch = 16, add = TRUE)
-}
-```
-
-![](man/figures/unnamed-chunk-6-1.png)<!-- -->
-
-We have *also* created cloud based community subsetter. GO binaries of
-these can be installed at the [release
-page](https://github.com/LynkerIntel/hfsubset/releases).
-
-## Hydrofabric Characteristic Data
-
-A wide range of data can be appended to the hydrofabric (subsets) from
-resources including NOAA core modules, streamcat, hydroatlas, USGS
-catchment characteristics, and more.
-
-Preliminary documentation of these can be found
-[here](https://github.com/NOAA-OWP/hydrofabric/wiki/Data-Access-Patterns).
-
-<img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
 
 ## Questions:
 
