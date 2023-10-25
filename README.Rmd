@@ -113,21 +113,6 @@ A wide range of data can be appended to the hydrofabric (subsets) from resources
 Preliminary documentation of these can be found [here](https://github.com/NOAA-OWP/hydrofabric/wiki/Data-Access-Patterns).
 
 
-```{r, eval = FALSE, echo = FALSE}
-#knitr::include_graphics(c("man/figures/lynker-logo.png","man/figures/noaa-logo.png", 'man/figures/usgs-logo.png'))
-# library(cowplot)
-# xx = ggdraw() + 
-#   draw_image("man/figures/lynker-logo.png", width = 0.33, height = .25, y = .05) + 
-#   draw_image("man/figures/noaa-logo.png", width = 0.33,  height = .35, x = 0.33) + 
-#   draw_image("man/figures/usgs-logo.png", width = 0.33,height = .25, x = 0.66, y = .05)
-# 
-# cowplot::save_plot(xx, filename = "man/figures/logos.png")
-``` 
-
-```{r, fig.align='center', echo = FALSE}
-knitr::include_graphics("man/figures/logos.png")
-```
-
 # Background
 
 The NextGen artifacts are a _model application_ dataset built to meet the aims of [NextGen](https://github.com/NOAA-OWP/ngen). By design, these artifacts are derived from a set of general authoritative data products outlined in figure 1 that have been built in close collaboration with the USGS. 
@@ -139,6 +124,8 @@ knitr::include_graphics("man/figures/roadmap.png")
 These include a set of base data that improves the network topology and geometry validity while defining a set of community hydrolocations (POIs). These 4 data products are used to build an intermediate refactored network from which one hydrofabric network has been aggregated to a set of community hydrolocations (minimal network), and one has been aggregated to a more consistent size (3-10 sqkm) with enforced POI locations (target distribution). NextGen specifically is derived from the target size aggregated product while the upcoming developments on the [National Hydrologic Model (NHM)](https://www.usgs.gov/mission-areas/water-resources/science/national-hydrologic-model-infrastructure) will be built from the community minimal network. 
 
 While these two aggregations serve a wide range of federal modeling needs, our focus on open source software development and workflows allow interested parties to build there own networks starting with either the 4 reference datasets, or the refactored network!
+
+
 
 # Resources
 
@@ -154,6 +141,21 @@ Trey Flowers</a> (Director, OWP Analysis and Prediction Division)
 
 <br>
 <br>
+
+```{r, eval = FALSE, echo = FALSE}
+#knitr::include_graphics(c("man/figures/lynker-logo.png","man/figures/noaa-logo.png", 'man/figures/usgs-logo.png'))
+# library(cowplot)
+# xx = ggdraw() + 
+#   draw_image("man/figures/lynker-logo.png", width = 0.33, height = .25, y = .05) + 
+#   draw_image("man/figures/noaa-logo.png", width = 0.33,  height = .35, x = 0.33) + 
+#   draw_image("man/figures/usgs-logo.png", width = 0.33,height = .25, x = 0.66, y = .05)
+# 
+# cowplot::save_plot(xx, filename = "man/figures/logos.png")
+``` 
+
+```{r, fig.align='center', echo = FALSE}
+knitr::include_graphics("man/figures/logos.png")
+```
 
 **Disclaimer**: These data are preliminary or provisional and are subject to revision. They are being provided to meet the need for timely best science. The data have not received final approval by the National Oceanic and Atmospheric Administration (NOAA) or the U.S. Geological Survey (USGS) and are provided on the condition that the U.S. Government shall not be held liable for any damages resulting from use of the data.
 

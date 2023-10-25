@@ -1,16 +1,23 @@
 url: ~
+
+home:
+  title: Collection of R packages designed for hydroscience.
 template:
   bootstrap: 5
   bootswatch: litera
+development:
+  mode: auto
 authors:
+   Mike Johnson:
+     href: https://github.com/mikejohnson51
    NOAA: 
-     html: "<img src='man/figures/noaa-logo.png' height='36' alt='NOAA OWP'/>"
+     html: "<img src='man/figures/noaa-logo.png' width='36' alt='NOAA OWP'/>"
      href: "https://water.noaa.gov/about/nwm"
    USGS: 
-     html: "<img src='man/figures/usgs-logo.png' height='36' alt='USGS WMA'/>"
+     html: "<img src='man/figures/usgs-logo.png' width='72' alt='USGS WMA'/>"
      href: "https://www.usgs.gov/mission-areas/water-resources"
    Lynker: 
-     html: "<img src='man/figures/lynker-logo.png' height='36' alt='Lynker'/>"
+     html: "<img src='man/figures/lynker-logo.png' width='100' alt='Lynker'/>"
      href: "https://lynker-intel.com/"
    footer:
     roles: [cre]

@@ -1,6 +1,6 @@
 Package: hydrofabric
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 0.0.6
+Version: 0.0.7
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
@@ -10,7 +10,7 @@ Authors@R:
       person("USGS", role = c("fnd")),
       person("Lynker", role = c("fnd")))
 Description: The 'hydrofabric' meta package is a set of packages that work in harmony
-    to complete hydrofabric tasks. 
+    to complete hydrofabric and hydroscience tasks. 
 License: MIT + file LICENSE
 URL: https://github.com/NOAA-OWP/hydrofabric
 BugReports: https://github.com/NOAA-OWP/hydrofabric

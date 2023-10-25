@@ -155,8 +155,6 @@ catchment characteristics, and more.
 Preliminary documentation of these can be found
 [here](https://github.com/NOAA-OWP/hydrofabric/wiki/Data-Access-Patterns).
 
-<img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
-
 # Background
 
 The NextGen artifacts are a *model application* dataset built to meet
@@ -213,6 +211,8 @@ Mike Johnson</a> (Hydrofabric Lead)
 and Trey Flowers</a> (Director, OWP Analysis and Prediction Division)
 
 <br> <br>
+
+<img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
 
 **Disclaimer**: These data are preliminary or provisional and are
 subject to revision. They are being provided to meet the need for timely

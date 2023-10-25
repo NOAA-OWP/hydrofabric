@@ -1,0 +1,14 @@
+year <- format(Sys.time(), "%Y")
+abs <- trimws(gsub("\\s+", " ", meta$Description))
+abs <- gsub("'", "", abs)
+
+bibentry(
+  "Manual",
+  header = paste0("To cite '", meta$Package, "' in publications use:"),
+  title = "National Hydrologic Geospatial Fabric (hydrofabric) for the Next Generation (NextGen) Hydrologic Modeling Framework [software]",
+  author = c(person("J. Michael", "Johnson")),
+  year = year,
+  url = 'https://www.hydroshare.org/resource/129787b468aa4d55ace7b124ed27dbde',
+  key = "R-hydrofabric",
+  textVersion = "Johnson, J. M. (2022). National Hydrologic Geospatial Fabric (hydrofabric) for the Next Generation (NextGen) Hydrologic Modeling Framework, HydroShare, http://www.hydroshare.org/resource/129787b468aa4d55ace7b124ed27dbde"
+)
