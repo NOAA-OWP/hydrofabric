@@ -175,7 +175,7 @@ subset_network = function(id = NULL,
     
     if("conus_net.parquet" %in% base$base){
       net = filter(base, base == "conus_net.parquet") %>% 
-        pull(file) %>% 
+        dplyr::pull(file) %>% 
         arrow::open_dataset() |>
         dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
         dplyr::collect() |>
@@ -255,7 +255,7 @@ subset_network = function(id = NULL,
   
   
   if(!is.null(base_dir)){
-    gpkg = filter(base, grepl(vpuid, base) & grepl("gpkg", base))$file
+    gpkg = dplyr::filter(base, grepl(vpuid, base) & grepl("gpkg", base))$file
     
   } else {
     gpkg = get_fabric(
@@ -266,7 +266,6 @@ subset_network = function(id = NULL,
     )
   }
  
-  
   lyrs = lyrs[lyrs %in% sf::st_layers(gpkg)$name]
   
   db <- DBI::dbConnect(RSQLite::SQLite(), gpkg)

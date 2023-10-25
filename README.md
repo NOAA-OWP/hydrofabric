@@ -67,13 +67,6 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 library(hydrofabric)
 ```
 
-    ## The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,
-    ## which was just loaded, were retired in October 2023.
-    ## Please refer to R-spatial evolution reports for details, especially
-    ## https://r-spatial.org/r/2023/05/15/evolution4.html.
-    ## It may be desirable to make the sf package available;
-    ## package maintainers should consider adding sf to Suggests:.
-
     ## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──
 
     ## ✔ dplyr         1.1.3        ✔ nhdplusTools  1.0.1   

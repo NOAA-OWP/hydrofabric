@@ -1,16 +1,3 @@
-#' Hydrofabric Data Model
-
-"hf_dm"
-
-#' Cross Section Data Model
-
-"cs_dm"
-
-
-#' Hydrofabric Data Model Meta
-
-"meta"
-
 #' @import climateR
 #' @import hydrofab
 #' @import ngen.hydrofab
