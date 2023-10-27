@@ -1,12 +1,15 @@
 ---
 title: "Hydrofabric Data Model"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Hydrofabric Data Model}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, 

@@ -28,7 +28,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">hydrofabric</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -138,8 +138,8 @@ Ngen framework.</p>
 <h2 id="current-version">Current Version:<a class="anchor" aria-label="anchor" href="#current-version"></a>
 </h2>
 <p>The most up to date NextGen hydrofabric and resources can be accessed
-from the public facing <a href="https://nextgen-hydrofabric.s3.amazonaws.com/index.html" class="external-link">Lynker
-AWS account</a>.</p>
+from the public facing <a href="https://www.lynker-spatial.com/index.html" class="external-link">Lynker AWS
+account</a>.</p>
 <p>In practice we strive to develop these products to take advantage of
 the following:</p>
 <div class="section level4">
@@ -242,11 +242,13 @@ attributes:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">hydrofabric</a></span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ── <span style="font-weight: bold;">Attaching packages</span> ────────────────────────────────────── hydrofabric0.0.6 ──</span></span></code></pre>
-<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr        </span> 1.1.3       <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">nhdplusTools </span> 1.0.1  </span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">terra        </span> 1.7.46      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">hydrofab     </span> 0.5.0  </span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ngen.hydrofab</span> 0.0.3       <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">zonal        </span> 0.0.2  </span></span>
-<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">climateR     </span> 0.3.1.<span style="color: #BB0000;">4</span>     <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">glue         </span> 1.6.2</span></span></code></pre>
+<pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr        </span> 1.1.3        <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">hydrofab     </span> 0.5.0   </span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">terra        </span> 1.7.55       <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">zonal        </span> 0.0.2   </span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">ngen.hydrofab</span> 0.0.3        <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">glue         </span> 1.6.2   </span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">climateR     </span> 0.3.1.<span style="color: #BB0000;">4</span>      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">arrow        </span> 13.0.0.<span style="color: #BB0000;">1</span></span></span>
+<span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">nhdplusTools </span> 1.0.1</span></span></code></pre>
 <pre><code><span><span class="co">## ── <span style="font-weight: bold;">Conflicts</span> ──────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
+<span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">arrow</span>::<span style="color: #00BB00;">buffer()</span>    masks <span style="color: #0000BB;">terra</span>::buffer()</span></span>
 <span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">terra</span>::<span style="color: #00BB00;">intersect()</span> masks <span style="color: #0000BB;">dplyr</span>::intersect()</span></span>
 <span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">glue</span>::<span style="color: #00BB00;">trim()</span>       masks <span style="color: #0000BB;">terra</span>::trim()</span></span>
 <span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">terra</span>::<span style="color: #00BB00;">union()</span>     masks <span style="color: #0000BB;">dplyr</span>::union()</span></span></code></pre>
@@ -281,19 +283,34 @@ products</td>
 parameter and attributes estimation</td>
 </tr>
 <tr class="odd">
-<td>NOAA-OWP/zonal</td>
+<td>mikejohnson51/zonal</td>
 <td align="center">Tools for rapid areal summarization</td>
+</tr>
+<tr class="even">
+<td>dplyr</td>
+<td align="center">Provides a consistent set of tools for data
+manipulation</td>
+</tr>
+<tr class="odd">
+<td>sf</td>
+<td align="center">Provides simple features access for R</td>
+</tr>
+<tr class="even">
+<td>terra</td>
+<td align="center">Methods for spatial data analysis with vector
+(points, lines, polygons) and raster (grid) data</td>
+</tr>
+<tr class="odd">
+<td>arrow</td>
+<td align="center">Exposes an interface to the Arrow C++ library</td>
+</tr>
+<tr class="even">
+<td>glue</td>
+<td align="center">Provides interpreted string literals that are small,
+fast, and dependency-free</td>
 </tr>
 </tbody>
 </table>
-<div class="line-block">dplyr | Provides a consistent set of tools for
-data manipulation |<br>
-sf | Provides simple features access for R |<br>
-terra | Methods for spatial data analysis with vector (points, lines,
-polygons) and raster (grid) data |<br>
-arrow | Exposes an interface to the Arrow C++ library |<br>
-glue | Provides interpreted string literals that are small, fast, and
-dependency-free |</div>
 </div>
 <div class="section level2">
 <h2 id="todays-context">Today’s Context<a class="anchor" aria-label="anchor" href="#todays-context"></a>
@@ -302,7 +319,7 @@ dependency-free |</div>
 will use NWIS <code>gage=06752260</code> that sits on the Cache La
 Poudre River in Fort Collins, Colorado.</p>
 <ul>
-<li><p>The associated gpkg can be found <a href="http://nextgen-hydrofabric.s3.amazonaws.com/CIRHO-dev-conference/poudre.gpkg" class="external-link">here</a></p></li>
+<li><p>The associated gpkg can be found <a href="https://lynker-spatial.s3.amazonaws.com/tutorial/poudre.gpkg" class="external-link">here</a></p></li>
 <li><p>The USGS Next Generation Monitoring Location Page for this site
 is here: <a href="https://waterdata.usgs.gov/monitoring-location/06752260/" class="external-link uri">https://waterdata.usgs.gov/monitoring-location/06752260/</a></p></li>
 <li><p>The Geoconnex PID can be found here: <a href="https://reference.geoconnex.us/collections/gages/items?provider_id=06752260" class="external-link uri">https://reference.geoconnex.us/collections/gages/items?provider_id=06752260</a></p></li>
@@ -321,7 +338,7 @@ up a directory in our main working directory.</p>
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Mike Johnson.</p>
+<p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

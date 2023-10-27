@@ -28,7 +28,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">hydrofabric</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,9 +78,9 @@ Johnson</h4>
 
     
     
-<p>Ok so we have established how to build a subset hydrofabric product.
-Now, we are focused on how to add extra information to this data to
-support modeling and science applications.</p>
+<p>We have established how to build a subset hydrofabric product. Now,
+we are focused on how to add extra information to this data to support
+modeling and science applications.</p>
 <p>We will focus on three high level examples:</p>
 <ol style="list-style-type: decimal">
 <li>Precomputed data</li>
@@ -102,17 +102,9 @@ subset.</p>
 <h4 id="set-up">Set up<a class="anchor" aria-label="anchor" href="#set-up"></a>
 </h4>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/apache/arrow/" class="external-link">arrow</a></span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## </span></span>
-<span><span class="co">## Attaching package: 'arrow'</span></span></code></pre>
-<pre><code><span><span class="co">## The following object is masked from 'package:terra':</span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">##     buffer</span></span></code></pre>
-<pre><code><span><span class="co">## The following object is masked from 'package:utils':</span></span>
-<span><span class="co">## </span></span>
-<span><span class="co">##     timestamp</span></span></code></pre>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># read network</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/apache/arrow/" class="external-link">arrow</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># read network</span></span>
 <span><span class="va">x</span> <span class="op">=</span> <span class="fu">read_sf</span><span class="op">(</span><span class="st">"cihro-data/poudre.gpkg"</span>, <span class="st">"network"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># define variable set</span></span>
@@ -124,7 +116,7 @@ subset.</p>
 <div class="section level4">
 <h4 id="access-and-join">Access and Join<a class="anchor" aria-label="anchor" href="#access-and-join"></a>
 </h4>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">divides</span> <span class="op">=</span> <span class="fu">read_sf</span><span class="op">(</span><span class="st">"cihro-data/poudre.gpkg"</span>, <span class="st">"divides"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Open dataset and Join to divides</span></span>
@@ -138,7 +130,7 @@ subset.</p>
 <div class="section level2">
 <h2 id="explore">Explore<a class="anchor" aria-label="anchor" href="#explore"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="va">divides</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Rows: 419</span></span>
 <span><span class="co">## Columns: 45</span></span>
@@ -229,26 +221,26 @@ resources</td>
 <div class="section level4">
 <h4 id="single-day">Single Day<a class="anchor" aria-label="anchor" href="#single-day"></a>
 </h4>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">r</span> <span class="op">=</span> <span class="fu">getGridMET</span><span class="op">(</span>AOI <span class="op">=</span> <span class="va">divides</span>, varname <span class="op">=</span> <span class="st">"srad"</span>, startDate <span class="op">=</span> <span class="st">"2020-10-29"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">daily_mean_shortwave_radiation_at_surface</span><span class="op">)</span></span></code></pre></div>
 <p><img src="06-attribute-access_files/figure-html/unnamed-chunk-5-1.png" width="700"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">srad</span> <span class="op">=</span> <span class="fu">execute_zonal</span><span class="op">(</span><span class="va">r</span>, geom <span class="op">=</span> <span class="va">divides</span>, fun <span class="op">=</span> <span class="st">"mean"</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">srad</span><span class="op">[</span><span class="st">'srad_2020-10-29'</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">srad</span><span class="op">[</span><span class="st">'mean.srad_2020.10.29'</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="06-attribute-access_files/figure-html/unnamed-chunk-5-2.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="through-time">Through time<a class="anchor" aria-label="anchor" href="#through-time"></a>
 </h4>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">=</span> <span class="fu">getGridMET</span><span class="op">(</span>AOI <span class="op">=</span> <span class="va">divides</span>, varname <span class="op">=</span> <span class="st">"pr"</span>, startDate <span class="op">=</span> <span class="st">"2023-05-10"</span>, endDate <span class="op">=</span> <span class="st">"2023-05-13"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">precipitation_amount</span><span class="op">)</span></span></code></pre></div>
 <p><img src="06-attribute-access_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pr</span> <span class="op">=</span> <span class="fu">execute_zonal</span><span class="op">(</span><span class="va">p</span>, geom <span class="op">=</span> <span class="va">divides</span>, fun <span class="op">=</span> <span class="st">"mean"</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pr</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">'pr'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pr</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
@@ -259,7 +251,7 @@ resources</td>
 </h4>
 <p>Here we want rank map the NextGen Catchments by the amount of rain
 they received over the last few days</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pr</span><span class="op">$</span><span class="va">cumpr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="fu">st_drop_geometry</span><span class="op">(</span><span class="va">pr</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">'pr'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">pr</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pr</span><span class="op">[</span><span class="st">'cumpr'</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
@@ -270,7 +262,7 @@ they received over the last few days</p>
 </h4>
 <p>climateR provides a range of short cut functions to common datasets.
 These are simply shortcuts to make access faster:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"get"</span>, <span class="fu"><a href="https://rdrr.io/r/base/ls.html" class="external-link">ls</a></span><span class="op">(</span><span class="st">"package:climateR"</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "dap_get"             "get_data"            "get3DEP"            </span></span>
 <span><span class="co">##  [4] "getBCCA"             "getCHIRPS"           "getDaymet"          </span></span>
@@ -284,7 +276,7 @@ These are simply shortcuts to make access faster:</p>
 <div class="section level5">
 <h5 id="mean-monthly-normals">Mean Monthly Normals<a class="anchor" aria-label="anchor" href="#mean-monthly-normals"></a>
 </h5>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ppt</span> <span class="op">=</span> <span class="fu">getTerraClimNormals</span><span class="op">(</span>AOI <span class="op">=</span> <span class="va">divides</span>,  varname <span class="op">=</span> <span class="st">"ppt"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">execute_zonal</span><span class="op">(</span>geom <span class="op">=</span> <span class="va">divides</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
@@ -301,7 +293,7 @@ These are simply shortcuts to make access faster:</p>
 accessed.</p>
 <p>If you can find the catalog element you want, it can be passed to the
 more general <code>dap</code> utilities.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="fu">read_live_catalog</span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Rows: 37,010</span></span>
 <span><span class="co">## Columns: 29</span></span>
@@ -338,23 +330,24 @@ more general <code>dap</code> utilities.</p>
 <div class="section level4">
 <h4 id="polaris-soils">POLARIS Soils<a class="anchor" aria-label="anchor" href="#polaris-soils"></a>
 </h4>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">catalog</span>, <span class="va">id</span> <span class="op">==</span> <span class="st">"polaris"</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"mean alpha"</span>, <span class="va">variable</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">alpha</span> <span class="op">=</span> <span class="fu">dap</span><span class="op">(</span>catalog <span class="op">=</span> <span class="va">cat</span>, AOI <span class="op">=</span> <span class="va">divides</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"layer"</span>, <span class="fl">1</span><span class="op">:</span><span class="fu">nlyr</span><span class="op">(</span><span class="va">alpha</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">)</span></span></code></pre></div>
 <p><img src="06-attribute-access_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">soil</span> <span class="op">=</span> <span class="fu">execute_zonal</span><span class="op">(</span><span class="va">alpha</span>, geom <span class="op">=</span> <span class="va">divides</span>, fun <span class="op">=</span> <span class="st">"mean"</span>, ID <span class="op">=</span> <span class="st">"divide_id"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">soil</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">'alpha'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">soil</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">soil</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">'mean.layer'</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">soil</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span></code></pre></div>
 <p><img src="06-attribute-access_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
 </div>
 <div class="section level4">
 <h4 id="usgs-dems">USGS DEMs<a class="anchor" aria-label="anchor" href="#usgs-dems"></a>
 </h4>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">cat</span> <span class="op">=</span> <span class="va">catalog</span> <span class="op">%&gt;%</span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">asset</span> <span class="op">==</span> <span class="st">"30m CONUS DEM"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 1 × 29</span></span></span>
 <span><span class="co">##   id        asset  URL   type  varname variable description units model ensemble</span></span>
@@ -364,7 +357,7 @@ more general <code>dap</code> utilities.</p>
 <span><span class="co">## <span style="color: #949494;">#   interval &lt;chr&gt;, nT &lt;int&gt;, X_name &lt;chr&gt;, Y_name &lt;chr&gt;, X1 &lt;dbl&gt;, Xn &lt;dbl&gt;,</span></span></span>
 <span><span class="co">## <span style="color: #949494;">#   Y1 &lt;dbl&gt;, Yn &lt;dbl&gt;, resX &lt;dbl&gt;, resY &lt;dbl&gt;, ncols &lt;int&gt;, nrows &lt;int&gt;,</span></span></span>
 <span><span class="co">## <span style="color: #949494;">#   crs &lt;chr&gt;, toptobottom &lt;lgl&gt;, tiled &lt;fct&gt;, dim_order &lt;fct&gt;</span></span></span></code></pre>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dem</span> <span class="op">=</span> <span class="fu">dap</span><span class="op">(</span>catalog <span class="op">=</span> <span class="va">cat</span>, AOI <span class="op">=</span> <span class="va">divides</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">dem</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
@@ -388,13 +381,13 @@ catchment network.</p>
 <p>One of these that is of particular interest to NextGen is <a href="https://www.sciencebase.gov/catalog/item/56f97be4e4b0a6037df06b70" class="external-link">TWI</a>.</p>
 <p>While TOPMODEL requires a distribution, a quick and dirty way to get
 NextGen catchment TWI estimates is of immense value.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html" class="external-link">include_graphics</a></span><span class="op">(</span><span class="st">"../man/figures/usgs-twi.png"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="../reference/figures/usgs-twi.png" width="550"></p>
 <div class="section level3">
 <h3 id="twi-joined-to-the-poudre-river-network">TWI joined to the Poudre River Network<a class="anchor" aria-label="anchor" href="#twi-joined-to-the-poudre-river-network"></a>
 </h3>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">net</span> <span class="op">=</span> <span class="fu">read_sf</span><span class="op">(</span><span class="st">"cihro-data/poudre.gpkg"</span>, <span class="st">"network"</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="va">twi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>comid <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">net</span><span class="op">$</span><span class="va">hf_id</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -405,7 +398,7 @@ NextGen catchment TWI estimates is of immense value.</p>
 <div class="section level3">
 <h3 id="reference-fabric-data">Reference fabric data<a class="anchor" aria-label="anchor" href="#reference-fabric-data"></a>
 </h3>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ref</span> <span class="op">=</span> <span class="fu"><a href="../reference/get_fabric.html">get_fabric</a></span><span class="op">(</span>VPU <span class="op">=</span> <span class="st">"10L"</span>, base_s3 <span class="op">=</span> <span class="st">'s3://lynker-spatial/01_reference/'</span>, cache_dir  <span class="op">=</span> <span class="st">"cihro-data"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">read_sf</span><span class="op">(</span><span class="st">"reference_catchment"</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FEATUREID</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">twi</span><span class="op">$</span><span class="va">hf_id</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -417,7 +410,7 @@ NextGen catchment TWI estimates is of immense value.</p>
 <div class="section level3">
 <h3 id="area-averaging-reference-fabric-to-nextgen">Area averaging reference fabric to NextGen<a class="anchor" aria-label="anchor" href="#area-averaging-reference-fabric-to-nextgen"></a>
 </h3>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">full</span> <span class="op">=</span> <span class="va">net</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">select</span><span class="op">(</span><span class="va">divide_id</span>, <span class="va">hf_id</span>, <span class="va">areasqkm</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu">distinct</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
@@ -437,7 +430,7 @@ NextGen catchment TWI estimates is of immense value.</p>
 <p><img src="06-attribute-access_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 <p>We are not limited to just TWI. The nhdplusTools package provides a
 archive of NHDPlusV2 based catchment datasets that can be used:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xx</span> <span class="op">=</span> <span class="fu">discover_nldi_characteristics</span><span class="op">(</span><span class="st">"all"</span><span class="op">)</span> </span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">xx</span>, <span class="va">nrow</span><span class="op">)</span></span></code></pre></div>
@@ -449,20 +442,20 @@ archive of NHDPlusV2 based catchment datasets that can be used:</p>
 <span><span class="co">## </span></span>
 <span><span class="co">## $divergence_routed</span></span>
 <span><span class="co">## [1] 126</span></span></code></pre>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xx</span><span class="op">$</span><span class="va">total</span><span class="op">$</span><span class="va">characteristic_id</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "TOT_BFI"        "TOT_PET"        "TOT_CONTACT"    "TOT_EWT"       </span></span>
 <span><span class="co">##  [5] "TOT_IEOF"       "TOT_RECHG"      "TOT_SATOF"      "TOT_TWI"       </span></span>
 <span><span class="co">##  [9] "TOT_WB5100_ANN" "TOT_FUNGICIDE"</span></span></code></pre>
 <p>Further Lynker provides a reformatted archive of the EPA streamcat
 data:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xx</span> <span class="op">=</span> <span class="fu">aws.s3</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/aws.s3/man/get_bucket.html" class="external-link">get_bucket_df</a></span><span class="op">(</span>bucket <span class="op">=</span> <span class="st">'s3://nextgen-hydrofabric'</span>, prefix <span class="op">=</span> <span class="st">'streamcats'</span><span class="op">)</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"old|data"</span>, <span class="va">Key</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">xx</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 139</span></span></code></pre>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">xx</span><span class="op">$</span><span class="va">Key</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">11</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##  [1] "streamcats/streamcat_AgriculturalNitrogen_cat.parquet"   </span></span>
 <span><span class="co">##  [2] "streamcats/streamcat_Aquifers_cat.parquet"               </span></span>
@@ -508,7 +501,7 @@ understanding</p></li>
 
     <footer><div class="pkgdown-footer-left">
   <p></p>
-<p>Developed by Mike Johnson.</p>
+<p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">

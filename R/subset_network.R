@@ -191,7 +191,6 @@ subset_network = function(id = NULL,
   }
   
  
-  
   if (!is.null(id) & !is.null(net)) {
     comid = dplyr::filter(net, id == !!id | toid == !!id) |>
       dplyr::slice_max(hf_hydroseq) |>

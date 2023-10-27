@@ -98,7 +98,7 @@ plot(r$daily_mean_shortwave_radiation_at_surface)
 
 srad = execute_zonal(r, geom = divides, fun = "mean", ID = "divide_id")
 
-plot(srad['srad_2020-10-29'])
+plot(srad['mean.srad_2020.10.29'])
 ```
 
 ### Through time
@@ -156,6 +156,7 @@ glimpse(read_live_catalog())
 cat = filter(catalog, id == "polaris", grepl("mean alpha", variable))
 
 alpha = dap(catalog = cat, AOI = divides)
+names(alpha) = paste0("layer", 1:nlyr(alpha))
 
 plot(alpha)
 ```
@@ -163,7 +164,7 @@ plot(alpha)
 ```{r}
 soil = execute_zonal(alpha, geom = divides, fun = "mean", ID = "divide_id")
 
-plot(soil[grepl('alpha', names(soil))], border = NA)
+plot(soil[grepl('mean.layer', names(soil))], border = NA)
 ```
 
 ### USGS DEMs

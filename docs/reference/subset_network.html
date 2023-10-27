@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">hydrofabric</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.7</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,13 +56,15 @@
 <span>  comid <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hl_uri <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nldi_feature <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  loc <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  base_s3 <span class="op">=</span> <span class="st">"s3://nextgen-hydrofabric/pre-release/"</span>,</span>
+<span>  xy <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  base_s3 <span class="op">=</span> <span class="st">"s3://lynker-spatial/pre-release/"</span>,</span>
+<span>  base_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lyrs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"divides"</span>, <span class="st">"nexus"</span>, <span class="st">"flowpaths"</span>, <span class="st">"network"</span>, <span class="st">"hydrolocations"</span>,</span>
 <span>    <span class="st">"reference_flowline"</span>, <span class="st">"reference_catchment"</span>, <span class="st">"refactored_flowpaths"</span>,</span>
 <span>    <span class="st">"refactored_divides"</span><span class="op">)</span>,</span>
 <span>  outfile <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cache_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  qml_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"qml"</span>, package <span class="op">=</span> <span class="st">"hydrofabric"</span><span class="op">)</span>,</span>
 <span>  cache_overwrite <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -85,12 +87,16 @@
 <dd><p>list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.</p></dd>
 
 
-<dt>loc</dt>
+<dt>xy</dt>
 <dd><p>Location given as vector of XY in CRS 4326 (long, lat)</p></dd>
 
 
 <dt>base_s3</dt>
 <dd><p>the base hydrofabric directory to access in Lynker's s3</p></dd>
+
+
+<dt>base_dir</dt>
+<dd><p>the base hydrofabric directory</p></dd>
 
 
 <dt>lyrs</dt>
@@ -121,7 +127,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p></p><p>Developed by Mike Johnson.</p>
+  <p></p><p>Developed by <a href="https://github.com/mikejohnson51" class="external-link">Mike Johnson</a>.</p>
 </div>
 
 <div class="pkgdown-footer-right">
