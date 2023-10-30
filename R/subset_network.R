@@ -184,10 +184,14 @@ subset_network = function(id = NULL,
       stop("conus_net.parquet not found in ", base_dir)
     } 
   } else {
-    net = arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
+    
+    net = tryCatch({
+      arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
       dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
       dplyr::collect() |>
-      dplyr::distinct()
+      dplyr::distinct() } , error = function(e){
+        NULL
+      })
   }
   
  
@@ -280,7 +284,8 @@ subset_network = function(id = NULL,
         toid = "toID",
         toid = "toCOMID"
       )
-    dplyr::sub_net =     dplyr::tbl(db, lyrs[grepl("flowline|flowpath", lyrs)]) |>
+    
+    sub_net =     dplyr::tbl(db, lyrs[grepl("flowline|flowpath", lyrs)]) |>
       dplyr::select(dplyr::any_of(
         c(
           "id",

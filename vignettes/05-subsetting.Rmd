@@ -40,6 +40,8 @@ This aim of this section is that each of us can build a subset network for a hyd
 - To easy data discoverabilty, cross-walking, and indexing, the network layers of each VPU are joined into a single Parquet file (~80MB in size)
  
 ```{r}
+(fs::file_size("../data/conus_net.parquet"))
+
 net = arrow::read_parquet("../data/conus_net.parquet")
 
 glimpse(net)
@@ -63,8 +65,8 @@ glimpse(filter(net, hl_uri == 'HUC12-010100100101'))
 
 ```{r, eval = FALSE}
 system.time({
-  net = read_parquet('s3://nextgen-hydrofabric/pre-release/conus_net.parquet')
-})
+  net = read_parquet('s3://www.lynker-spatial.com/pre-release/conus_net.parquet')
+c})
 
 #    user  system elapsed 
 #  2.180   2.123  41.288 
