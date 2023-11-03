@@ -86,20 +86,19 @@ append_style = function (gpkg_path,
 #' @export
 
 get_fabric = function(VPU,
-                      base_s3 = 's3://lynker-spatial/pre-release/',
+                      base_s3 = 's3://lynker-spatial/v20/',
                       cache_dir = NULL,
                       cache_overwrite = FALSE) {
   Key <- NULL
   
   xx = aws.s3::get_bucket_df(
     bucket = dirname(base_s3),
-    prefix = basename(base_s3),
+    prefix = glue::glue("{basename(base_s3)}/gpkg"),
     region = 'us-west-2'
   ) |>
     dplyr::filter(grepl(basename(base_s3), Key) &
                     grepl(paste0(VPU, ".gpkg$"), Key)) |>
-    dplyr::filter(!grepl("[.]_", Key)) |>
-    dplyr::filter(!grepl("/", dirname(Key)))
+    dplyr::filter(!grepl("[.]_", Key)) 
   
   if (!is.null(cache_dir)) {
     dir.create(cache_dir,
