@@ -1,4 +1,4 @@
-is.url <-function(x) {
+is.url <- function(x) {
   grepl("www.|http:|https:", x)
 }
 
@@ -98,7 +98,7 @@ get_fabric = function(VPU,
   ) |>
     dplyr::filter(grepl(basename(base_s3), Key) &
                     grepl(paste0(VPU, ".gpkg$"), Key)) |>
-    dplyr::filter(!grepl("[.]_", Key)) 
+    dplyr::filter(!grepl("[.]_", Key))
   
   if (!is.null(cache_dir)) {
     dir.create(cache_dir,
@@ -133,6 +133,7 @@ get_fabric = function(VPU,
 #' @param hl_uri hydrolocation URI (relevant only to nextgen fabrics)
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.
 #' @param xy Location given as vector of XY in CRS 4326 (long, lat)
+#' @param bbox a numeric vector of length four, with xmin, ymin, xmax and ymax values
 #' @param base_s3 the base hydrofabric directory to access in Lynker's s3
 #' @param base_dir the base hydrofabric directory
 #' @param lyrs layers to extract. Default is all possible in the hydrofabric GPKG data model
@@ -147,7 +148,8 @@ subset_network = function(id = NULL,
                           hl_uri = NULL,
                           nldi_feature = NULL,
                           xy = NULL,
-                          base_s3 = 's3://lynker-spatial/pre-release/',
+                          bbox = NULL,
+                          base_s3 = 's3://lynker-spatial/v20/',
                           base_dir = NULL,
                           lyrs  = c(
                             "divides",
@@ -168,96 +170,115 @@ subset_network = function(id = NULL,
     hf_hydroseq <-
     hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- NULL
   
-  if(!is.null(base_dir)){
-    base = data.frame(file = list.files(base_dir, full.names = TRUE)) |>
-      dplyr::mutate(base = basename(file))
-    
-    if("conus_net.parquet" %in% base$base){
-      net = filter(base, base == "conus_net.parquet") %>% 
-        dplyr::pull(file) %>% 
-        arrow::open_dataset() |>
-        dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
-        dplyr::collect() |>
-        dplyr::distinct()
-    } else {
-      stop("conus_net.parquet not found in ", base_dir)
-    } 
+  
+  lookup <-
+    c(
+      id = "ID",
+      id = "COMID",
+      toid = "toID",
+      toid = "toCOMID"
+    )
+  
+  
+  if (!is.null(bbox)) {
+    stopifnot(length(bbox) == 4)
+    x = sf::st_as_sfc(sf::st_bbox(bbox, crs = 4326))
+    vpuid = sf::st_filter(sf::st_transform(vpu_boundaries, 4326), x)$VPUID
   } else {
-    
-    net = tryCatch({
-      arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
-      dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
-      dplyr::collect() |>
-      dplyr::distinct() } , error = function(e){
+    if (!is.null(base_dir)) {
+      base = data.frame(file = list.files(base_dir,
+                                          full.names = TRUE,
+                                          recursive = TRUE)) |>
+        dplyr::mutate(base = basename(file))
+      
+      if ("conus_net.parquet" %in% base$base) {
+        net = filter(base, base == "conus_net.parquet") %>%
+          dplyr::pull(file) %>%
+          arrow::open_dataset() |>
+          dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
+          dplyr::collect() |>
+          dplyr::distinct()
+      } else {
+        stop("conus_net.parquet not found in ", base_dir)
+      }
+    } else {
+      net = tryCatch({
+        arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
+          dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
+          dplyr::collect() |>
+          dplyr::distinct()
+      } , error = function(e) {
         NULL
       })
-  }
-  
- 
-  if (!is.null(id) & !is.null(net)) {
-    comid = dplyr::filter(net, id == !!id | toid == !!id) |>
-      dplyr::slice_max(hf_hydroseq) |>
-      dplyr::pull(hf_id)
-  }
-  
-  if (!is.null(nldi_feature)) {
-    
-    if(is.url(nldi_feature)){
-      comid = sf::read_sf(nldi_feature)$nhdpv2_comid
-    } else {
-      comid = nhdplusTools::get_nldi_feature(nldi_feature)$comid
     }
-  }
-  
-  if (!is.null(xy)) {
-    comid = nhdplusTools::discover_nhdplus_id(point = sf::st_sfc(sf::st_point(c(xy[1], xy[2])), crs = 4326))
-  }
-  
-  if (!is.null(hl_uri) & !is.null(net)) {
     
-    if(is.url(hl_uri)){
-      comid = sf::read_sf(hl_uri)$nhdpv2_comid
-    } else {
-      origin = dplyr::filter(net, hl_uri == !!hl_uri) |>
+    
+    if (!is.null(id) & !is.null(net)) {
+      comid = dplyr::filter(net, id == !!id | toid == !!id) |>
         dplyr::slice_max(hf_hydroseq) |>
-        dplyr::pull(toid) |>
+        dplyr::pull(hf_id)
+    }
+    
+    if (!is.null(nldi_feature)) {
+      if (length(nldi_feature) == 1) {
+        if (is.url(nldi_feature)) {
+          comid = sf::read_sf(nldi_feature)$nhdpv2_comid
+        }
+      } else {
+        comid = nhdplusTools::get_nldi_feature(nldi_feature)$comid
+      }
+    }
+    
+    if (!is.null(xy)) {
+      comid = nhdplusTools::discover_nhdplus_id(point = sf::st_sfc(sf::st_point(c(xy[1], xy[2])), crs = 4326))
+    }
+    
+    if (!is.null(hl_uri) & !is.null(net)) {
+      if (is.url(hl_uri)) {
+        comid = sf::read_sf(hl_uri)$nhdpv2_comid
+      } else {
+        origin = dplyr::filter(net, hl_uri == !!hl_uri) |>
+          dplyr::slice_max(hf_hydroseq) |>
+          dplyr::pull(toid) |>
+          unique()
+      }
+    }
+    
+    if (!is.null(comid) & !is.null(net)) {
+      origin = dplyr::filter(net, hf_id == comid) |>
+        dplyr::arrange(hf_hydroseq, hydroseq) |>
+        dplyr::slice(1) |>
+        dplyr::pull(id) |>
         unique()
+    } else if (is.null(net)) {
+      origin = comid
+    }
+    
+    if (is.null(origin) | length(origin) > 1) {
+      stop("Single origin not found")
+      print(origin)
+    }
+    
+    if (is.null(net)) {
+      xx = suppressMessages({
+        nhdplusTools::get_nhdplus(comid = comid)
+      })
+      
+      v = nhdplusTools::vpu_boundaries
+      
+      vpuid = v$VPUID[which(lengths(sf::st_intersects(
+        sf::st_transform(v, sf::st_crs(xx)), xx
+      )) > 0)]
+    } else {
+      vpuid = unique(dplyr::pull(dplyr::filter(net, id == origin |
+                                                 toid == origin), vpu))
     }
   }
   
-  if (!is.null(comid) & !is.null(net)) {
-    origin = dplyr::filter(net, hf_id == comid) |>
-      dplyr::arrange(hf_hydroseq, hydroseq) |>
-      dplyr::slice(1) |>
-      dplyr::pull(id) |>
-      unique()
-  } else if (is.null(net)) {
-    origin = comid
-  }
   
-  if (is.null(origin) | length(origin) > 1) {
-    stop("Single origin not found")
-    print(origin)
-  }
-  
-  if (is.null(net)) {
-    xx = suppressMessages({
-      nhdplusTools::get_nhdplus(comid = comid)
-    })
-    
-    v = nhdplusTools::vpu_boundaries
-    
-    vpuid = v$VPUID[which(lengths(sf::st_intersects(sf::st_transform(
-      v, sf::st_crs(xx)
-    ), xx)) > 0)]
-  } else {
-    vpuid = unique(dplyr::pull(dplyr::filter(net, id == origin |
-                                               toid == origin), vpu))
-  }
-  
-  
-  if(!is.null(base_dir)){
-    gpkg = dplyr::filter(base, grepl(vpuid, base) & grepl("gpkg", base))$file
+  if (!is.null(base_dir)) {
+    gpkg = dplyr::filter(base, grepl(vpuid, base) &
+                           grepl("gpkg", base))$file
     
   } else {
     gpkg = get_fabric(
@@ -267,24 +288,30 @@ subset_network = function(id = NULL,
       cache_overwrite = cache_overwrite
     )
   }
- 
+  
+  if (length(gpkg) > 1 & !is.null(bbox)) {
+    time = file.info(gpkg)$ctime
+    order = rank(-rank(time))
+    
+    warning(
+      "Multi-file subsets are not supported. You asked for:",
+      paste0("\n\t", gpkg[order], " (", time[order], ")"),
+      "\n\n",
+      "Choosing the newest file only."
+    )
+    gpkg = gpkg[which.max(time)]
+  }
+  
   lyrs = lyrs[lyrs %in% sf::st_layers(gpkg)$name]
   
   db <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
   on.exit(DBI::dbDisconnect(db))
   
-  if (!is.null(net)) {
-    sub_net = dplyr::distinct(dplyr::select(dplyr::filter(net, vpu == vpuid), id, toid))
-  } else {
-    lookup <-
-      c(
-        id = "ID",
-        id = "COMID",
-        toid = "toID",
-        toid = "toCOMID"
-      )
-    
-    sub_net =     dplyr::tbl(db, lyrs[grepl("flowline|flowpath", lyrs)]) |>
+  if (!is.null(bbox)) {
+    tmap = sf::read_sf(gpkg,
+                       "divides",
+                       wkt_filter = sf::st_as_text(sf::st_transform(x, 5070))) |>
+      sf::st_drop_geometry() |>
       dplyr::select(dplyr::any_of(
         c(
           "id",
@@ -296,35 +323,56 @@ subset_network = function(id = NULL,
           "member_COMID"
         )
       )) |>
-      dplyr::collect() |>
       dplyr::rename(dplyr::any_of(lookup))
     
-    if ("member_COMID" %in% names(sub_net)) {
-      origin =     dplyr::filter(sub_net, grepl(origin, member_COMID)) |>
-        dplyr::pull(id)
+  } else {
+    if (!is.null(net)) {
+      sub_net = dplyr::distinct(dplyr::select(dplyr::filter(net, vpu == vpuid), id, toid))
+    } else {
+      sub_net =     dplyr::tbl(db, lyrs[grepl("flowline|flowpath", lyrs)]) |>
+        dplyr::select(dplyr::any_of(
+          c(
+            "id",
+            "toid",
+            'COMID',
+            'toCOMID',
+            "ID",
+            "toID",
+            "member_COMID"
+          )
+        )) |>
+        dplyr::collect() |>
+        dplyr::rename(dplyr::any_of(lookup))
       
-      sub_net =     dplyr::select(sub_net, -member_COMID)
+      if ("member_COMID" %in% names(sub_net)) {
+        origin =     dplyr::filter(sub_net, grepl(origin, member_COMID)) |>
+          dplyr::pull(id)
+        
+        sub_net =     dplyr::select(sub_net, -member_COMID)
+      }
     }
-  }
-  
-  message("Starting from: `",  origin, "`")
-  
-  tmap = suppressWarnings({
-    nhdplusTools::get_sorted(dplyr::distinct(sub_net), outlets = origin)
-  })
-  
-  if (grepl("nex", utils::tail(tmap$id, 1))) {
-    tmap = utils::head(tmap, -1)
+    
+    message("Starting from: `",  origin, "`")
+    
+    tmap = suppressWarnings({
+      nhdplusTools::get_sorted(dplyr::distinct(sub_net), outlets = origin)
+    })
+    
+    if (grepl("nex", utils::tail(tmap$id, 1))) {
+      tmap = utils::head(tmap, -1)
+    }
+    
   }
   
   ids = unique(c(unlist(tmap)))
-  
   hydrofabric = list()
   
   for (j in 1:length(lyrs)) {
     message(glue::glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
     
-    crs = sf::st_layers(gpkg)$crs
+    l  = sf::st_layers(gpkg)
+    ind = which(l$name %in% lyrs[j])
+    crs = l$crs[[ind]]
     
     t =     dplyr::tbl(db, lyrs[j]) |>
       dplyr::filter(dplyr::if_any(dplyr::any_of(
@@ -332,9 +380,9 @@ subset_network = function(id = NULL,
       ), ~ . %in% !!ids)) |>
       dplyr::collect()
     
-    if (all(!any(is.na(as.character(crs[[j]]))), nrow(t) > 0)) {
+    if (all(!any(is.na(as.character(crs))), nrow(t) > 0)) {
       if (any(c("geometry", "geom") %in% names(t))) {
-        t = sf::st_as_sf(t, crs = crs[[j]])
+        t = sf::st_as_sf(t, crs = crs)
       } else {
         t = t
       }
