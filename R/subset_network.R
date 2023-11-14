@@ -308,22 +308,13 @@ subset_network = function(id = NULL,
   on.exit(DBI::dbDisconnect(db))
   
   if (!is.null(bbox)) {
-    tmap = sf::read_sf(gpkg,
-                       "divides",
-                       wkt_filter = sf::st_as_text(sf::st_transform(x, 5070))) |>
-      sf::st_drop_geometry() |>
-      dplyr::select(dplyr::any_of(
-        c(
-          "id",
-          "toid",
-          'COMID',
-          'toCOMID',
-          "ID",
-          "toID",
-          "member_COMID"
-        )
-      )) |>
-      dplyr::rename(dplyr::any_of(lookup))
+    return(subset_bbox(
+      gpkg,
+      bbox = bbox,
+      lyrs = lyrs,
+      outfile = outfile,
+      qml_dir = qml_dir
+    ))
     
   } else {
     if (!is.null(net)) {
@@ -362,6 +353,104 @@ subset_network = function(id = NULL,
       tmap = utils::head(tmap, -1)
     }
     
+    ids = unique(c(unlist(tmap)))
+    hydrofabric = list()
+    
+    for (j in 1:length(lyrs)) {
+      message(glue::glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
+      
+      l  = sf::st_layers(gpkg)
+      ind = which(l$name %in% lyrs[j])
+      crs = l$crs[[ind]]
+      
+      t =     dplyr::tbl(db, lyrs[j]) |>
+        dplyr::filter(dplyr::if_any(dplyr::any_of(
+          c('COMID',  'FEATUREID', 'divide_id', 'id', 'ds_id', "ID")
+        ), ~ . %in% !!ids)) |>
+        dplyr::collect()
+      
+      if (all(!any(is.na(as.character(crs))), nrow(t) > 0)) {
+        if (any(c("geometry", "geom") %in% names(t))) {
+          t = sf::st_as_sf(t, crs = crs)
+        } else {
+          t = t
+        }
+      }
+      
+      if (!is.null(outfile)) {
+        sf::write_sf(t, outfile, lyrs[j])
+      } else {
+        hydrofabric[[lyrs[j]]] = t
+      }
+    }
+    
+    if (is.null(cache_dir)) {
+      unlink(gpkg)
+    }
+    
+    if (!is.null(outfile)) {
+      outfile = append_style(outfile, qml_dir = qml_dir, layer_names = lyrs)
+      return(outfile)
+    } else {
+      return(hydrofabric)
+    }
+  }
+}
+
+#' Subset a Hydrofabric by Bounding Box
+#' @param gpkg a path to a gpkg to subset
+#' @inheritParams subset_network
+#' @inheritSection subset_network return
+#' @export
+
+subset_bbox = function(gpkg,
+                       bbox,
+                       lyrs  = c(
+                         "divides",
+                         "nexus",
+                         "flowpaths",
+                         "network",
+                         "hydrolocations",
+                         "reference_flowline",
+                         "reference_catchment",
+                         "refactored_flowpaths",
+                         "refactored_divides"),
+                       outfile = NULL,
+                       qml_dir = system.file("qml", package = "hydrofabric")) {
+  lookup <-
+    c(
+      id = "ID",
+      id = "COMID",
+      toid = "toID",
+      toid = "toCOMID"
+    )
+  
+  x = sf::st_as_sfc(sf::st_bbox(bbox, crs = 4326))
+  l = sf::st_layers(gpkg)
+  lyrs = lyrs[lyrs %in% l$name]
+  
+  poly_ind = which(grepl("poly", tolower(l$geomtype)))
+  
+  db <- DBI::dbConnect(RSQLite::SQLite(), gpkg)
+  on.exit(DBI::dbDisconnect(db))
+  
+  tmap = sf::read_sf(gpkg,
+                     l$name[poly_ind],
+                     wkt_filter = sf::st_as_text(sf::st_transform(x, l$crs[[poly_ind]]))) |>
+    sf::st_drop_geometry() |>
+    dplyr::select(dplyr::any_of(
+      c("id",
+        "toid",
+        'COMID',
+        'toCOMID',
+        "ID",
+        "toID",
+        "member_COMID")
+    )) |>
+    dplyr::rename(dplyr::any_of(lookup))
+  
+  if (nrow(tmap) == 0) {
+    stop('No data is provided bbox')
   }
   
   ids = unique(c(unlist(tmap)))
@@ -370,11 +459,10 @@ subset_network = function(id = NULL,
   for (j in 1:length(lyrs)) {
     message(glue::glue("Subsetting: {lyrs[j]} ({j}/{length(lyrs)})"))
     
-    l  = sf::st_layers(gpkg)
     ind = which(l$name %in% lyrs[j])
     crs = l$crs[[ind]]
     
-    t =     dplyr::tbl(db, lyrs[j]) |>
+    t = dplyr::tbl(db, lyrs[j]) |>
       dplyr::filter(dplyr::if_any(dplyr::any_of(
         c('COMID',  'FEATUREID', 'divide_id', 'id', 'ds_id', "ID")
       ), ~ . %in% !!ids)) |>
@@ -395,15 +483,11 @@ subset_network = function(id = NULL,
     }
   }
   
-  if (is.null(cache_dir)) {
-    unlink(gpkg)
-  }
-  
   if (!is.null(outfile)) {
     outfile = append_style(outfile, qml_dir = qml_dir, layer_names = lyrs)
     return(outfile)
   } else {
-    hydrofabric
+    return(hydrofabric)
   }
-  
 }
+
