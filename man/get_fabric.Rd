@@ -6,7 +6,7 @@
 \usage{
 get_fabric(
   VPU,
-  base_s3 = "s3://lynker-spatial/pre-release/",
+  base_s3 = "s3://lynker-spatial/v20/",
   cache_dir = NULL,
   cache_overwrite = FALSE
 )

@@ -410,7 +410,7 @@ subset_network = function(id = NULL,
 #' Subset a Hydrofabric by Bounding Box
 #' @param gpkg a path to a gpkg to subset
 #' @inheritParams subset_network
-#' @inheritSection subset_network return
+#' @return file path (outfile) or list of features
 #' @export
 
 subset_bbox = function(gpkg,
@@ -502,12 +502,10 @@ subset_bbox = function(gpkg,
 }
 
 
-#' Title
-#' @param tmap 
-#' @param gpkg 
-#' @param areasqkm 
-#' @param pathlengthkm 
-#' @param ms_pathlengthkm 
+#' Area Length Thresholds
+#' @param tmap Topologic Map
+#' @param gpkg a geopackage
+#' @inheritParams subset_network
 #' @return data.frame
 
 area_length_filter = function(tmap,
