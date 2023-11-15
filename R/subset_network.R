@@ -137,6 +137,9 @@ get_fabric = function(VPU,
 #' @param base_s3 the base hydrofabric directory to access in Lynker's s3
 #' @param base_dir the base hydrofabric directory
 #' @param lyrs layers to extract. Default is all possible in the hydrofabric GPKG data model
+#' @param areasqkm the maximum upstream area to subset
+#' @param pathlengthkm the maximum upstream path length to subset
+#' @param ms_pathlengthkm the maximum upstream mainstem path length to subset
 #' @param outfile file path to write to. Must have ".gpkg" extension
 #' @param cache_dir should data be cached to a local directory? Will speed up multiple subsets in the same region
 #' @param cache_overwrite description. Should a cached file be overwritten
@@ -162,6 +165,9 @@ subset_network = function(id = NULL,
                             "refactored_flowpaths",
                             "refactored_divides"
                           ),
+                          areasqkm = NULL,
+                          pathlengthkm = NULL,
+                          ms_pathlengthkm = NULL,
                           outfile = NULL,
                           cache_dir = NULL,
                           qml_dir = system.file("qml", package = "hydrofabric"),
@@ -170,15 +176,7 @@ subset_network = function(id = NULL,
     hf_hydroseq <-
     hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- NULL
   
-  
-  lookup <-
-    c(
-      id = "ID",
-      id = "COMID",
-      toid = "toID",
-      toid = "toCOMID"
-    )
-  
+  lookup <-c(id = "ID", id = "COMID", toid = "toID", toid = "toCOMID")
   
   if (!is.null(bbox)) {
     stopifnot(length(bbox) == 4)
@@ -353,6 +351,18 @@ subset_network = function(id = NULL,
       tmap = utils::head(tmap, -1)
     }
     
+
+    if(any(!is.null(areasqkm), 
+           !is.null(areasqkm), 
+           !is.null(areasqkm))){
+      
+      tmap = area_length_filter(tmap = tmap,
+                                gpkg = gpkg,
+                                areasqkm = areasqkm,
+                                pathlengthkm = pathlengthkm,
+                                ms_pathlengthkm = ms_pathlengthkm)
+    }
+    
     ids = unique(c(unlist(tmap)))
     hydrofabric = list()
     
@@ -489,5 +499,62 @@ subset_bbox = function(gpkg,
   } else {
     return(hydrofabric)
   }
+}
+
+
+#' Title
+#' @param tmap 
+#' @param gpkg 
+#' @param areasqkm 
+#' @param pathlengthkm 
+#' @param ms_pathlengthkm 
+#' @return data.frame
+
+area_length_filter = function(tmap,
+                              gpkg,
+                              areasqkm = NULL,
+                              pathlengthkm = NULL,
+                              ms_pathlengthkm = NULL) {
+  l = sf::st_layers(gpkg)
+  lyr = l$name[which(grepl("line", tolower(l$geomtype)))]
+  
+  fps = sf::read_sf(gpkg, lyr) |>
+    dplyr::select(id, lengthkm, areasqkm, mainstem)
+  
+  x = dplyr::left_join(tmap, sf::st_drop_geometry(fps), by = "id") |>
+    dplyr::mutate(
+      lengthkm = dplyr::coalesce(lengthkm, 0),
+      areasqkm = dplyr::coalesce(areasqkm, 0)
+    )
+  
+  x = x[nrow(x):1, ]
+  
+  if (!is.null(ms_pathlengthkm)) {
+    opts = dplyr::filter(x, toid == utils::tail(x, 1)$toid)
+    
+    ms = dplyr::filter(x, mainstem %in% opts$mainstem) |>
+      dplyr::group_by(mainstem) |>
+      dplyr::summarise(sum = sum(lengthkm)) |>
+      dplyr::slice_max(sum) |>
+      dplyr::pull(mainstem)
+    
+    o = dplyr::filter(x, mainstem == ms) |>
+      dplyr::mutate(cl = cumsum(lengthkm)) |>
+      dplyr::filter(cl <= ms_pathlengthkm)
+    
+  } else if (!is.null(pathlengthkm)) {
+    o = dplyr::mutate(x, cl  = cumsum(lengthkm)) |>
+      dplyr::filter(ca <= pathlengthkm)
+  } else if (!is.null(areasqkm)) {
+    o = dplyr::mutate(x, ca = cumsum(areasqkm)) |>
+      dplyr::filter(ca <= !!areasqkm)
+  }
+  
+  sub  = x[1:which(x$id == utils::tail(o, 1)$toid),]
+  
+  new_net = dplyr::filter(x, toid %in% unlist(dplyr::select(sub, id, toid))) |>
+    dplyr::select(id, toid)
+  
+  return(new_net)
 }
 
