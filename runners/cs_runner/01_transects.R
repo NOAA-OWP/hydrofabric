@@ -1,15 +1,16 @@
 # Generate the flowlines layer for the final cross_sections_<VPU>.gpkg for each VPU
-source("runners/workflow/config.R")
+# source("runners/cs_runner/config.R")
 
-library(terrainSliceR)
-library(dplyr)
-library(sf)
+# # load libraries
+# library(terrainSliceR)
+# library(dplyr)
+# library(sf)
 
 # name of S3 bucket
 s3_bucket <- "s3://lynker-spatial/"
 
 # transect bucket prefix
-transects_prefix <- glue::glue("{s3_bucket}v20/3D/transects/")
+transects_prefix <- paste0(s3_bucket, "v20/3D/transects/")
 
 # paths to nextgen datasets and model attribute parquet files
 nextgen_files <- list.files(nextgen_dir, full.names = FALSE)
@@ -30,13 +31,13 @@ for(i in 1:nrow(path_df)) {
 
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
-  nextgen_path <- glue::glue("{nextgen_dir}{nextgen_file}")
+  nextgen_path <- paste0(nextgen_dir, nextgen_file)
   
   # model attributes file and full path
   model_attr_file <- path_df$y[i]
-  model_attr_path <- glue::glue("{model_attr_dir}{model_attr_file}")
+  model_attr_path <- paste0(model_attr_dir, model_attr_file)
 
-  logger::log_info("\n\nCreating VPU {path_df$vpu[i]} transects:\n - flowpaths: '{nextgen_file}'\n - model attributes: '{model_attr_file}'")
+  message("Creating VPU ", path_df$vpu[i], " transects:\n - flowpaths: '", nextgen_file, "'\n - model attributes: '", model_attr_file, "'")
   
   # read in nextgen data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
@@ -101,13 +102,13 @@ for(i in 1:nrow(path_df)) {
   time2 <- Sys.time()
   time_diff <- round(as.numeric(time2 - time1 ), 2)
   
-  logger::log_info("\n\n ---> Transects processed in {time_diff}")
+  message("\n\n ---> Transects processed in ", time_diff)
   
   # name of file and path to save transects gpkg too
-  out_file <- glue::glue("nextgen_{path_df$vpu[i]}_transects.gpkg")
-  out_path <- glue::glue('{transects_dir}{out_file}')
+  out_file <- paste0("nextgen_", path_df$vpu[i], "_transects.gpkg")
+  out_path <- paste0(transects_dir, out_file)
   
-  logger::log_info("\n\nSaving transects to:\n - filepath: '{out_path}'")
+  message("Saving transects to:\n - filepath: '", out_path, "'")
   
   # add cs_source column and keep just the desired columns to save and upload to S3
   transects <-
@@ -132,11 +133,16 @@ for(i in 1:nrow(path_df)) {
   
   # command to copy transects geopackage to S3
   if (!is.null(aws_profile)) {
-    copy_to_s3 <- glue::glue("aws s3 cp {out_path} {transects_prefix}{out_file} --profile {aws_profile}")
+    copy_to_s3 <- paste0("aws s3 cp ", out_path, " ", transects_prefix, out_file, 
+                             ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile)))
   } else {
-    copy_to_s3 <- glue::glue("aws s3 cp {out_path} {transects_prefix}{out_file}")
+    copy_to_s3 <- paste0("aws s3 cp ", out_path, " ", transects_prefix, out_file)
   }
   
-  logger::log_info("\n\nCopy VPU {path_df$vpu[i]} transects to S3:\n - S3 copy command:\n'{copy_to_s3}'\n==========================")
+
+  message("Copy VPU ", path_df$vpu[i], " transects to S3:\n - S3 copy command:\n'", 
+          copy_to_s3, 
+          "'\n==========================")
+  
   system(copy_to_s3, intern = TRUE)
 }

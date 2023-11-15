@@ -1,16 +1,16 @@
 # Generate the flowlines layer for the final cross_sections_<VPU>.gpkg for each VPU
-source("runners/workflow/config.R")
+# source("runners/cs_runner/config.R")
 
-# load libraries
-library(terrainSliceR)
-library(dplyr)
-library(sf)
+# # load libraries
+# library(terrainSliceR)
+# library(dplyr)
+# library(sf)
 
 # name of S3 bucket
 s3_bucket <- "s3://lynker-spatial/"
 
-# transect bucket prefix
-cs_pts_prefix <- glue::glue("{s3_bucket}v20/3D/dem-cross-sections/")
+# cross section bucket prefix
+cs_pts_prefix <- paste0(s3_bucket, "v20/3D/dem-cross-sections/")
 
 # paths to nextgen datasets
 nextgen_files <- list.files(nextgen_dir, full.names = FALSE)
@@ -35,13 +35,12 @@ for (i in 1:nrow(path_df)) {
 
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
-  nextgen_path <- glue::glue("{nextgen_dir}{nextgen_file}")
+  nextgen_path <- paste0(nextgen_dir, nextgen_file)
   
   # model attributes file and full path
   transect_file <- path_df$y[i]
-  transect_path <- glue::glue("{transects_dir}{transect_file}")
-  
-  logger::log_info("\n\nCreating VPU {path_df$vpu[i]} cross section points:\n - flowpaths: '{nextgen_file}'\n - transects: '{transect_file}'")
+  transect_path <- paste0(transects_dir, transect_file)
+  message("Creating VPU ", path_df$vpu[i], " cross section points:\n - flowpaths: '", nextgen_file, "'\n - transects: '", transect_file, "'")
   
   ################### 
   
@@ -63,14 +62,14 @@ for (i in 1:nrow(path_df)) {
               cs             = transects[lengths(sf::st_intersects(transects, flines)) == 1, ],
               points_per_cs  = NULL,
               min_pts_per_cs = 10,
-              dem            = '/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt'
+              dem            = DEM_URL
               )
     
     # get end time for log messages
     time2 <- Sys.time()
     time_diff <- round(as.numeric(time2 - time1 ), 2)
     
-    logger::log_info("\n\n ---> Cross section point elevations processed in {time_diff}")
+    message("\n\n ---> Cross section point elevations processed in ", time_diff)
     
     # Remove any cross section that has ANY missing (NA) Z values. 
     cs_pts <-
@@ -111,22 +110,28 @@ for (i in 1:nrow(path_df)) {
   ################### 
   
   # name of file and path to save transects gpkg too
-  out_file <- glue::glue("nextgen_{path_df$vpu[i]}_cross_sections.parquet")
-  out_path <- glue::glue('{cs_pts_dir}{out_file}')
+  out_file <- paste0("nextgen_", path_df$vpu[i], "_cross_sections.parquet")
+  out_path <- paste0(cs_pts_dir, out_file)
   
-  logger::log_info("\n\nSaving cross section points to:\n - filepath: '{out_path}'")
+  message("Saving cross section points to:\n - filepath: '", out_path, "'")
   
   # save cross section points as a parquet to out_path (lynker-spatial/02_cs_pts/cs_pts_<VPU num>.parquet)
   arrow::write_parquet(cs_pts, out_path)
   
   # command to copy cross section points parquet to S3
   if (!is.null(aws_profile)) {
-    copy_cs_pts_to_s3 <- glue::glue("aws s3 cp {out_path} {cs_pts_prefix}{out_file} --profile {aws_profile}")
+    copy_cs_pts_to_s3 <- paste0("aws s3 cp ", out_path, " ", cs_pts_prefix, out_file,
+                                    ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile)))
   } else {
-    copy_cs_pts_to_s3 <- glue::glue("aws s3 cp {out_path} {cs_pts_prefix}{out_file}")
+    copy_cs_pts_to_s3 <- paste0("aws s3 cp ", out_path, " ", cs_pts_prefix, out_file)
+    
   }
+
+  message("Copy VPU ", path_df$vpu[i], " cross sections to S3:\n - S3 copy command:\n'", 
+          paste0("aws s3 cp ", out_path, " ", cs_pts_prefix, out_file,
+                 ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile))), 
+          "'\n==========================")
   
-  logger::log_info("\n\nCopy VPU {path_df$vpu[i]} cross sections to S3:\n - S3 copy command:\n'{copy_cs_pts_to_s3}'\n==========================")
   system(copy_cs_pts_to_s3, intern = TRUE)
 
 }

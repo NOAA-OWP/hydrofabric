@@ -1,37 +1,29 @@
 # load required packages
 pacman::p_load(
-  logger,
   archive,
-  aws.s3,
-  terrainSliceR,
-  sf,
-  terra,
-  glue
+  terrainSliceR
 )
 
 # load root directory 
-source("runners/workflow/root_dir.R")
+source("runners/cs_runner/config_vars.R")
 
-# downloads nextgen datasets 
-source("runners/workflow/download_nextgen.R")
-
-sf_use_s2(FALSE)
+sf::sf_use_s2(FALSE)
 
 # name of bucket with nextgen data
 nextgen_bucket <- "lynker-spatial"
 
 # directory to copy nextgen bucket data too
-nextgen_dir   <- glue::glue('{base_dir}/pre-release/')
+nextgen_dir <- paste0(base_dir, "/pre-release/")
 
-# # model attributes directory
-model_attr_dir <- glue::glue('{base_dir}/model_attributes/')
+# model attributes directory
+model_attr_dir <- paste0(base_dir, "/model_attributes/")
 
-# cross section data model data directories
-transects_dir <- glue::glue('{base_dir}/01_transects/')
-cs_pts_dir    <- glue::glue('{base_dir}/02_cs_pts/')
+# cross-section data model data directories
+transects_dir <- paste0(base_dir, "/01_transects/")
+cs_pts_dir <- paste0(base_dir, "/02_cs_pts/")
 
 # final output directory with geopackages per VPU
-final_dir  = glue::glue('{base_dir}/cross_sections/')
+final_dir <- paste0(base_dir, "/cross_sections/")
 
 # create directories 
 dir.create(transects_dir, showWarnings = FALSE)
@@ -52,14 +44,9 @@ align_files_by_vpu <- function(
     y, 
     base = NULL
 ) {
-  # base = base_dir
-  # x = nextgen_files
-  # y = model_attr_files  
-  
+
   # Regular expression pattern to match numeric pattern after "nextgen_" and remove everything after the ending period
   regex_pattern <- "nextgen_(\\d+[A-Za-z]?).*"
-  # regex_pattern <- "nextgen_(\\d+[A-Za-z_]*).*"
-  # regex_pattern <- "nextgen_(\\d+).*"
   
   # path dataframe for X filepaths
   x_paths <- data.frame(x = x)
