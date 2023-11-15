@@ -1,6 +1,7 @@
 # load required packages
 pacman::p_load(
   archive,
+  hydrofabric,
   terrainSliceR
 )
 
