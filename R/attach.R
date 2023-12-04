@@ -1,4 +1,4 @@
-core <- c("dplyr",  "terra",  "ngen.hydrofab","climateR",  
+core <- c("dplyr",  "terra",  "ngen.hydrofab","climateR", "hydrofabric3D", 
           "sf", "nhdplusTools",  "hydrofab","zonal", 
           "glue", 'arrow')
 
@@ -26,7 +26,7 @@ hydrofabric_attach <- function() {
   msg(
     cli::rule(
       left = crayon::bold("Attaching packages"),
-      right = paste0("hydrofabric", package_version("hydrofabric"))
+      right = paste0("hydrofabric ", package_version("hydrofabric"))
     ),
     startup = TRUE
   )

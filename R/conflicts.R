@@ -37,7 +37,8 @@ hydrofabric_conflicts <- function() {
                                                 'package:stats',
                                                 'package:graphics',
                                                 'package:utils',
-                                                'package:grDevices')]
+                                                'package:grDevices',
+                                                'package:testthat')]
   })
   
   names(c) = names(conflict_funs)

@@ -275,9 +275,7 @@ subset_network = function(id = NULL,
   
   
   if (!is.null(base_dir)) {
-    gpkg = dplyr::filter(base, grepl(vpuid, base) &
-                           grepl("gpkg", base))$file
-    
+    gpkg = dplyr::filter(base, grepl(vpuid, base) & grepl("gpkg", base))$file
   } else {
     gpkg = get_fabric(
       VPU = vpuid,
@@ -315,6 +313,7 @@ subset_network = function(id = NULL,
     ))
     
   } else {
+    
     if (!is.null(net)) {
       sub_net = dplyr::distinct(dplyr::select(dplyr::filter(net, vpu == vpuid), id, toid))
     } else {
@@ -350,17 +349,19 @@ subset_network = function(id = NULL,
     if (grepl("nex", utils::tail(tmap$id, 1))) {
       tmap = utils::head(tmap, -1)
     }
-    
-
+  
     if(any(!is.null(areasqkm), 
-           !is.null(areasqkm), 
-           !is.null(areasqkm))){
+           !is.null(pathlengthkm), 
+           !is.null(ms_pathlengthkm))){
       
+      print(nrow(tmap))
+
       tmap = area_length_filter(tmap = tmap,
                                 gpkg = gpkg,
                                 areasqkm = areasqkm,
                                 pathlengthkm = pathlengthkm,
                                 ms_pathlengthkm = ms_pathlengthkm)
+      print(nrow(tmap))
     }
     
     ids = unique(c(unlist(tmap)))
@@ -527,32 +528,35 @@ area_length_filter = function(tmap,
   
   x = x[nrow(x):1, ]
   
+  print(nrow(x))
+  
   if (!is.null(ms_pathlengthkm)) {
     opts = dplyr::filter(x, toid == utils::tail(x, 1)$toid)
     
     ms = dplyr::filter(x, mainstem %in% opts$mainstem) |>
-      dplyr::group_by(mainstem) |>
-      dplyr::summarise(sum = sum(lengthkm)) |>
-      dplyr::slice_max(sum) |>
-      dplyr::pull(mainstem)
+         dplyr::group_by(mainstem) |>
+         dplyr::summarise(sum = sum(lengthkm)) |>
+         dplyr::slice_max(sum) |>
+         dplyr::pull(mainstem)
     
+    print(ms)
     o = dplyr::filter(x, mainstem == ms) |>
-      dplyr::mutate(cl = cumsum(lengthkm)) |>
-      dplyr::filter(cl <= ms_pathlengthkm)
+        dplyr::mutate(cl = cumsum(lengthkm)) |>
+        dplyr::filter(cl <= ms_pathlengthkm)
     
   } else if (!is.null(pathlengthkm)) {
     o = dplyr::mutate(x, cl  = cumsum(lengthkm)) |>
-      dplyr::filter(ca <= pathlengthkm)
+        dplyr::filter(cl <= pathlengthkm)
   } else if (!is.null(areasqkm)) {
     o = dplyr::mutate(x, ca = cumsum(areasqkm)) |>
-      dplyr::filter(ca <= !!areasqkm)
+        dplyr::filter(ca <= !!areasqkm)
   }
   
-  sub  = x[1:which(x$id == utils::tail(o, 1)$toid),]
-  
-  new_net = dplyr::filter(x, toid %in% unlist(dplyr::select(sub, id, toid))) |>
+  print(nrow(o))
+  sub  = x[1:which(x$id == utils::tail(o, 1)$toid), ]
+  print(nrow(sub))
+  dplyr::filter(x, toid %in% unlist(dplyr::select(sub, id, toid))) |>
     dplyr::select(id, toid)
-  
-  return(new_net)
+
 }
 

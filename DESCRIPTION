@@ -1,6 +1,6 @@
 Package: hydrofabric
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 0.0.7
+Version: 0.0.8
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
@@ -36,6 +36,7 @@ Imports:
     purrr,
     magrittr
 Remotes: 
+    mikejohnson51/hydrofabric3D,
     mikejohnson51/hydrofab,
     mikejohnson51/ngen.hydrofab,
     mikejohnson51/zonal,
