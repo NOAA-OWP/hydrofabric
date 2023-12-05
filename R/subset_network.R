@@ -275,7 +275,7 @@ subset_network = function(id = NULL,
   
   
   if (!is.null(base_dir)) {
-    gpkg = dplyr::filter(base, grepl(vpuid, base) & grepl("gpkg", base))$file
+    gpkg = dplyr::filter(base, grepl(paste0("_", vpuid, ".gpkg"), base))$file
   } else {
     gpkg = get_fabric(
       VPU = vpuid,
@@ -396,7 +396,9 @@ subset_network = function(id = NULL,
     }
     
     if (is.null(cache_dir)) {
-      unlink(gpkg)
+      if(is.null(base_dir)){
+        unlink(gpkg)
+      }
     }
     
     if (!is.null(outfile)) {

@@ -24,6 +24,9 @@ authors:
    citation:
     roles: [cre]
 articles:
+- title: Data
+  contents:
+  - data
 - title: Data Models
   desc: In Development Data Models
   contents:

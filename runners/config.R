@@ -7,7 +7,7 @@ if(dev_mode){
   message("DEVMODE: ON")
   message("FIX ONLY: ", ifelse(FIX, "ON", "OFF"))
   devtools::load_all()
-  devtools::load_all(glue('{dirname(getwd())}/ngen-hydrofab'))
+  devtools::load_all(glue('/Users/mjohnson/github/ngen-hydrofab'))
   # devtools::load_all(glue('{dirname(getwd())}/hydrofab'))
   # devtools::load_all(glue('{dirname(getwd())}/zonal'))
 } else {
@@ -149,6 +149,9 @@ base_uniform = glue('{base}/uniform')
   
 base_global_uniform = glue('{base}/global_uniform')
   dir.create(base_global_uniform, showWarnings = FALSE)
+  
+base_camels = glue('{base}/{version}/camels')
+  dir.create(base_camels, showWarnings = FALSE)
 
 pipeline = data.frame(
   vpus            = vpus,

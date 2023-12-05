@@ -1,0 +1,223 @@
+---
+title: "Cloud Native Hydrofabric Data"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+vignette: >
+  %\VignetteIndexEntry{Cloud Native Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  out.width = "100%"
+)
+```
+
+```{r, echo = F, message = FALSE, warning=FALSE}
+source("../runners/config.R")
+
+library(leaflet)
+
+library(DT)
+```
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+current_version = 'v20.1'
+
+gpkgs = '/Volumes/MyBook/conus-hydrofabric/{current_version}/gpkg'
+
+meta = data.frame(path = list.files(glue('/Volumes/MyBook/conus-hydrofabric/{current_version}/gpkg'),
+                                    full.name = TRUE, pattern = "gpkg$")) %>% 
+  mutate(file = basename(path),
+         v = gsub(".gpkg", "", gsub("nextgen_", "", file)),
+         gpkg_link = glue::glue('https://lynker-spatial.s3.amazonaws.com/{current_version}/gpkg/nextgen_{v}.gpkg'),
+         vpu = paste0("<a href='",gpkg_link,"'>",v,"</a>")) 
+
+conus_net = arrow::open_dataset('/Volumes/MyBook/conus-hydrofabric/v20.1/conus_net.parquet')
+
+pl = select(conus_net, vpu, id, lengthkm, areasqkm) %>% 
+  distinct() %>% 
+  collect() %>% 
+  group_by(vpu) %>% 
+  summarise(total_miles = units::set_units(units::set_units(sum(lengthkm, na.rm = T), "km"), "miles"),
+            total_area_miles2  = units::set_units(units::set_units(sum(lengthkm, na.rm = T), "km2"), "miles2")) %>% 
+  ungroup()
+
+meta = left_join(meta, pl, by = c("v" ="vpu")) 
+
+for(i in 1:nrow(meta)){
+  t = sf::st_layers(meta$path[i])
+  meta$flowpaths[i] = t$features[which(t$name == "flowpaths")]
+  meta$divides[i]   = t$features[which(t$name == "divides")]
+  meta$nexus[i]     = t$features[which(t$name == "nexus")]
+  meta$hydrolocations[i]     = t$features[which(t$name == "hydrolocations")]
+  meta$size[i]      = paste0(round(file.size(meta$path[i]) / 1e6, 2), " Mb")
+}
+
+pop <- paste(
+      paste0('<strong>GPKG: </strong>', meta$vpu ),
+      paste("<strong>Flowpath:</strong>", meta$flowpaths),
+      paste("<strong>Divides:</strong>", meta$divides),
+      paste("<strong>Nexus Locations:</strong>", meta$nexus),
+      paste("<strong>Hydrolocations:</strong>", meta$hydrolocations),
+      paste("<strong>Total Flow Length (mile):</strong>", meta$total_miles),
+      paste("<strong>Total Divide Area (mile2):</strong>", meta$total_area_miles2),
+      paste("<strong>Size:</strong>", meta$size),
+      sep = "<br/>"
+    )
+
+
+vpus = nhdplusTools::get_boundaries() %>%
+  filter(VPUID %in% meta$v) %>% 
+  sf::st_transform('+proj=longlat +datum=WGS84')
+
+labels = paste("VPU", vpus$VPUID)
+
+bbox = as.numeric(sf::st_bbox(vpus))
+
+```
+
+Cloud Native NextGen hydrofabric artifacts are distributed by (1) CONUS (2) _NHDPlusV2_ **V**ector **P**rocessing **U**nits and (3) [CAMELs](https://ral.ucar.edu/solutions/products/camels) cutouts (with area average [HydroAtlas variables](https://www.hydrosheds.org/hydroatlas)). They are publicly available (and egress free!) through `lynker-spatial`. Please note the [data license](https://lynker-spatial.s3.amazonaws.com/copyright.html) of these artifacts.
+
+All data can be programatically accessed using the respective URL patterns:
+
+## End points
+
+All files can be accessed by s3 or https protocols. Once you make your choice, the following become your `data_source`:
+
+```r
+s3 = 's3://lynker-spatial'
+
+https = 'https://lynker-spatial.s3.amazonaws.com'
+```
+
+## Versions 
+
+The current version of this data is 2.0.1 (v20.1)
+
+### CONUS files
+
+```r
+# CONUS Network Parquet
+{data_source}/{version}/gpkg/conus_net.parquet
+
+# CONUS GPKG
+{data_source}/{version}/conus.gpkg
+
+# Model Attributes
+{data_source}/{version}/model_attributes.parquet
+```
+
+### VPUs
+
+```r
+# GPKG
+{data_source}/{version}/gpkg/nextgen_{VPU}.gpkg
+
+# Model Attributes
+{data_source}/{version}/model_attributes/nextgen_{VPU}.gpkg
+```
+
+### CAMEL cutouts
+
+```r
+# GPKG
+{data_source}/{version}/camels/Gage_{nwis_id}.gpkg
+```
+
+## Interactive Viewer
+
+
+```{r, echo = FALSE}
+#pal <- colorNumeric("BuPu", domain  = AOI$count, n = 10)
+
+leaflet(width='100%') %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addPolygons(data = vpus, 
+              fillColor  = "gray", 
+              color = "navy",
+              fillOpacity = .3,
+              weight = 1, 
+              label = labels,
+              popup = pop,
+              highlightOptions = highlightOptions(color = "#FEBC11", weight = 5, bringToFront = FALSE, opacity = 1)) %>% 
+  setMaxBounds(lng1 = bbox[1], lng2 = bbox[3], lat1 = bbox[2], lat2 = bbox[4])
+
+
+```
+
+```{r, echo = FALSE}
+
+getTotal <- function(index, data){
+
+  if(index < 1 || index > ncol(data)){
+    return("")
+  }  
+  
+  col <- data[,index]
+  
+  if(grepl('Mb', col[1])){
+    flag = T
+  } else {
+    flag = F
+  }
+  
+  col <- suppressWarnings(as.numeric(gsub("[Mb]","",col)))
+  
+  if(all(is.na(col))){
+    return("Totals")
+  } else {
+    if(flag){
+       return(paste0(round(sum(col) * 0.001, 2), " GB"))
+    } else {
+       return(sum(col))
+    }
+  }
+}
+
+m = meta %>% 
+  select(-file, -path, -gpkg_link, -v)  
+
+m = rbind(mutate(m, across(names(m), as.character)),
+          sapply(1:ncol(m), function(x){ as.character(getTotal(x, m)) }))
+
+DT = DT::datatable(m, escape = FALSE, width="100%",  filter = "none", 
+                  rownames = T,
+                options = list(autoWidth = T, 
+                              pageLength = 25, 
+                              scrollCollapse = T,
+                              dom = 'lftp',
+                              columnDefs = list(list(visible = F, targets = 0)))) %>% 
+  formatCurrency('flowpaths',currency = "", interval = 3, mark = ",", digits =0) %>% 
+  formatCurrency('total_miles',currency = "", interval = 3, mark = ",", digits =2) %>% 
+  formatCurrency('total_area_miles2',currency = "", interval = 3, mark = ",", digits =2) %>% 
+  formatCurrency('divides',currency = "", interval = 3, mark = ",", digits =0) %>% 
+  formatCurrency('nexus',currency = "", interval = 3, mark = ",", digits =0) %>% 
+  formatCurrency('hydrolocations',currency = "", interval = 3, mark = ",", digits =0) %>% 
+  formatStyle(0, target = "row", fontWeight = styleEqual(dim(m)[1], "bold"))
+
+  
+DT
+```
+
+# Data Store End Points
+
+## EPA Streamcat
+
+```r
+# Parquet DIRECTORY!
+{base}/streamcats/
+```
+
+## HydroAtlas
+
+```r
+{base}/hydroATLAS/hydroatlas_vars.parquet
+```
