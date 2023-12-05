@@ -67,8 +67,8 @@ pop <- paste(
       paste("<strong>Divides:</strong>", meta$divides),
       paste("<strong>Nexus Locations:</strong>", meta$nexus),
       paste("<strong>Hydrolocations:</strong>", meta$hydrolocations),
-      paste("<strong>Total Flow Length (mile):</strong>", meta$total_miles),
-      paste("<strong>Total Divide Area (mile2):</strong>", meta$total_area_miles2),
+      paste("<strong>Total Flow Length (mile):</strong>", round(meta$total_miles)),
+      paste("<strong>Total Divide Area (mile2):</strong>", round(meta$total_area_miles2)),
       paste("<strong>Size:</strong>", meta$size),
       sep = "<br/>"
     )
@@ -123,6 +123,10 @@ The current version of this data is 2.0.1 (v20.1)
 
 # Model Attributes
 {data_source}/{version}/model_attributes/nextgen_{VPU}.gpkg
+
+# Cross sections
+{data_source}/{version}/3D/transects/nextgen_{VPU}_transects.gpkg
+{data_source}/{version}/3D/dem-cross-sections/nextgen_{VPU}_dem_cs.gpkg
 ```
 
 ### CAMEL cutouts
@@ -196,8 +200,8 @@ DT = DT::datatable(m, escape = FALSE, width="100%",  filter = "none",
                               dom = 'lftp',
                               columnDefs = list(list(visible = F, targets = 0)))) %>% 
   formatCurrency('flowpaths',currency = "", interval = 3, mark = ",", digits =0) %>% 
-  formatCurrency('total_miles',currency = "", interval = 3, mark = ",", digits =2) %>% 
-  formatCurrency('total_area_miles2',currency = "", interval = 3, mark = ",", digits =2) %>% 
+  formatCurrency('total_miles',currency = "", interval = 3, mark = ",", digits =0) %>% 
+  formatCurrency('total_area_miles2',currency = "", interval = 3, mark = ",", digits =0) %>% 
   formatCurrency('divides',currency = "", interval = 3, mark = ",", digits =0) %>% 
   formatCurrency('nexus',currency = "", interval = 3, mark = ",", digits =0) %>% 
   formatCurrency('hydrolocations',currency = "", interval = 3, mark = ",", digits =0) %>% 
