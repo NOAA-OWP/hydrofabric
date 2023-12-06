@@ -50,9 +50,7 @@ for(i in 1:nrow(path_df)) {
   #   dplyr::select(
   #     model_attrs,
   #     id, eTW
-  #   ),
-  #   by = "id"
-  # )
+  #   ), by = "id")
 
   # calculate bankfull width
   flines <-
@@ -80,7 +78,6 @@ for(i in 1:nrow(path_df)) {
   # flines$bf_width <- ifelse(is.na(flines$bf_width),  exp(0.700    + 0.365* log(flines$tot_drainage_areasqkm)), flines$bf_width)
 
   time1 <- Sys.time()
- # system.time({
     # create transect lines
     transects <- hydrofabric3D::cut_cross_sections(
       net               = flines,                        # flowlines network
@@ -100,7 +97,6 @@ for(i in 1:nrow(path_df)) {
       # precision         = 1,
       add               = TRUE                           # whether to add back the original data
     )
-  # })
     
   time2 <- Sys.time()
   time_diff <- round(as.numeric(time2 - time1 ), 2)
