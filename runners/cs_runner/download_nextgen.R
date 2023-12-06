@@ -10,6 +10,9 @@ s3_bucket <- "s3://lynker-spatial/"
 # nextgen bucket name
 prerelease_prefix     <- "s3://lynker-spatial/pre-release/"
 
+# # reference features S3 bucket prefix
+# ref_features_prefix <- "s3://lynker-spatial/00_reference_features/gpkg/"
+
 # nextgen model attributes folder in S3 bucket with parquet files
 model_attr_prefix <- paste0(s3_bucket, "v20/3D/model_attributes/")
 
@@ -95,5 +98,34 @@ for (key in model_attr_keys) {
   message("Download '", paste0(model_attr_prefix, key), "' complete!")
   message("------------------")
 }
+## Go get a list of the reference features geopackages from S3 and create a save path using the S3 file names to save reference features to local directory
 
+# list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
+list_ref_features <- paste0('#!/bin/bash
+            # AWS S3 Bucket and Directory information
+            S3_BUCKET="', ref_features_prefix , '"
+            
+            # Regular expression pattern to match object keys
+            PATTERN="reference_features.gpkg"
 
+            S3_OBJECTS=$(aws s3 ls "$S3_BUCKET" | awk \'{print $4}\' | grep -E "$PATTERN")
+            
+            echo "$S3_OBJECTS"'
+)
+
+# ---- Get a list of reference features geopackages geopackages ----
+# Run the script to get a list of the nextgen geopackages that matched the regular expression above
+ref_features <- system(list_ref_features, intern = TRUE)
+
+## Download reference features geopackages and save them to a local directory
+# Parse the selected S3 objects keys and copy them to the destination directory
+for (key in ref_features) {
+  # paste0(ref_features_dir, "gpkg/")
+  copy_cmd <- paste0('aws s3 cp ', ref_features_prefix, key, ' ', paste0(ref_features_dir, "gpkg/"), key)
+  
+  message("Copying S3 object:\n", paste0(ref_features_prefix, key))
+  system(copy_cmd)
+  
+  message("Download '", paste0(ref_features_dir, "gpkg/", key), "' complete!")
+  message("------------------")
+}
