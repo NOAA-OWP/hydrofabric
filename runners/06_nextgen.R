@@ -33,7 +33,13 @@ national_merge(gpkg = pipeline$nextgen, outfile = conus_gpkg )
 vaa = get_vaa(c('hydroseq', 'areasqkm'), updated_network = TRUE) %>%
   rename(hf_id = comid, hf_hydroseq = hydroseq, hf_areasqkm = areasqkm)
 
-net = left_join(read_sf(conus_gpkg, 'network'), vaa, by = "hf_id")
+r = data.table::fread(ms_lookup) %>% 
+  select(mainstem = lp_mainstem, ref_mainstem_uri = ref_mainstem_id) %>% 
+  mutate(ref_mainstem_uri = glue('https://geoconnex.us/ref/mainstems/{ref_mainstem_uri}'))
+
+net = left_join(read_sf(conus_gpkg, 'network'), vaa, by = "hf_id") %>% 
+  left_join(r, by = "mainstem")
+
 write_parquet(net, conus_net)
 
 hl = read_sf(conus_gpkg, "hydrolocations")

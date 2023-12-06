@@ -42,31 +42,33 @@ community_hl_types =  c('HUC12', 'Gages', 'TE', 'NID', "WBOut")
 
 coastal_gages = glue('{base}/GAGE_SUMMARY.csv')
 
-fim_ahps = '/Users/mjohnson/Downloads/nws_lid.gpkg'
+fim_ahps      = '/Users/mjohnson/Downloads/nws_lid.gpkg'
 
-rl_file     = glue("{base}/RouteLink_nwm_v2_2_3.parquet")
+rl_file       = glue("{base}/RouteLink_nwm_v2_2_3.parquet")
 
-huc12_cw = glue("{base}/huc12_nhdplusv2_cw.parquet")
+huc12_cw      = glue("{base}/huc12_nhdplusv2_cw.parquet")
 
-gs_file  = 'https://code.usgs.gov/wma/nhgf/reference-hydrofabric/-/raw/04cd22f6b5f3f53d10c0b83b85a21d2387dfb6aa/workspace/cache/rpu_vpu_out.csv'
+gs_file       = 'https://code.usgs.gov/wma/nhgf/reference-hydrofabric/-/raw/04cd22f6b5f3f53d10c0b83b85a21d2387dfb6aa/workspace/cache/rpu_vpu_out.csv'
 
-dem_file    = "/Volumes/MyBook/3DEP/usgs_1_250mm.tif"
+ms_lu         = 'https://github.com/internetofwater/ref_rivers/releases/download/v2.1/mainstem_lookup.csv'
 
-slope_file  = "/Volumes/MyBook/3DEP/usgs_250m_slope.tif"
+dem_file      = "/Volumes/MyBook/3DEP/usgs_1_250mm.tif"
 
-aspect_file = "/Volumes/MyBook/3DEP/usgs_250m_aspect.tif"
+slope_file    = "/Volumes/MyBook/3DEP/usgs_250m_slope.tif"
 
-imp_file    = '/Volumes/MyBook/imperv_250m.tif'
+aspect_file   = "/Volumes/MyBook/3DEP/usgs_250m_aspect.tif"
 
-twi_file    = '/Volumes/MyBook/twi_250m.tif'
+imp_file      = '/Volumes/MyBook/imperv_250m.tif'
 
-lake_path = '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc'
+twi_file      = '/Volumes/MyBook/twi_250m.tif'
 
-camels = '/Users/mjohnson/github/hydrofabric_attributes/data/camels_compiled.csv'
+lake_path     = '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc'
 
-hydroatlas = glue('{base}/hydroatlas_vars.parquet')
+camels        = '/Users/mjohnson/github/hydrofabric_attributes/data/camels_compiled.csv'
 
-nwm_dir = "/Volumes/Transcend/nwmCONUS-v216"
+hydroatlas    = glue('{base}/hydroatlas_vars.parquet')
+
+nwm_dir       = "/Volumes/Transcend/nwmCONUS-v216"
 
 # Built Datasets ----------------------------------------------------------------
 
