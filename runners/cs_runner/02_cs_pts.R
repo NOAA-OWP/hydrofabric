@@ -44,8 +44,7 @@ path_df <- align_files_by_vpu(
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
 for (i in 1:nrow(path_df)) {
-  # i = 15
-  
+
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(nextgen_dir, nextgen_file)
@@ -248,3 +247,4 @@ for (i in 1:nrow(path_df)) {
   system(copy_cs_pts_to_s3, intern = TRUE)
 
 }
+

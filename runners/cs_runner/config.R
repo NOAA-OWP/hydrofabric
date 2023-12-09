@@ -21,6 +21,12 @@ s3_bucket <- "s3://lynker-spatial/"
 # name of bucket with nextgen data
 nextgen_bucket <- "lynker-spatial"
 
+# nextgen bucket folder name
+nextgen_bucket_folder <- "v20.1/gpkg/"
+
+# nextgen bucket name
+nextgen_prefix  <- paste0(s3_bucket, nextgen_bucket_folder)
+
 # reference features S3 bucket prefix
 ref_features_prefix <- "s3://lynker-spatial/00_reference_features/gpkg/"
 
@@ -29,8 +35,10 @@ version_prefix <- "v20.1"
 # version_prefix <- "v20"
 
 ### LOCAL DIRS
+
 # directory to copy nextgen bucket data too
-nextgen_dir <- paste0(base_dir, "/pre-release/")
+nextgen_dir <- paste0(base_dir, "/", nextgen_bucket_folder)
+# nextgen_dir <- paste0(base_dir, "/pre-release/")
 
 # model attributes directory
 model_attr_dir <- paste0(base_dir, "/model_attributes/")

@@ -7,8 +7,13 @@ source("runners/cs_runner/config_vars.R")
 # name of S3 bucket
 s3_bucket <- "s3://lynker-spatial/"
 
+# nextgen bucket folder name
+nextgen_bucket_folder <- "v20.1/gpkg/"
+
 # nextgen bucket name
-prerelease_prefix     <- "s3://lynker-spatial/pre-release/"
+nextgen_prefix  <- paste0(s3_bucket, nextgen_bucket_folder)
+
+# prerelease_prefix     <- "s3://lynker-spatial/pre-release/"
 
 # # reference features S3 bucket prefix
 # ref_features_prefix <- "s3://lynker-spatial/00_reference_features/gpkg/"
@@ -17,7 +22,7 @@ prerelease_prefix     <- "s3://lynker-spatial/pre-release/"
 model_attr_prefix <- paste0(s3_bucket, "v20/3D/model_attributes/")
 
 # directory to copy nextgen bucket data too
-nextgen_dir <- paste0(base_dir, "/pre-release/")
+nextgen_dir <- paste0(base_dir, "/", nextgen_bucket_folder)
 
 # create the directory if it does NOT exist
 if(!dir.exists(nextgen_dir)) {
@@ -38,7 +43,7 @@ if(!dir.exists(model_attr_dir)) {
 # list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
 command <- paste0('#!/bin/bash
             # AWS S3 Bucket and Directory information
-            S3_BUCKET="', prerelease_prefix, '"
+            S3_BUCKET="', nextgen_prefix, '"
             DESTINATION_DIR=', nextgen_dir, '
             
             # Regular expression pattern to match object keys
@@ -57,8 +62,8 @@ bucket_keys <- system(command, intern = TRUE)
 # Parse the selected S3 objects keys and copy them to the destination directory
 for (key in bucket_keys) {
   
-  copy_cmd <- paste0('aws s3 cp ', prerelease_prefix, key, " ", nextgen_dir, key)
-  message("Copying S3 object:\n", paste0(prerelease_prefix, key))
+  copy_cmd <- paste0('aws s3 cp ', nextgen_prefix, key, " ", nextgen_dir, key)
+  message("Copying S3 object:\n", paste0(nextgen_prefix, key))
   
   system(copy_cmd)
   
