@@ -1,4 +1,8 @@
 ## NextGen Hydrofabric Config File ##
+## 
+## This file is used to populate scripts that are part of the Makefile pipeline
+
+# ---- Set up software ---- #
 options(scipen = 999)
 dev_mode = TRUE
 FIX = TRUE
@@ -7,8 +11,9 @@ if(dev_mode){
   message("DEVMODE: ON")
   message("FIX ONLY: ", ifelse(FIX, "ON", "OFF"))
   devtools::load_all()
-  devtools::load_all(glue('/Users/mjohnson/github/ngen-hydrofab'))
-  # devtools::load_all(glue('{dirname(getwd())}/hydrofab'))
+  # Either install and update your own dev versions or set dev_mode to FALSE
+  #devtools::load_all(glue::glue('{dirname(getwd())}/ngen-hydrofab'))
+  #devtools::load_all(glue::glue('{dirname(getwd())}/hydrofab'))
   # devtools::load_all(glue('{dirname(getwd())}/zonal'))
 } else {
   message("DEVMODE: OFF")
@@ -20,65 +25,37 @@ sf::sf_use_s2(FALSE)
 
 # Runner Parameters -------------------------------------------------------
 
-base = "/Volumes/MyBook/conus-hydrofabric"
-version = "v20.1"
+# 1. Runners will build and access data from a defined directory. Put that here:
+dir      <- "/Volumes/MyBook"
+# 2. Define the HF version you are creating:
+version  <- "v20.1"
 
-vpus = vpu_boundaries$VPUID[1:21]
+# 3. Define your processing VPUS
+vpus <- vpu_boundaries$VPUID[1:21]
 
-ideal_size_sqkm = 10
-min_length_km = 1 
-min_area_sqkm = 3
+# Refactor and Aggregate parameters
+ideal_size_sqkm <- 10
+min_length_km   <- 1 
+min_area_sqkm   <- 3
 
-nexus_prefix = "nex-"
-terminal_nexus_prefix = "tnx-"
-coastal_nexus_prefix = "cnx-"
-internal_nexus_prefix = "inx-"
-catchment_prefix = "cat-"
-waterbody_prefix = "wb-"
+# NextGen Prefixes
+nexus_prefix          <- "nex-"
+terminal_nexus_prefix <- "tnx-"
+coastal_nexus_prefix  <- "cnx-"
+internal_nexus_prefix <- "inx-"
+catchment_prefix      <- "cat-"
+waterbody_prefix      <- "wb-"
 
-community_hl_types =  c('HUC12', 'Gages', 'TE', 'NID', "WBOut")
+# Desired community POI types
+community_hl_types    <-  c('HUC12', 'Gages', 'TE', 'NID', "WBOut")
 
-# Input Datasets ----------------------------------------------------------------
-
-coastal_gages = glue('{base}/GAGE_SUMMARY.csv')
-
-fim_ahps      = '/Users/mjohnson/Downloads/nws_lid.gpkg'
-
-rl_file       = glue("{base}/RouteLink_nwm_v2_2_3.parquet")
-
-huc12_cw      = glue("{base}/huc12_nhdplusv2_cw.parquet")
-
-gs_file       = 'https://code.usgs.gov/wma/nhgf/reference-hydrofabric/-/raw/04cd22f6b5f3f53d10c0b83b85a21d2387dfb6aa/workspace/cache/rpu_vpu_out.csv'
-
-ms_lu         = 'https://github.com/internetofwater/ref_rivers/releases/download/v2.1/mainstem_lookup.csv'
-
-dem_file      = "/Volumes/MyBook/3DEP/usgs_1_250mm.tif"
-
-slope_file    = "/Volumes/MyBook/3DEP/usgs_250m_slope.tif"
-
-aspect_file   = "/Volumes/MyBook/3DEP/usgs_250m_aspect.tif"
-
-imp_file      = '/Volumes/MyBook/imperv_250m.tif'
-
-twi_file      = '/Volumes/MyBook/twi_250m.tif'
-
-lake_path     = '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc'
-
-camels        = '/Users/mjohnson/github/hydrofabric_attributes/data/camels_compiled.csv'
-
-hydroatlas    = glue('{base}/hydroatlas_vars.parquet')
-
-nwm_dir       = "/Volumes/Transcend/nwmCONUS-v216"
-
-# Built Datasets ----------------------------------------------------------------
-
-full_hl   = glue("{base}/conus_hl.gpkg")
-
-conus_net = glue("{base}/{version}/conus_net.parquet")
-
-conus_gpkg = glue("{base}/{version}/conus.gpkg")
-
-atts = glue("{base}/{version}/model_attributes.parquet")
+# Directory for NWM data
+#  Download needed files for add_cfe_noahowp_attributes(...)
+#  From: https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/{latest_version}/parm/domain/
+#   soilproperties_CONUS_FullRouting.nc
+#   wrfinput_CONUS.nc
+#   GWBUCKPARM_CONUS_FullRouting.nc
+nwm_dir       <- "/Volumes/Transcend/nwmCONUS-v216"
 
 # Directory Structure -----------------------------------------------------
 
@@ -119,41 +96,76 @@ atts = glue("{base}/{version}/model_attributes.parquet")
 # │   │   ├── nextgen_01.parquet
 # │   │   ├── ...
 
-base_reference_features = glue("{base}/reference")
-  dir.create(base_reference_features, showWarnings = FALSE)
+base     <- glue("{dir}/conus-hydrofabric")
+dir.create(base, recursive = TRUE, showWarnings = FALSE)
+
+base_reference_features <- glue("{base}/reference")
+dir.create(base_reference_features, showWarnings = FALSE)
 
 base_reference = glue("{base}/reference")
-  dir.create(base_reference, showWarnings = FALSE)
+dir.create(base_reference, showWarnings = FALSE)
 
 base_refactored = glue("{base}/refactored")
-  dir.create(base_refactored, showWarnings = FALSE)
-  
+dir.create(base_refactored, showWarnings = FALSE)
+
 base_corrected = glue("{base}/corrected_refactor")
-  dir.create(base_corrected, showWarnings = FALSE)
-  
+dir.create(base_corrected, showWarnings = FALSE)
+
 base_hl = glue("{base}/hydrolocations")
-  dir.create(base_hl, showWarnings = FALSE)
-  
+dir.create(base_hl, showWarnings = FALSE)
+
 base_fgb   = glue('{base}/{version}/fgb')
-  dir.create(base_fgb, recursive = TRUE, showWarnings = FALSE)
-  
+dir.create(base_fgb, recursive = TRUE, showWarnings = FALSE)
+
 base_gpkg = glue('{base}/{version}/gpkg')
-  dir.create(base_gpkg, recursive = TRUE, showWarnings = FALSE)
-  
+dir.create(base_gpkg, recursive = TRUE, showWarnings = FALSE)
+
 base_cfe = glue('{base}/cfe')
-  dir.create(base_cfe, showWarnings = FALSE)
-  
+dir.create(base_cfe, showWarnings = FALSE)
+
 base_atts = glue('{base}/{version}/model_attributes')
-  dir.create(base_atts, showWarnings = FALSE)
-  
+dir.create(base_atts, showWarnings = FALSE)
+
 base_uniform = glue('{base}/uniform')
-  dir.create(base_uniform, showWarnings = FALSE)
-  
+dir.create(base_uniform, showWarnings = FALSE)
+
 base_global_uniform = glue('{base}/global_uniform')
-  dir.create(base_global_uniform, showWarnings = FALSE)
-  
+dir.create(base_global_uniform, showWarnings = FALSE)
+
 base_camels = glue('{base}/{version}/camels')
-  dir.create(base_camels, showWarnings = FALSE)
+dir.create(base_camels, showWarnings = FALSE)
+
+# Input Datasets ----------------------------------------------------------------
+
+# Gage Summary data is shared by the coastal team
+coastal_gages = glue('{base}/GAGE_SUMMARY.csv')
+
+# Downloaded from FIM ESIP bucket
+# Source: s3://noaa-nws-owp-fim/hand_fim/inputs/ahps_sites/nws_lid.gpkg
+# I will ask if I can disseminate this in Lynker Spatial
+fim_ahps      = glue('{base}/nws_lid.gpkg')
+
+# Converted from latest RL file 
+# Source: https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/{latest_version}/parm/domain/
+# Converted version: s3://lynker-spatial/tabular-resources/RouteLink_nwm_v2_2_3.parquet
+rl_file       = glue("{base}/RouteLink_nwm_v2_2_3.parquet")
+
+# Downloaded from USGS
+# https://www.sciencebase.gov/catalog/item/57eaa10fe4b09082500db04e
+# Stored here: s3://lynker-spatial/tabular-resources/huc12_nhdplusv2_cw.parquet
+huc12_cw      = glue("{base}/huc12_nhdplusv2_cw.parquet")
+
+gs_file       = 'https://code.usgs.gov/wma/nhgf/reference-hydrofabric/-/raw/04cd22f6b5f3f53d10c0b83b85a21d2387dfb6aa/workspace/cache/rpu_vpu_out.csv'
+
+ms_lu         = 'https://github.com/internetofwater/ref_rivers/releases/download/v2.1/mainstem_lookup.csv'
+
+# Someday this might be available here (https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/nwm.v3.0.7/parm/domain/), 
+# but for now I am not allowed to share it per OWP. So hard path it is!
+lake_path     <- '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc'
+
+camels        <- 'https://lynker-spatial.s3.amazonaws.com/tabular-resources/camels_compiled.csv'
+
+hydroatlas    <- 's3://lynker-spatial/hydroATLAS/hydroatlas_vars.parquet'
 
 pipeline = data.frame(
   vpus            = vpus,
@@ -165,6 +177,75 @@ pipeline = data.frame(
   refactored_gpkg = sapply(1:length(vpus), FUN = \(x){ get_hydrofabric(vpus[x], type = "refactor",  dir = base_refactored) }),
   reference_gpkg  = sapply(1:length(vpus), FUN = \(x){ get_hydrofabric(vpus[x], type = "reference", dir = base_reference) })
 )
+
+
+# Data Definition ---------------------------------------------------------
+
+# Define:
+## Target SRS (t_srs)
+## Target extent (te)
+## Target grid resolution (ts)
+## Resampling method (r)
+
+target = "-t_srs '+proj=lcc +lat_0=40.000008 +lon_0=-97 +lat_1=30 +lat_2=60 +x_0=0 +y_0=0 +R=6370000 +units=m +no_defs' -te -2303999.62876143 -1920000.70008381 2304000.37123857 1919999.29991619 -ts 18432 15364 -r average"
+
+# "Raw files" are used for processing here. They are not needed in 99% of cases!!! 
+# We provide all the data here: s3://lynker-spatial/gridded-resources/250m_grids/
+
+# Sourced from: 
+# '/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt'
+# If you feel you need to run this yourself be a good citizen and download the vrt and requisite data to avoid
+# exploiting USGS resources. That said, you shouldn't need to s
+raw_dem = '/Volumes/MyBook/3DEP/usgs_1.vrt'
+# Sourced from: https://www.mrlc.gov/
+raw_imp_file <-'/Volumes/MyBook/nlcd/nlcd_2021_impervious_l48_20230630/nlcd_2021_impervious_l48_20230630.img'
+# Source Data: https://zenodo.org/records/4460354
+raw_twi_file  <- '/Volumes/MyBook/CONUS_TWI_epsg5072_30m_unmasked.tif'
+
+
+
+# ------ Processing ----- #
+dem_file      = glue("{dir}/250/usgs_1_250mm.tif")
+
+if(!file.exists(dem_file)){
+  glue("gdalwarp {target} {raw_dem} {dem_file}")
+}
+
+slope_file    <- glue("{dir}/250m_grids/usgs_250m_slope.tif")
+
+if(!file.exists(slope_file)){
+  glue("gdaldem slope {dem_file} {slope_file}")
+}
+
+aspect_file   <- glue("{dir}/250m_grids/usgs_250m_aspect.tif")
+
+if(!file.exists(slope_file)){
+  glue("gdaldem aspect {dem_file} {aspect_file}")
+}
+
+imp_file      <- glue("{dir}/250m_grids/imperv_250m.tif")
+
+if(!file.exists(imp_file)){
+  glue("gdalwarp {target} {raw_imp_file} {imp_file}")
+}
+
+twi_file      <- glue("{dir}/250m_grids/twi_250m.tif")
+
+if(!file.exists(twi_file)){
+  glue("gdalwarp {target} {raw_twi_file} {twi_file}")
+}
+
+
+# Built Datasets ----------------------------------------------------------------
+#These are files that will be built in the base directory as the workflow progresses:
+
+full_hl    <- glue("{base}/conus_hl.gpkg")
+
+conus_net  <- glue("{base}/{version}/conus_net.parquet")
+
+conus_gpkg <- glue("{base}/{version}/conus.gpkg")
+
+atts       <- glue("{base}/{version}/model_attributes.parquet")
 
 # Refactor Corrections ----------------------------------------------------
 
@@ -203,7 +284,14 @@ remove_fp_ids = tribble(
   "10L", "10000441",
   "10U", "10035132",
   "10U", "10152753,10152754,10126589,10125886,10125883,10125884,10125885,10126574,10125887,10126657,10126458",
-  "10U", "10179150,10179151,10179147,10179146,10179153,10179148,10179152"
+  "10U", "10179150,10179151,10179147,10179146,10179153,10179148,10179152",
+  "05", "10111481"
+)
+
+remove_divide_ids = tribble(
+  ~VPU, ~divide_id,
+  # https://github.com/NOAA-OWP/hydrofabric/issues/31
+  "05", "10111481"
 )
 
 redigitize_flowpaths = tribble(
@@ -266,5 +354,3 @@ VPUS = c(
   )
 
 pipeline$corrected_refactor = ifelse(vpus %in% unique(VPUS), glue("{base_corrected}/corrected_refactor_{vpus}.gpkg"), NA)
-
-

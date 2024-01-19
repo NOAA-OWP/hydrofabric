@@ -134,7 +134,41 @@ if (nrow(tmp) > 0) {
       
     }
     
+# 4. Remove Divides --------------------------------------------------------------
+    
+    
+    if(tmp$vpus[i] %in% remove_divide_ids$VPU){
+      
+      map = remove_divide_ids %>% 
+        filter(VPU %in% tmp$vpus[i]) %>% 
+        tidyr::separate_longer_delim(to_merge, delim = ",")
+      
+      u = unique(map$id)
+      
+      ll = list()
+      
+      for(j in 1:length(u)){
+        map2 = filter(map, id %in% u[j])
+        
+        mod = filter(div, ID %in% map2$to_merge) %>% 
+          mutate(ID = as.numeric(u[j]))
+        
+        ll[[j]] = union_polygons(mod, "ID") %>% 
+          mutate(member_COMID =  paste(mod$member_COMID, collapse = ","),
+                 areasqkm = add_areasqkm(.),
+                 rpu = mod$rpu[1])
+        
+      }
+      
+      div = bind_rows(rename_geometry(filter(div, !ID %in% map$to_merge), "geometry"), 
+                      rename_geometry(bind_rows(ll), "geometry"))
+      
+    }
+    
+    
     write_sf(div, tmp$corrected_refactor[i], "refactored_divides")
+    
+    
   
   }
 }

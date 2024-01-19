@@ -1,15 +1,5 @@
 # 4608*4
 # 3841 *4
-# 
-# gdalwarp -t_srs '+proj=lcc +lat_0=40.000008 +lon_0=-97 +lat_1=30 +lat_2=60 +x_0=0 +y_0=0 +R=6370000 +units=m +no_defs' -te -2303999.62876143 -1920000.70008381 2304000.37123857 1919999.29991619 -ts 18432 15364 -r average /Volumes/MyBook/3DEP/usgs_1.vrt /Volumes/MyBook/3DEP/usgs_1_250mm.tif
-# 
-# gdaldem slope /Volumes/MyBook/3DEP/usgs_1_250mm.tif /Volumes/MyBook/3DEP/usgs_250m_slope.tif
-# gdaldem aspect /Volumes/MyBook/3DEP/usgs_1_250mm.tif /Volumes/MyBook/3DEP/usgs_250m_aspect.tif
-# 
-# gdalwarp -t_srs '+proj=lcc +lat_0=40.000008 +lon_0=-97 +lat_1=30 +lat_2=60 +x_0=0 +y_0=0 +R=6370000 +units=m +no_defs' -te -2303999.62876143 -1920000.70008381 2304000.37123857 1919999.29991619 -ts 18432 15364 -r average /Volumes/MyBook/nlcd/nlcd_2021_impervious_l48_20230630/nlcd_2021_impervious_l48_20230630.img /Volumes/MyBook/imperv_250m.tif
-# 
-# #https://zenodo.org/records/4460354
-# gdalwarp -t_srs '+proj=lcc +lat_0=40.000008 +lon_0=-97 +lat_1=30 +lat_2=60 +x_0=0 +y_0=0 +R=6370000 +units=m +no_defs' -te -2303999.62876143 -1920000.70008381 2304000.37123857 1919999.29991619 -ts 18432 15364 -r average /Volumes/MyBook/CONUS_TWI_epsg5072_30m_unmasked.tif /Volumes/MyBook/twi_250m.tif
 
 source('runners/config.R')
 library(powerjoin)

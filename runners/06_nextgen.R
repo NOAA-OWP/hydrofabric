@@ -27,7 +27,17 @@ for(i in 1:nrow(pipeline)){
   #}
 }
 
+
 national_merge(gpkg = pipeline$nextgen, outfile = conus_gpkg )
+
+
+# Self Correct bad refactor -----------------------------------------------
+
+
+
+
+
+
 
 # Build National Topology -------------------------------------------------
 vaa = get_vaa(c('hydroseq', 'areasqkm'), updated_network = TRUE) %>%
