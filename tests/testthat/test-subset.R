@@ -21,7 +21,7 @@ test_that("Reference Subset Works", {
     expect_equal(nrow(xx_nldi$reference_flowline), 169)
     expect_equal(nrow(xx_nldi$reference_catchment), 168)
   
-  xx_loc = subset_network(loc = pt, base_s3 = s3)
+  xx_loc = subset_network(xy = pt, base_s3 = s3)
     expect_equal(length(xx_loc), 2) 
     expect_equal(nrow(xx_loc$reference_flowline), 169)
     expect_equal(nrow(xx_loc$reference_catchment), 168)
@@ -49,7 +49,7 @@ test_that("Refactor Subset Works", {
   expect_equal(nrow(xx_nldi$refactored_flowpaths), 121)
   expect_equal(nrow(xx_nldi$refactored_flowpaths), 121)
   
-  xx_loc = subset_network(loc = pt, base_s3 = s3)
+  xx_loc = subset_network(xy = pt, base_s3 = s3)
   expect_equal(length(xx_loc), 2) 
   expect_equal(nrow(xx_loc$refactored_flowpaths), 121)
   expect_equal(nrow(xx_loc$refactored_flowpaths), 121)
