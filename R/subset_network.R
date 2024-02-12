@@ -152,7 +152,7 @@ subset_network = function(id = NULL,
                           nldi_feature = NULL,
                           xy = NULL,
                           bbox = NULL,
-                          base_s3 = 's3://lynker-spatial/v20/',
+                          base_s3 = 's3://lynker-spatial/v20.1/',
                           base_dir = NULL,
                           lyrs  = c(
                             "divides",
@@ -203,8 +203,9 @@ subset_network = function(id = NULL,
       net = tryCatch({
         arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
           dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
-          dplyr::collect() |>
-          dplyr::distinct()
+          dplyr::distinct() |>
+          dplyr::collect() 
+          
       } , error = function(e) {
         NULL
       })
@@ -214,7 +215,8 @@ subset_network = function(id = NULL,
     if (!is.null(id) & !is.null(net)) {
       comid = dplyr::filter(net, id == !!id | toid == !!id) |>
         dplyr::slice_max(hf_hydroseq) |>
-        dplyr::pull(hf_id)
+        dplyr::pull(hf_id) |>
+        unique()
     }
     
     if (!is.null(nldi_feature)) {
