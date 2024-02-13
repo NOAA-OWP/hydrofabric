@@ -67,13 +67,17 @@ append_style = function (gpkg_path,
   if ("layer_styles" %in% sf::st_layers(gpkg_path)$name) {
     try(sf::st_delete(gpkg_path, "layer_styles"), silent = TRUE)
   }
-  sf::st_write(
-    style_rows,
-    gpkg_path,
-    layer = "layer_styles",
-    append = FALSE,
-    quiet = TRUE
-  )
+  
+  if(!is.null(style_rows)){
+    sf::st_write(
+      style_rows,
+      gpkg_path,
+      layer = "layer_styles",
+      append = FALSE,
+      quiet = TRUE
+    )
+  }
+
   return(gpkg_path)
 }
 
@@ -160,6 +164,7 @@ subset_network = function(id = NULL,
                             "flowpaths",
                             "network",
                             "hydrolocations",
+                            "flowpath_attributes",
                             "reference_flowline",
                             "reference_catchment",
                             "refactored_flowpaths",
@@ -562,5 +567,36 @@ area_length_filter = function(tmap,
   dplyr::filter(x, toid %in% unlist(dplyr::select(sub, id, toid))) |>
     dplyr::select(id, toid)
 
+}
+
+
+#' Enhance Hydrofabric Network
+#' @param gpkg hydrofabric id (relevant only to nextgen fabrics)
+#' @param base_s3 the base hydrofabric directory to access in Lynker's s3
+#' @param lyrs layers to extract. Default is "forcing_weights" and "model_attributes"
+#' @return file path of gpkg
+#' @export
+
+add_parameters = function(gpkg = NULL,
+                          lyrs = c("forcing_weights", "model_attributes"),
+                          base_s3 = "s3://lynker-spatial/v20.1"){
+  
+  div = read_sf(gpkg, "divides")
+  
+  if("forcing_weights" %in% lyrs){
+    open_dataset(glue('{base_s3}/forcing_weights.parquet')) |>
+      filter(divide_id %in% !!div$divide_id) |>
+      collect() |>
+      write_sf(gpkg, "forcing_weights")
+  }
+  
+  if("model_attributes" %in% lyrs){
+    open_dataset(glue('{base_s3}/model_attributes.parquet')) |>
+      filter(divide_id %in% !!div$divide_id) |>
+      collect() |>
+      write_sf(gpkg, "model_attributes")
+  }
+  
+  return(gpkg)
 }
 
