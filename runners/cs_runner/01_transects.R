@@ -26,7 +26,9 @@ path_df <- align_files_by_vpu(
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
 for(i in 1:nrow(path_df)) {
-
+  
+  # i = 8
+  
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(nextgen_dir, nextgen_file)
@@ -78,6 +80,9 @@ for(i in 1:nrow(path_df)) {
   # flines$bf_width <- ifelse(is.na(flines$bf_width),  exp(0.700    + 0.365* log(flines$tot_drainage_areasqkm)), flines$bf_width)
 
   time1 <- Sys.time()
+  
+  # system.time({
+    
     # create transect lines
     transects <- hydrofabric3D::cut_cross_sections(
       net               = flines,                        # flowlines network
@@ -97,6 +102,7 @@ for(i in 1:nrow(path_df)) {
       # precision         = 1,
       add               = TRUE                           # whether to add back the original data
     )
+  # })
     
   time2 <- Sys.time()
   time_diff <- round(as.numeric(time2 - time1 ), 2)
@@ -109,35 +115,70 @@ for(i in 1:nrow(path_df)) {
   
   message("Saving transects to:\n - filepath: '", out_path, "'")
   
-  # add cs_source column and keep just the desired columns to save and upload to S3
-  transects <-
+  # add cs_source column and rename cs_widths to cs_lengthm
+  transects <- 
     transects %>%
     dplyr::mutate(
       cs_source = net_source
     ) %>%
-    dplyr::select(
-      hy_id,
-      cs_source,
-      cs_id,
-      cs_measure,
-      cs_lengthm = cs_widths,
-      geometry
-    )
+    dplyr::rename("cs_lengthm" = cs_widths)
+  
+  # # add cs_source column and keep just the desired columns to save and upload to S3
+  # transects <-
+  #   transects %>%
+  #   dplyr::mutate(
+  #     cs_source = net_source
+  #   ) %>%
+  #   dplyr::select(
+  #     hy_id,
+  #     cs_source,
+  #     cs_id,
+  #     cs_measure,
+  #     cs_lengthm = cs_widths,
+  #     geometry
+  #   )
+  # tmp <- sf::read_sf(out_path)
 
-  # save flowlines to out_path (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
+  # save transects with only columns to be uploaded to S3 (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
   sf::write_sf(
-    transects,
+    # save dataset with only subset of columns to upload to S3
+    dplyr::select(transects, 
+                  hy_id,
+                  cs_source,
+                  cs_id,
+                  cs_measure,
+                  cs_lengthm,
+                  # sinuosity,
+                  geometry
+    ),
     out_path
-  )
+    )
   
   # command to copy transects geopackage to S3
   copy_to_s3 <- paste0("aws s3 cp ", out_path, " ", transects_prefix, out_file, 
                    ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile))
                    )
-
+  
   message("Copy VPU ", path_df$vpu[i], " transects to S3:\n - S3 copy command:\n'", 
           copy_to_s3, 
           "'\n==========================")
   
   system(copy_to_s3, intern = TRUE)
+  
+  message("Overwritting local copy of transects to include 'is_extended' column...\n==========================")
+  # Overwrite transects with additional columns for development purposes (is_extended) to have a local copy of dataset with information about extensions
+  sf::write_sf(
+    dplyr::select(
+      dplyr::mutate(transects, is_extended = FALSE),
+      hy_id,
+      cs_source,
+      cs_id,
+      cs_measure,
+      cs_lengthm,
+      # sinuosity,
+      is_extended,
+      geometry
+    ),
+    out_path
+  )
 }

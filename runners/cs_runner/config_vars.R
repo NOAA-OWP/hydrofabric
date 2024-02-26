@@ -15,6 +15,10 @@ DEM_URL      <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevat
 # Default setting is 50% of the original transect lines length (0.5)
 EXTENSION_PCT <- 0.5
 
+# Whether to collect meta data from runs to generate an output CSV (currently only being created in 02_cs_pts.R)
+COLLECT_META <- TRUE
+
+
 # # create the directory if it does NOT exist
 # if(!dir.exists(base_dir)) {
 #   message(glue::glue('Base directory does not exist...\nCreating directory: {base_dir}'))

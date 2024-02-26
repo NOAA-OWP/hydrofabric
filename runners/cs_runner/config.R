@@ -3,8 +3,10 @@ pacman::p_load(
   archive,
   hydrofabric,
   hydrofabric3D
-  # terrainSliceR
 )
+
+# # install.packages("devtools")
+# devtools::install_github("anguswg-ucsb/hydrofabric3D")
 
 # load root directory 
 source("runners/cs_runner/config_vars.R")
@@ -139,67 +141,173 @@ align_files_by_vpu <- function(
 # Returns a list of length 2 with logical vectors that subsets the "flowlines" and "transects" sf objects to remove flowlines and transects that intersect waterbodies
 ### Returns a list of length 2 with updated "flowlines" and "transects" sf objects
 wb_intersects <- function(flowlines, trans, waterbodies) {
-
+  
   ########  ########  ########  ########  ########  ########
-    
-    flowlines_geos <- geos::as_geos_geometry(flowlines)
-    wbs_geos <- geos::as_geos_geometry(waterbodies)
-    
-    # temporary ID for transects that is the "hy_id", underscore, "cs_id", used for subsetting in future steps
-    trans$tmp_id <- paste0(trans$hy_id, "_", trans$cs_id)
-    
-    message("Checking flowlines against waterbodies...")
-    
-    # create an index between flowlines and waterbodies 
-    wb_index <- geos::geos_intersects_matrix(flowlines_geos, wbs_geos)
-    
-    # remove any flowlines that cross more than 1 waterbody
-    to_keep  <- flowlines[lengths(wb_index) == 0, ]
-    to_check <- flowlines[lengths(wb_index) != 0, ]
-    
-    # subset transects to the hy_ids in "to_check" set of flowlines
-    trans_check <- trans[trans$hy_id %in% unique(to_check$id), ]
-    # trans_check <- trans_geos[trans$hy_id %in% unique(to_check$id)]
-    
-    # check where the transects linestrings intersect with the waterbodies
-    trans_geos_check <- geos::as_geos_geometry(trans_check)
-    
-    message("Checking transects against waterbodies...")
-    trans_wb_index <- geos::geos_intersects_any(
-      trans_geos_check,  
-      wbs_geos[unlist(wb_index)]
-    )
   
-    # within the transects lines that are on a flowline that crosses a waterbody, 
-    # check if any of these transects line DO NOT CROSS A WATERBODY AT ALL
-    trans_keep <- trans_check[!trans_wb_index, ]
-    # trans_keep <- trans_check[lengths(trans_wb_index2) == 0, ]
+  flowlines_geos <- geos::as_geos_geometry(flowlines)
+  wbs_geos <- geos::as_geos_geometry(waterbodies)
   
-    # preserve any flowlines that CROSS A WATERBODY BUT ALSO HAVE A TRANSECT LINE that does NOT cross any waterbodies
-    to_check <- to_check[to_check$id %in% unique(trans_keep$hy_id), ]
-    
-    # update flowlines to keep with flowlines that intersect a waterbody BUT STILL,
-    # have transects that are NOT in the waterbody
-    to_keep <- dplyr::bind_rows(to_keep, to_check)
-    
-    # 'tmp_ids' of transects that are being checked and also the transects within trans_check 
-    # that were determined to be valid (are being kept)
-    check_ids <- unique(trans_check$tmp_id)
-    keep_ids <- unique(trans_keep$tmp_id)
-    
-    # logical vectors of which flowlines/transects to keep (KEEP == TRUE)
-    # - Remove any transects that are on flowlines that cross a waterbody AND the transect crosses the waterbody too.
-    # - Keep original transects that are not on flowlines that intersect waterbodies AND 
-    # also the transects that do NOT intersect waterbodies but are on a flowline that DOES intersect a waterbody
-    valid_flowlines <- flowlines$id %in% to_keep$id
-    valid_transects <- trans$tmp_id %in% dplyr::filter(trans,
-                                                    !tmp_id %in% check_ids[!check_ids %in% keep_ids])$tmp_id
-    
-    # return alist of updated flowlines and transects 
-    return(
-      list(
-        "valid_flowlines" =  valid_flowlines,
-        "valid_transects" =  valid_transects
-      )
+  # temporary ID for transects that is the "hy_id", underscore, "cs_id", used for subsetting in future steps
+  trans$tmp_id <- paste0(trans$hy_id, "_", trans$cs_id)
+  
+  message("Checking flowlines against waterbodies...")
+  
+  # create an index between flowlines and waterbodies 
+  wb_index <- geos::geos_intersects_matrix(flowlines_geos, wbs_geos)
+  
+  # remove any flowlines that cross more than 1 waterbody
+  to_keep  <- flowlines[lengths(wb_index) == 0, ]
+  to_check <- flowlines[lengths(wb_index) != 0, ]
+  
+  # subset transects to the hy_ids in "to_check" set of flowlines
+  trans_check <- trans[trans$hy_id %in% unique(to_check$id), ]
+  # trans_check <- trans_geos[trans$hy_id %in% unique(to_check$id)]
+  
+  # check where the transects linestrings intersect with the waterbodies
+  trans_geos_check <- geos::as_geos_geometry(trans_check)
+  
+  message("Checking transects against waterbodies (v2) ...")
+  wb_trans_index <- geos::geos_intersects_matrix(trans_geos_check, wbs_geos)                    # (NEW METHOD)
+  # wb_trans_index <- geos::geos_intersects_any(trans_geos_check, wbs_geos[unlist(wb_index)])   # (OLD METHOD)
+  
+  # sum(lengths(wb_trans_index) == 0)
+  # length(wb_trans_index)
+  
+  # within the transects lines that are on a flowline that crosses a waterbody, 
+  # check if any of these transects line DO NOT CROSS A WATERBODY AT ALL
+  trans_keep <- trans_check[lengths(wb_trans_index) == 0, ]                       # (NEW METHOD)
+  # trans_keep <- trans_check[!wb_trans_index, ]                                  # (OLD METHOD)
+  
+  # preserve any flowlines that CROSS A WATERBODY BUT ALSO HAVE A TRANSECT LINE that does NOT cross any waterbodies
+  to_check <- to_check[to_check$id %in% unique(trans_keep$hy_id), ]
+  
+  # update flowlines to keep with flowlines that intersect a waterbody BUT STILL,
+  # have transects that are NOT in the waterbody
+  to_keep <- dplyr::bind_rows(to_keep, to_check)
+  
+  # 'tmp_ids' of transects that are being checked and also the transects within trans_check 
+  # that were determined to be valid (are being kept)
+  check_ids <- unique(trans_check$tmp_id)
+  keep_ids <- unique(trans_keep$tmp_id)
+  
+  # logical vectors of which flowlines/transects to keep (KEEP == TRUE)
+  # - Remove any transects that are on flowlines that cross a waterbody AND the transect crosses the waterbody too.
+  # - Keep original transects that are not on flowlines that intersect waterbodies AND 
+  # also the transects that do NOT intersect waterbodies but are on a flowline that DOES intersect a waterbody
+  valid_flowlines <- flowlines$id %in% to_keep$id
+  valid_transects <- trans$tmp_id %in% dplyr::filter(trans,
+                                                     !tmp_id %in% check_ids[!check_ids %in% keep_ids])$tmp_id
+  
+  # return alist of updated flowlines and transects 
+  return(
+    list(
+      "valid_flowlines" =  valid_flowlines,
+      "valid_transects" =  valid_transects
     )
+  )
+  
+  # # within the transects lines that are on a flowline that crosses a waterbody, 
+  # # check if any of these transects line DO NOT CROSS A WATERBODY AT ALL
+  # trans_keep <- trans_check[!trans_wb_index, ]
+  # # trans_keep <- trans_check[lengths(trans_wb_index2) == 0, ]
+  # 
+  # # preserve any flowlines that CROSS A WATERBODY BUT ALSO HAVE A TRANSECT LINE that does NOT cross any waterbodies
+  # to_check <- to_check[to_check$id %in% unique(trans_keep$hy_id), ]
+  # 
+  # # update flowlines to keep with flowlines that intersect a waterbody BUT STILL,
+  # # have transects that are NOT in the waterbody
+  # to_keep <- dplyr::bind_rows(to_keep, to_check)
+  # 
+  # # 'tmp_ids' of transects that are being checked and also the transects within trans_check 
+  # # that were determined to be valid (are being kept)
+  # check_ids <- unique(trans_check$tmp_id)
+  # keep_ids <- unique(trans_keep$tmp_id)
+  # 
+  # # logical vectors of which flowlines/transects to keep (KEEP == TRUE)
+  # # - Remove any transects that are on flowlines that cross a waterbody AND the transect crosses the waterbody too.
+  # # - Keep original transects that are not on flowlines that intersect waterbodies AND 
+  # # also the transects that do NOT intersect waterbodies but are on a flowline that DOES intersect a waterbody
+  # valid_flowlines <- flowlines$id %in% to_keep$id
+  # valid_transects <- trans$tmp_id %in% dplyr::filter(trans,
+  #                                                    !tmp_id %in% check_ids[!check_ids %in% keep_ids])$tmp_id
+  # 
+  # # return alist of updated flowlines and transects 
+  # return(
+  #   list(
+  #     "valid_flowlines" =  valid_flowlines,
+  #     "valid_transects" =  valid_transects
+  #   )
+  # )
+}
+
+# Update flowlines and transects to remove flowlines and transects that intersect with reference_features waterbodies
+# flowlines: flowlines linestring sf object
+# trans: transects linestring sf object
+# waterbodies: waterbodies polygon sf object
+# Returns a list of length 2 with logical vectors that subsets the "flowlines" and "transects" sf objects to remove flowlines and transects that intersect waterbodies
+### Returns a list of length 2 with updated "flowlines" and "transects" sf objects
+wb_intersects_v1 <- function(flowlines, trans, waterbodies) {
+  
+  ########  ########  ########  ########  ########  ########
+  
+  flowlines_geos <- geos::as_geos_geometry(flowlines)
+  wbs_geos <- geos::as_geos_geometry(waterbodies)
+  
+  # temporary ID for transects that is the "hy_id", underscore, "cs_id", used for subsetting in future steps
+  trans$tmp_id <- paste0(trans$hy_id, "_", trans$cs_id)
+  
+  message("Checking flowlines against waterbodies...")
+  
+  # create an index between flowlines and waterbodies 
+  wb_index <- geos::geos_intersects_matrix(flowlines_geos, wbs_geos)
+  
+  # remove any flowlines that cross more than 1 waterbody
+  to_keep  <- flowlines[lengths(wb_index) == 0, ]
+  to_check <- flowlines[lengths(wb_index) != 0, ]
+  
+  # subset transects to the hy_ids in "to_check" set of flowlines
+  trans_check <- trans[trans$hy_id %in% unique(to_check$id), ]
+  # trans_check <- trans_geos[trans$hy_id %in% unique(to_check$id)]
+  
+  # check where the transects linestrings intersect with the waterbodies
+  trans_geos_check <- geos::as_geos_geometry(trans_check)
+  
+  message("Checking transects against waterbodies...")
+  trans_wb_index <- geos::geos_intersects_any(
+    trans_geos_check,  
+    wbs_geos[unlist(wb_index)]
+  )
+  
+  # within the transects lines that are on a flowline that crosses a waterbody, 
+  # check if any of these transects line DO NOT CROSS A WATERBODY AT ALL
+  trans_keep <- trans_check[!trans_wb_index, ]
+  # trans_keep <- trans_check[lengths(trans_wb_index2) == 0, ]
+  
+  # preserve any flowlines that CROSS A WATERBODY BUT ALSO HAVE A TRANSECT LINE that does NOT cross any waterbodies
+  to_check <- to_check[to_check$id %in% unique(trans_keep$hy_id), ]
+  
+  # update flowlines to keep with flowlines that intersect a waterbody BUT STILL,
+  # have transects that are NOT in the waterbody
+  to_keep <- dplyr::bind_rows(to_keep, to_check)
+  
+  # 'tmp_ids' of transects that are being checked and also the transects within trans_check 
+  # that were determined to be valid (are being kept)
+  check_ids <- unique(trans_check$tmp_id)
+  keep_ids <- unique(trans_keep$tmp_id)
+  
+  # logical vectors of which flowlines/transects to keep (KEEP == TRUE)
+  # - Remove any transects that are on flowlines that cross a waterbody AND the transect crosses the waterbody too.
+  # - Keep original transects that are not on flowlines that intersect waterbodies AND 
+  # also the transects that do NOT intersect waterbodies but are on a flowline that DOES intersect a waterbody
+  valid_flowlines <- flowlines$id %in% to_keep$id
+  valid_transects <- trans$tmp_id %in% dplyr::filter(trans,
+                                                     !tmp_id %in% check_ids[!check_ids %in% keep_ids])$tmp_id
+  
+  # return alist of updated flowlines and transects 
+  return(
+    list(
+      "valid_flowlines" =  valid_flowlines,
+      "valid_transects" =  valid_transects
+    )
+  )
 }

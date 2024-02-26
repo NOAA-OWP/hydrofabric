@@ -40,11 +40,16 @@ path_df <- align_files_by_vpu(
             by = "vpu"
             )
 
+# Local path to save CSVs of cross section meta data during each iteration
+meta_path <- "/local/path/to/save/cross_section_meta_data/"
+
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
 for (i in 1:nrow(path_df)) {
 
+  start <- Sys.time()
+  
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(nextgen_dir, nextgen_file)
@@ -57,10 +62,14 @@ for (i in 1:nrow(path_df)) {
   ref_file <- path_df$ref_file[i]
   ref_path <- paste0(ref_features_dir, "gpkg/", ref_file)
   
-  message("Creating VPU ", path_df$vpu[i], 
+  # current VPU being processed
+  VPU = path_df$vpu[i]
+  
+  message("Creating VPU ", VPU, 
           " cross section points:\n - flowpaths: '", nextgen_file,
           "'\n - transects: '", transect_file, "'", 
-          "\n - waterbodies: '", ref_file, "'"
+          "\n - waterbodies: '", ref_file, "'",
+          "'\n - start time: '", start, "'"
           )
 
   ################### 
@@ -78,17 +87,35 @@ for (i in 1:nrow(path_df)) {
     # flines = dplyr::slice(flines, 1:5) 
     # transects = dplyr::filter(transects, hy_id %in% unique(flines$id))
     ##### #####
-
-    # Update flowlines and transects to remove flowlines and transects that intersect with reference_features waterbodies
-    feature_subsets <- wb_intersects(flines, transects, waterbodies)
-
+    
+    # system.time({
+      # Update flowlines and transects to remove flowlines and transects that intersect with reference_features waterbodies
+      feature_subsets <- wb_intersects(flines, transects, waterbodies)
+    # })
+    
+    # Collect meta data on features and changes
+    if(COLLECT_META) {
+      
+      fline_count       <- nrow(flines)
+      transect_count    <- nrow(transects)
+      wb_count          <- nrow(waterbodies)
+      
+      fline_wb_count    <- sum(feature_subsets$valid_flowlines)
+      transect_wb_count <- sum(feature_subsets$valid_transects)
+    }
+    
     # replace flowlines and transects objects with updated versions in "updated_features"
     flines    <- flines[feature_subsets$valid_flowlines, ]
     transects <- transects[feature_subsets$valid_transects, ]
-
-    # get start time for log messages
-    time1 <- Sys.time()
-
+    
+    rm(waterbodies)
+    gc()
+    
+    start_cs_pts <- Sys.time()
+    message("Extracting cross section points (", start_cs_pts,")")    
+    
+    system.time({
+  
     # get cross section point elevations
     cs_pts <- hydrofabric3D::cross_section_pts(
       cs             = transects,
@@ -96,54 +123,166 @@ for (i in 1:nrow(path_df)) {
       min_pts_per_cs = 10,
       dem            = DEM_URL
       )
-
-    # try to extend any cross sections that returned cross section points with 
-    # identical Z values within a certain threshold ("flat" cross sections)
-    cs_pts <- hydrofabric3D::rectify_flat_cs(
-      net            = flines,
-      cs             = transects,
-      cs_pts         = cs_pts, 
-      points_per_cs  = NULL,
-      min_pts_per_cs = 10,
-      dem            = DEM_URL,
-      scale          = EXTENSION_PCT,
-      threshold      = 0
-    )
-
-    # get end time for log messages
-    time2 <- Sys.time()
-    time_diff <- round(as.numeric(time2 - time1 ), 2)
     
-    message("\n\n ---> Cross section point elevations processed in ", time_diff)
+    })
+    
+    end_cs_pts <- Sys.time()
+    message("\n ---> Completed extraction of cross section points (", end_cs_pts,")")
+    
+    if(COLLECT_META) {
+      start_cs_pts_count <- nrow(cs_pts)
+    }
+    
+    # cs_pts_time <- round(as.numeric(end_cs_pts - start_cs_pts ), 2)
+    # message("\n\n ---> Cross section point elevations processed in ", cs_pts_time)
+    
+    start_rectify <- Sys.time()
+    message("Rectifying cross section points (", start_rectify,")")
+    
+    # collect the hy_ids and number of stream orders in cs_pts
+    if(COLLECT_META) {
+    
+      cs_pts_ids       <- unique(cs_pts$hy_id)
+      start_cs_pts_ids <- length(cs_pts_ids)
+      
+      start_order_count <- 
+        flines %>% 
+        sf::st_drop_geometry() %>% 
+        dplyr::filter(id %in% cs_pts_ids) %>% 
+        dplyr::group_by(order) %>% 
+        dplyr::count() %>% 
+        tidyr::pivot_wider(names_from = order,  
+                         names_glue   = "start_order_{order}", 
+                         values_from  = n
+                         ) %>% 
+        dplyr::ungroup()
+    }
     
     # Remove any cross section that has ANY missing (NA) Z values. 
-    cs_pts <-
-      cs_pts %>%
+    cs_pts <- 
+      cs_pts %>% 
       # dplyr::filter(hy_id %in% c("wb-849054", "wb-845736")) %>% 
       dplyr::group_by(hy_id, cs_id) %>% 
       dplyr::filter(!any(is.na(Z))) %>% 
       dplyr::ungroup()
+    # try to extend any cross sections that returned cross section points with 
+    # identical Z values within a certain threshold ("flat" cross sections)
+    
+    system.time({
+    # cs_pts <- hydrofabric3D::rectify_flat_cs(
+      fixed_pts <- hydrofabric3D::rectify_flat_cs(
+                  cs_pts         = cs_pts, 
+                  net            = flines,
+                  cs             = transects,
+                  points_per_cs  = NULL,
+                  min_pts_per_cs = 10,
+                  dem            = DEM_URL,
+                  scale          = EXTENSION_PCT,
+                  threshold      = 1,
+                  pct_threshold  = 0.99,
+                  fix_ids        = FALSE
+                  )
+    })
+    
+    
+    end_rectify <- Sys.time()
+    rectify_time <- round(as.numeric(end_rectify - start_rectify ), 2)
+    
+    message("\n ---> Completed rectifying cross section points (", end_rectify,")")
+    
+    if(COLLECT_META) {
+      rectify_cs_pts_count <- nrow(fixed_pts)
+      # collect the hy_ids and number of stream orders in the RECTIFIED cs_pts
+      rectify_cs_pts_ids      <- unique(fixed_pts$hy_id)
+      rectify_cs_pts_id_count <- length(rectify_cs_pts_ids)
 
+      rectify_order_count <- 
+        flines %>% 
+        sf::st_drop_geometry() %>% 
+        dplyr::filter(id %in% rectify_cs_pts_ids) %>% 
+        dplyr::group_by(order) %>% 
+        dplyr::count() %>% 
+        tidyr::pivot_wider(names_from = order,  
+                           names_glue   = "rectify_order_{order}", 
+                           values_from  = n
+        ) %>% 
+        dplyr::ungroup()
+    }
+    
+    rm(cs_pts)
+    gc()
+    
+    message("\n\n ---> Cross section points rectified in ", rectify_time, " (seconds?) ")
+    
+    # Remove any cross section that has ANY missing (NA) Z values. 
+    fixed_pts <- 
+      fixed_pts %>% 
+      # dplyr::filter(hy_id %in% c("wb-849054", "wb-845736")) %>% 
+      # dplyr::group_by(hy_id, cs_id) %>% 
+      # dplyr::filter(!any(is.na(Z))) %>% 
+      # dplyr::ungroup() %>% 
+      hydrofabric3D::add_tmp_id()
+    
+    # Number of cross section points after removing any cross sections that contain any NA Z values
+    if(COLLECT_META) {
+      cs_pts_na_removed_count <- nrow(fixed_pts)
+    }
+    
+    # Stash meta data about the points 
+    pts_meta <- 
+      fixed_pts %>% 
+      sf::st_drop_geometry() %>% 
+      dplyr::select(hy_id, cs_id, pt_id, cs_measure, is_extended)
+    
+    message("Classifying cross section points...")
+    
+    # Classify points
+    fixed_pts <- hydrofabric3D::classify_points(fixed_pts)
+    
+    # add meta data back to the points
+    fixed_pts <- 
+      fixed_pts %>% 
+      dplyr::left_join(
+        pts_meta,
+        by = c("hy_id", "cs_id", "pt_id")
+        # dplyr::select(pts_meta, hy_id, cs_id, pt_id, cs_measure, is_extended)
+      )
+    
+    message("Gathering count of point types per cross section...")
+    
+    # get the counts of each point type to add this data to the transects dataset
+    point_type_counts <- hydrofabric3D::get_point_type_counts(fixed_pts, add = FALSE)
+    
     # # check the number of cross sections that were extended
-    # cs_pts$is_extended %>% table()
-
+    # fixed_pts$is_extended %>% table()
+    message("Subsetting cross section points generated after extending transects...")
+    
     # extract cross section points that have an "is_extended" value of TRUE
-    extended_pts = 
-      cs_pts %>% 
+    extended_pts <-
+      fixed_pts %>% 
       dplyr::filter(is_extended) %>% 
-      dplyr::mutate(tmp_id = paste0(hy_id, "_", cs_id)) 
-
+      hydrofabric3D::add_tmp_id()
+      # dplyr::mutate(tmp_id = paste0(hy_id, "_", cs_id)) 
+    
     # extract transects that have a "hy_id" in the "extended_pts" dataset
-    update_transects = 
+    update_transects <-
       transects %>% 
-      dplyr::mutate(tmp_id = paste0(hy_id, "_", cs_id)) %>%
+      hydrofabric3D::add_tmp_id() %>% 
       dplyr::filter(tmp_id %in% unique(extended_pts$tmp_id))
-      
+    
+    # Number of cross section points generated from extending transects and number of tmpIDs
+    if(COLLECT_META) {
+      extended_pts_count <- nrow(extended_pts)
+      extended_pts_ids   <- length(unique(extended_pts$tmp_id))
+      extended_transects_count <- nrow(update_transects)
+      extended_transects_ids   <- length(unique(update_transects$tmp_id))
+    }
+    
     # if any transects were extended, update the transects dataset, and overwrite local and S3 transects geopackages
     if (nrow(update_transects) > 0) {
       message("Updating ", nrow(update_transects), " transects")
-
-      update_transects =
+    
+      update_transects <-
         update_transects %>%
         # dplyr::filter(hy_id %in% unique(extended_pts$hy_id)) %>% 
         # apply extend_by_percent function to each transect line: 
@@ -151,81 +290,201 @@ for (i in 1:nrow(path_df)) {
           pct        = EXTENSION_PCT,
           length_col = "cs_lengthm"
         )
-
-    # remove old transects that have "tmp_id" in "extended_pts", and replace with "update_transects"
-    out_transects = 
-      transects %>% 
-      dplyr::mutate(tmp_id = paste0(hy_id, "_", cs_id)) %>%
-      dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id)) %>%
-      dplyr::bind_rows(
-        update_transects
-        )  %>% 
-      # dplyr::mutate(is_extended = FALSE) %>%
-      # dplyr::bind_rows(
-      #   dplyr::mutate(update_transects, is_extended = TRUE)
-      #   )  %>% 
-      dplyr::select(-tmp_id) 
-
+      
+      # # Number of transects being updated
+      # if(COLLECT_META) {
+        # extended_transects_count <- nrow(update_transects)
+        # extended_transects_ids   <- length(unique(update_transects$tmp_id))
+      # }
+      
+      # Filter down to ONLY points that were finalized and rectified from rectify_cs_pts()
+      # remove old transects that have "tmp_id" in "extended_pts" (transects that were unchanged and are "good_to_go")
+      # and then replace with old transects with the "update_transects" 
+      out_transects <- 
+        transects %>% 
+        hydrofabric3D::add_tmp_id() %>% 
+        # dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id)) %>%
+        # dplyr::filter(!tmp_id %in% )
+        dplyr::filter(tmp_id %in% unique(hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id)) %>% 
+        dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id)) %>%
+        dplyr::bind_rows(
+          dplyr::mutate(
+            update_transects,
+            is_extended = TRUE
+            )
+          )  
+      
+        # dplyr::mutate(is_extended = FALSE) %>%
+        # dplyr::bind_rows(
+        #   dplyr::mutate(update_transects, is_extended = TRUE)
+        #   )  %>% 
+        # dplyr::select(-tmp_id) 
+      
+    } else {
+      
+      out_transects <- 
+        transects %>% 
+        hydrofabric3D::add_tmp_id() %>% 
+        dplyr::filter(tmp_id %in% unique(hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id)) %>% 
+        dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id))
+    }
+    
+      # Number of final output transects and the number of unique tmpIDs (hy_id/cs_id , i.e. cross sections)
+      if(COLLECT_META) {
+        output_transects_count <- nrow(out_transects)
+        output_transects_ids   <- length(unique(out_transects$tmp_id))
+      }
+    
+      # finalize new transects
+      out_transects <- 
+        out_transects %>% 
+        dplyr::left_join(
+          point_type_counts,
+          by = c("hy_id", "cs_id")
+        ) %>% 
+        dplyr::select(hy_id, cs_source, cs_id, cs_measure, cs_lengthm, 
+                      # sinuosity, 
+                      is_extended, 
+                      left_bank_count, right_bank_count, channel_count, bottom_count,
+                      geom)
+      
+      # -------------------------------------------------------------------
+      # ---- Re enumerate the transects & cross section points "cs_id" ----
+      # -------------------------------------------------------------------
+      
+      # make a dataframe that has a new_cs_id column that has 
+      # the cs_id renumbered to fill in any missing IDs,
+      # so each hy_id has cs_ids that go from 1 - number of cross sections on hy_id
+      # The dataframe below will be used to join the "new_cs_id" with 
+      # the original "cs_ids" in the final cross section POINTS and UPDATED TRANSECTS output datasets
+      renumbered_ids <-
+        fixed_pts %>% 
+        sf::st_drop_geometry() %>% 
+        # dplyr::filter(hy_id %in% c("wb-2402800", "wb-2398282", "wb-2400351")) %>%
+        dplyr::select(hy_id, cs_id, pt_id, cs_measure) %>% 
+        dplyr::group_by(hy_id, cs_id) %>% 
+        dplyr::slice(1) %>% 
+        dplyr::ungroup() %>% 
+        hydrofabric3D::add_tmp_id() %>% 
+        dplyr::group_by(hy_id) %>% 
+        dplyr::mutate(
+          new_cs_id = 1:dplyr::n()
+        ) %>% 
+        dplyr::ungroup() %>% 
+        dplyr::select(new_cs_id, tmp_id)
+      
+      # Renumber the transects to have correct CS IDs
+      out_transects <- dplyr::left_join(
+                          hydrofabric3D::add_tmp_id(out_transects),
+                          renumbered_ids,
+                          by = "tmp_id"
+                        ) %>% 
+                        dplyr::select(-cs_id, -tmp_id) %>% 
+                        dplyr::select(hy_id, cs_source, cs_id = new_cs_id, 
+                                      cs_measure, cs_lengthm, 
+                                      # sinuosity,
+                                      is_extended, 
+                                      left_bank_count, right_bank_count, channel_count, bottom_count,
+                                      geometry = geom
+                                      )
+      
+      # # fline_lengths <-  sf::st_drop_geometry(flines) %>% 
+      # #   dplyr::filter(id %in% out_transects$hy_id) %>% 
+      # #   dplyr::mutate(lengthm = lengthkm * 1000) %>% 
+      # #   dplyr::select(hy_id = id, lengthm, lengthkm) 
+      # tmp <- dplyr::left_join( out_transects, fline_lengths, by = "hy_id") %>% 
+      #   dplyr::mutate(ds_distance = (cs_measure * lengthm) / 100) %>% 
+      #   dplyr::select(-sinuosity) %>% 
+      #   dplyr::relocate(hy_id, cs_id, cs_measure, lengthm, ds_distance, lengthkm) %>% 
+      #   dplyr::rename("geometry" = geom)
+      
+      # Renumber the cross sections points to have correct CS IDs
+      fixed_pts <- dplyr::left_join(
+                            hydrofabric3D::add_tmp_id(fixed_pts),
+                            renumbered_ids,
+                            by = "tmp_id"
+                          ) %>% 
+                        dplyr::select(-cs_id, -tmp_id) %>% 
+                        dplyr::rename(cs_id = new_cs_id)
+      
     # mapview::mapview(transects, color = "red") +
     #  mapview::mapview(dplyr::filter(out_transects, is_extended), color = "green") +
     #  mapview::mapview(flines, color = "dodgerblue") 
 
     ###################################### 
+
+    # ----------------------------------------------------------
+    # ---- Cross section points parquet to S3 ----
+    # ----------------------------------------------------------
     
-    ## Save local and REUPLOAD TRANSECTS to S3 to update for any extended cross sections
-    message("Saving updated transects to:\n - filepath: '", transect_path, "'")
-  
-    # save flowlines to out_path (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
-    sf::write_sf(
-      out_transects,
-      transect_path
-    )
-
-    # command to copy transects geopackage to S3
-    trans_to_s3 <- paste0("aws s3 cp ", transect_path, " ", transects_prefix, transect_file, 
-                            ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile)))
-
-    message("Copy VPU ", path_df$vpu[i], " transects to S3:\n - S3 copy command:\n'", 
-            trans_to_s3, 
-            "'\n==========================")
-    
-    system(trans_to_s3, intern = TRUE)
-
-    ###################################### 
-
-    }
-
     # classify the cross section points
-    cs_pts <-
-      cs_pts %>%
-      dplyr::rename(cs_widths = cs_lengthm) %>%
-      hydrofabric3D::classify_points() %>%
+    fixed_pts <- 
+      fixed_pts %>% 
       dplyr::mutate(
         X = sf::st_coordinates(.)[,1],
         Y = sf::st_coordinates(.)[,2]
       ) %>%
+      sf::st_drop_geometry() %>% 
       dplyr::select(
         hy_id, cs_id, pt_id,
-        cs_lengthm = cs_widths,
+        cs_lengthm,
         relative_distance,
         X, Y, Z,
-        class
+        class, point_type
         )
 
   # Drop point geometries, leaving just X, Y, Z values
-  cs_pts <- sf::st_drop_geometry(cs_pts)
+  fixed_pts <- sf::st_drop_geometry(fixed_pts)
 
   # add Z_source column for source of elevation data
-  cs_pts <-
-    cs_pts %>%
+  fixed_pts <-
+    fixed_pts %>%
     dplyr::mutate(
       Z_source = cs_source
       ) %>%
     dplyr::relocate(hy_id, cs_id, pt_id, cs_lengthm, relative_distance, X, Y, Z, Z_source, class)
 
+  # Number of final output transects and the number of unique tmpIDs (hy_id/cs_id , i.e. cross sections)
+  if(COLLECT_META) {
+    output_cs_pts_count      <- nrow(fixed_pts)
+    output_cs_pts_ids        <- length(unique(hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id))
+    dropped_transects_count  <- transect_count - output_transects_count
+    }
+  
   ###################################### 
-
+  
+  # ----------------------------------------------------------
+  # ---- Re upload the updated transects geopackage to S3 ----
+  # ----------------------------------------------------------
+  updated_path <- gsub(transect_file, paste0("updated_", transect_file), transect_path)
+  
+  ## Save local and REUPLOAD TRANSECTS to S3 to update for any extended cross sections
+  message("Saving updated transects to:\n - filepath: '", updated_path, "'")
+  
+  # save flowlines to out_path (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
+  sf::write_sf(
+    out_transects,
+    # transect_path
+    updated_path
+  )
+ 
+  # command to copy transects geopackage to S3
+  trans_to_s3 <- paste0("aws s3 cp ", updated_path, " ", transects_prefix, transect_file, 
+                        ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile)))
+  
+  message("Copy VPU ", path_df$vpu[i], " transects to S3:\n - S3 copy command:\n'", 
+          trans_to_s3, 
+          "'\n==========================")
+  
+  system(trans_to_s3, intern = TRUE)
+  
   ###################################### 
+  ###################################### 
+  
+  # ----------------------------------------------------------
+  # ---- Upload the cross section points parquet to S3 ----
+  # ----------------------------------------------------------
+  
   # name of file and path to save transects gpkg too
   out_file <- paste0("nextgen_", path_df$vpu[i], "_cross_sections.parquet")
   out_path <- paste0(cs_pts_dir, out_file)
@@ -233,7 +492,7 @@ for (i in 1:nrow(path_df)) {
   message("Saving cross section points to:\n - filepath: '", out_path, "'")
   
   # save cross section points as a parquet to out_path (lynker-spatial/02_cs_pts/cs_pts_<VPU num>.parquet)
-  arrow::write_parquet(cs_pts, out_path)
+  arrow::write_parquet(fixed_pts, out_path)
   
   # command to copy cross section points parquet to S3
   copy_cs_pts_to_s3 <- paste0("aws s3 cp ", out_path, " ", cs_pts_prefix, out_file,
@@ -245,6 +504,50 @@ for (i in 1:nrow(path_df)) {
           "'\n==========================")
   
   system(copy_cs_pts_to_s3, intern = TRUE)
-
-}
+  
+  end <- Sys.time()
+  
+  message("Finished cross section point generation for VPU ", VPU)
+  message("- Completed at: ", end)
+  message("==========================")
+  
+  if(COLLECT_META) {
+    
+    meta_df <- data.frame(
+      vpu                 = VPU,
+      start               = as.character(start),
+      end                 = as.character(end),
+      start_cs_pts        = as.character(start_cs_pts),
+      end_cs_pts          = as.character(end_cs_pts),
+      start_rectify       = as.character(start_rectify),
+      end_rectify         = as.character(end_rectify),
+      fline_count         = fline_count,
+      transect_count      = transect_count,
+      wb_count            = wb_count,
+      fline_wb_count      = fline_wb_count,
+      transect_wb_count   = transect_wb_count,
+      start_cs_pts_count  = start_cs_pts_count,
+      start_cs_pts_ids    = start_cs_pts_ids,
+      rectify_cs_pts_count       = rectify_cs_pts_count,
+      rectify_cs_pts_ids         = rectify_cs_pts_id_count,
+      extended_transects_count   = extended_transects_count,
+      extended_transects_ids     = extended_transects_ids,
+      dropped_transects          = dropped_transects_count,
+      output_transects_count     = output_transects_count,
+      output_cs_pts_count        = output_cs_pts_count,
+      output_transects_ids       = output_transects_ids,
+      output_cs_pts_ids          = output_cs_pts_ids
+    )
+    
+    order_df <- cbind(data.frame(vpu = VPU), start_order_count, rectify_order_count)
+    
+    readr::write_csv(meta_df, paste0(meta_path, "nextgen_", VPU, "_cross_sections_metadata.csv"))
+    readr::write_csv(order_df, paste0(meta_path, "nextgen_", VPU, "_cross_sections_streamorder.csv"))
+  }
+  
+  rm(fixed_pts)
+  gc()
+  gc()
+  
+  }
 
