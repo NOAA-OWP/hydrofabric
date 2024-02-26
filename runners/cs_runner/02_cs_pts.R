@@ -40,8 +40,12 @@ path_df <- align_files_by_vpu(
             by = "vpu"
             )
 
-# Local path to save CSVs of cross section meta data during each iteration
-meta_path <- "/local/path/to/save/cross_section_meta_data/"
+# Where should meta data CSVs be saved to? 
+if(COLLECT_META) {
+  # Local path to save CSVs of cross section meta data during each iteration
+  meta_path <- "/local/path/to/save/cross_section_meta_data/"
+  
+}
 
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
