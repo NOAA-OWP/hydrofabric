@@ -18,6 +18,11 @@ EXTENSION_PCT <- 0.5
 # Whether to collect meta data from runs to generate an output CSV (currently only being created in 02_cs_pts.R)
 COLLECT_META <- TRUE
 
+# Where should meta data CSVs be saved to? 
+# Local path to save CSVs of cross section meta data during each iteration
+META_PATH <- '/Users/anguswatters/Desktop/cs_meta/'
+# META_PATH <-  "/local/path/to/save/cross_section_meta_data/"
+
 
 # # create the directory if it does NOT exist
 # if(!dir.exists(base_dir)) {

@@ -40,13 +40,6 @@ path_df <- align_files_by_vpu(
             by = "vpu"
             )
 
-# Where should meta data CSVs be saved to? 
-if(COLLECT_META) {
-  # Local path to save CSVs of cross section meta data during each iteration
-  meta_path <- "/local/path/to/save/cross_section_meta_data/"
-  
-}
-
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
@@ -175,15 +168,15 @@ for (i in 1:nrow(path_df)) {
     system.time({
     # cs_pts <- hydrofabric3D::rectify_flat_cs(
       fixed_pts <- hydrofabric3D::rectify_flat_cs(
-                  cs_pts         = cs_pts, 
-                  net            = flines,
-                  cs             = transects,
-                  points_per_cs  = NULL,
-                  min_pts_per_cs = 10,
-                  dem            = DEM_URL,
-                  scale          = EXTENSION_PCT,
-                  threshold      = 1,
-                  pct_threshold  = 0.99,
+                  cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
+                  net            = flines,    # original flowline network
+                  cs             = transects, # original transect lines
+                  points_per_cs  = NULL, 
+                  min_pts_per_cs = 10, # number of points per cross sections
+                  dem            = DEM_URL, # DEM to extract points from
+                  scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
+                  threshold      = 1,    # 1 meter from bottom
+                  pct_threshold  = 0.99, # rectify if 99% points are within 1 meter from the bottom
                   fix_ids        = FALSE
                   )
     })
@@ -545,8 +538,8 @@ for (i in 1:nrow(path_df)) {
     
     order_df <- cbind(data.frame(vpu = VPU), start_order_count, rectify_order_count)
     
-    readr::write_csv(meta_df, paste0(meta_path, "nextgen_", VPU, "_cross_sections_metadata.csv"))
-    readr::write_csv(order_df, paste0(meta_path, "nextgen_", VPU, "_cross_sections_streamorder.csv"))
+    readr::write_csv(meta_df, paste0(META_PATH, "nextgen_", VPU, "_cross_sections_metadata.csv"))
+    readr::write_csv(order_df, paste0(META_PATH, "nextgen_", VPU, "_cross_sections_streamorder.csv"))
   }
   
   rm(fixed_pts)

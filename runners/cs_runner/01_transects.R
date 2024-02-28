@@ -3,7 +3,6 @@ source("runners/cs_runner/config.R")
 
 # # # # load libraries
 # library(hydrofabric3D)
-# # library(terrainSliceR)
 # library(dplyr)
 # library(sf)
 
@@ -26,8 +25,6 @@ path_df <- align_files_by_vpu(
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
 for(i in 1:nrow(path_df)) {
-  
-  # i = 8
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
