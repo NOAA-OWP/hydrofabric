@@ -5,6 +5,9 @@ source("runners/cs_runner/config.R")
 # library(hydrofabric3D)
 # library(dplyr)
 # library(sf)
+# install.packages("devtools")
+
+# devtools::install_github("anguswg-ucsb/hydrofabric3D")
 
 # transect bucket prefix
 transects_prefix <- paste0(s3_bucket, version_prefix, "/3D/transects/")
@@ -39,7 +42,7 @@ for(i in 1:nrow(path_df)) {
   
   # read in nextgen data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
-
+  
   # #  model attributes
   # model_attrs <- arrow::read_parquet(model_attr_path)
 
