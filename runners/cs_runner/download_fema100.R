@@ -6,12 +6,14 @@
 # load config variables
 source("runners/cs_runner/config_vars.R")
 
-# create FEMA100/ directory if it does NOT exist
+# -------------------------------------------------------------------------------------
+# ---- Create FEMA100/ directory (if it does NOT exist) ----
+# -------------------------------------------------------------------------------------
+
 if (!dir.exists(FEMA_FGB_PATH)) {
-  message(glue::glue('FEMA100/ directory does not exist...\nCreating directory: {FEMA_FGB_PATH}'))
+  message(paste0("FEMA100/ directory does not exist...\nCreating directory:\n > '", FEMA_FGB_PATH, "'"))
   dir.create(FEMA_FGB_PATH)
 }
-
 
 # list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
 fema_list_command <- paste0('#!/bin/bash
@@ -27,13 +29,22 @@ fema_list_command <- paste0('#!/bin/bash
             echo "$S3_OBJECTS"'
 )
 
-# ---- Get nextgen geopackages ----
+# -------------------------------------------------------------------------------------
+# ---- Get the S3 buckets object keys for FEMA 100 FGB files ----
+# -------------------------------------------------------------------------------------
+
 # Run the script to get a list of the nextgen geopackages that matched the regular expression above
 FEMA_BUCKET_KEYS <- system(fema_list_command, intern = TRUE)
 
+# create bucket object URIs
 # FEMA_BUCKET_OBJECTS <- paste0(FEMA_S3_BUCKET, FEMA_S3_BUCKET_PREFIX, FEMA_BUCKET_KEYS)
 
+# -------------------------------------------------------------------------------------
+# ---- Download FEMA 100 year FGB files from S3 ----
+# -------------------------------------------------------------------------------------
+
 # Parse the selected S3 objects keys from the FEMA100 bucket directory copy them to the local destination directory if the file does NOT exist yet
+FEMA_BUCKET_KEYS[1:2]
 for (key in FEMA_BUCKET_KEYS) {
   local_save_path <- paste0(FEMA_FGB_PATH, "/", key)
   
