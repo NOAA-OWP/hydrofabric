@@ -43,7 +43,7 @@ for(i in 1:nrow(path_df)) {
   # read in nextgen data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
   
-  # #  model attributes
+  # # model attributes
   # model_attrs <- arrow::read_parquet(model_attr_path)
 
   # # join flowlines with model atttributes
@@ -60,15 +60,12 @@ for(i in 1:nrow(path_df)) {
     dplyr::mutate(
       bf_width = exp(0.700    + 0.365* log(tot_drainage_areasqkm))
     ) %>%
-    # dplyr::mutate(
-    #   bf_width = 11 * eTW
-    # ) %>%
+    # dplyr::mutate( bf_width = 11 * eTW) %>%
     # dplyr::mutate( # if there are any NAs, use exp(0.700    + 0.365* log(tot_drainage_areasqkm)) equation to calculate bf_width
     #   bf_width = dplyr::case_when(
     #     is.na(bf_width) ~ exp(0.700    + 0.365* log(tot_drainage_areasqkm)),
     #     TRUE            ~ bf_width
-    #   )
-    # ) %>%
+    #   )) %>%
     dplyr::select(
       hy_id = id,
       lengthkm,
@@ -80,29 +77,26 @@ for(i in 1:nrow(path_df)) {
   # flines$bf_width <- ifelse(is.na(flines$bf_width),  exp(0.700    + 0.365* log(flines$tot_drainage_areasqkm)), flines$bf_width)
 
   time1 <- Sys.time()
-  
-  # system.time({
-    
-    # create transect lines
-    transects <- hydrofabric3D::cut_cross_sections(
-      net               = flines,                        # flowlines network
-      id                = "hy_id",                       # Unique feature ID
-      cs_widths         = pmax(50, flines$bf_width * 11),     # cross section width of each "id" linestring ("hy_id")
-      # cs_widths         = pmax(50, flines$bf_width),     # cross section width of each "id" linestring ("hy_id")
-      num               = 10,                            # number of cross sections per "id" linestring ("hy_id")
-      smooth            = TRUE,                          # smooth lines
-      densify           = 3,                             # densify linestring points
-      rm_self_intersect = TRUE,                          # remove self intersecting transects
-      fix_braids        = FALSE,                         # whether to fix braided flowlines or not
-      #### Arguments used for when fix_braids = TRUE
-      # terminal_id       = NULL,
-      # braid_threshold   = NULL,
-      # version           = 2,
-      # braid_method      = "comid",
-      # precision         = 1,
-      add               = TRUE                           # whether to add back the original data
-    )
-  # })
+
+  # create transect lines
+  transects <- hydrofabric3D::cut_cross_sections(
+    net               = flines,                        # flowlines network
+    id                = "hy_id",                       # Unique feature ID
+    cs_widths         = pmax(50, flines$bf_width * 11),     # cross section width of each "id" linestring ("hy_id")
+    # cs_widths         = pmax(50, flines$bf_width),     # cross section width of each "id" linestring ("hy_id")
+    num               = 10,                            # number of cross sections per "id" linestring ("hy_id")
+    smooth            = TRUE,                          # smooth lines
+    densify           = 3,                             # densify linestring points
+    rm_self_intersect = TRUE,                          # remove self intersecting transects
+    fix_braids        = FALSE,                         # whether to fix braided flowlines or not
+    #### Arguments used for when fix_braids = TRUE     # TODO: these methods need revision in hydrofabric3D to allow for more flexible processing for data that is NOT COMID based (i.e. hy_id)    
+    # terminal_id       = NULL,
+    # braid_threshold   = NULL,
+    # version           = 2,
+    # braid_method      = "comid",
+    # precision         = 1,
+    add               = TRUE                           # whether to add back the original data
+  )
     
   time2 <- Sys.time()
   time_diff <- round(as.numeric(time2 - time1 ), 2)
@@ -120,24 +114,13 @@ for(i in 1:nrow(path_df)) {
     transects %>%
     dplyr::mutate(
       cs_source = net_source
-    ) %>%
-    dplyr::rename("cs_lengthm" = cs_widths)
+    )
+    # dplyr::rename("cs_lengthm" = cs_widths)
   
   # # add cs_source column and keep just the desired columns to save and upload to S3
-  # transects <-
-  #   transects %>%
-  #   dplyr::mutate(
-  #     cs_source = net_source
-  #   ) %>%
-  #   dplyr::select(
-  #     hy_id,
-  #     cs_source,
-  #     cs_id,
-  #     cs_measure,
-  #     cs_lengthm = cs_widths,
-  #     geometry
-  #   )
-  # tmp <- sf::read_sf(out_path)
+  # transects <- transects %>%
+  #   dplyr::mutate(cs_source = net_source) %>%
+  #   dplyr::select(hy_id, cs_source, cs_id, cs_measure, cs_lengthm = cs_widths, geometry)
 
   # save transects with only columns to be uploaded to S3 (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
   sf::write_sf(
