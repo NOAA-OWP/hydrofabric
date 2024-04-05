@@ -28,7 +28,7 @@ sf::sf_use_s2(FALSE)
 # 1. Runners will build and access data from a defined directory. Put that here:
 dir      <- "/Volumes/MyBook"
 # 2. Define the HF version you are creating:
-version  <- "v20.1"
+version  <- "v20.2"
 
 # 3. Define your processing VPUS
 vpus <- vpu_boundaries$VPUID[1:21]
@@ -47,7 +47,7 @@ catchment_prefix      <- "cat-"
 waterbody_prefix      <- "wb-"
 
 # Desired community POI types
-community_hl_types    <-  c('HUC12', 'Gages', 'TE', 'NID', "WBOut")
+community_hl_types    <-  c('HUC12', 'Gages', 'TE', 'NID', "WBOut", "resops", "hilarri", "WBOut", "WBIn")
 
 # Directory for NWM data
 #  Download needed files for add_cfe_noahowp_attributes(...)
@@ -239,7 +239,7 @@ if(!file.exists(twi_file)){
 # Built Datasets ----------------------------------------------------------------
 #These are files that will be built in the base directory as the workflow progresses:
 
-full_hl    <- glue("{base}/conus_hl.gpkg")
+full_hl    <- glue("{base}/{version}/conus_hl.gpkg")
 
 conus_net  <- glue("{base}/{version}/conus_net.parquet")
 

@@ -11,7 +11,7 @@ for(i in 1:length(vpus)){
   # sb_password = "..."
   # sbtools::authenticate_sb(sb_username, sb_password)
 
-  source('runners/secret/sb_tools.R')
+  #source('runners/secret/sb_tools.R')
   
   get_hydrofabric(VPU = vpus[i], type = "reference", dir =  base_reference, overwrite = ow)
   
