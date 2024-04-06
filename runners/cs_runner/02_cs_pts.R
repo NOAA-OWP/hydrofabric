@@ -48,7 +48,9 @@ path_df <- align_files_by_vpu(
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
-for (i in 1:nrow(path_df)) {
+for (i in 13:nrow(path_df)) {
+  
+  # i = 1
   
   start <- Sys.time()
   
@@ -92,12 +94,16 @@ for (i in 1:nrow(path_df)) {
   flines    <- flines[feature_subsets$valid_flowlines, ]
   transects <- transects[feature_subsets$valid_transects, ]
   
+  rm(waterbodies)
+  gc()
+  
   start_cs_pts <- Sys.time()
   message("Extracting cross section points (", start_cs_pts, ")")
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 1: Extract cs points from DEM ----
   # ----------------------------------------------------------------------------------------------------------------
-  
+  # system.time({
+    
   # get cross section point elevations
   cs_pts <- hydrofabric3D::cross_section_pts(
     cs             = transects,
@@ -105,11 +111,13 @@ for (i in 1:nrow(path_df)) {
     min_pts_per_cs = 10,
     dem            = DEM_URL
   )
-    
+  # })
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points ----
   # ----------------------------------------------------------------------------------------------------------------
-  
+
+  # system.time({
+    
   # STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points 
   cs_pts <- 
     cs_pts %>% 
@@ -117,14 +125,17 @@ for (i in 1:nrow(path_df)) {
     dplyr::filter(!any(is.na(Z))) %>% 
     dplyr::ungroup() %>% 
     hydrofabric3D::classify_points(pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF)  
-
+  
+  # })
+  
+  ids_original_cs_pts <- hydrofabric3D::add_tmp_id(cs_pts)$tmp_id
+  
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 3: Try to rectify any no relief and invalid banks cross sections ----
   # ----------------------------------------------------------------------------------------------------------------
-  
-  # TODO: This is taking A LOT time to process as inputs get larger, an improvement should be looked into more
-  fixed_pts <- hydrofabric3D::rectify_cs(
-  # cs_pts <- hydrofabric3D::rectify_flat_cs(
+  # system.time({
+  # NOTE: new inplace method for improving (rectifying) any invalid cross sections where we dont have banks and relief
+  fixed_pts <- hydrofabric3D::improve_invalid_cs(
     cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
     net            = flines,    # original flowline network
     transects      = transects, # original transect lines
@@ -136,6 +147,24 @@ for (i in 1:nrow(path_df)) {
     fix_ids = FALSE,
     verbose = TRUE
   )
+  # })
+  
+  ids_after_fixed_pts <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
+
+  # # TODO: This is taking A LOT time to process as inputs get larger, an improvement should be looked into more
+  # fixed_pts <- hydrofabric3D::rectify_cs(
+  # # cs_pts <- hydrofabric3D::rectify_flat_cs(
+  #   cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
+  #   net            = flines,    # original flowline network
+  #   transects      = transects, # original transect lines
+  #   points_per_cs  = NULL, 
+  #   min_pts_per_cs = 10, # number of points per cross sections
+  #   dem            = DEM_URL, # DEM to extract points from
+  #   scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
+  #   pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
+  #   fix_ids = FALSE,
+  #   verbose = TRUE
+  # )
   
   # get a summary dataframe and print out details message
   rectify_summary <- hydrofabric3D::rectify_summary(cs_pts, fixed_pts, verbose = TRUE)
@@ -153,7 +182,7 @@ for (i in 1:nrow(path_df)) {
   # ----------------------------------------------------------------------------------------------------------------
   
   # get the counts of each point type to add this data to the transects dataset
-  point_type_counts <- hydrofabric3D::get_point_type_counts(fixed_pts, add = FALSE)
+  point_type_counts <- hydrofabric3D::get_point_type_counts(fixed_pts)
   
   # # check the number of cross sections that were extended
   # fixed_pts$is_extended %>% table()
@@ -266,7 +295,8 @@ for (i in 1:nrow(path_df)) {
                       by = "tmp_id"
                     ) %>% 
                       dplyr::select(-cs_id, -tmp_id) %>% 
-                      dplyr::select(hy_id, cs_source, cs_id = new_cs_id, 
+                      dplyr::select(hy_id, cs_source, 
+                                    cs_id = new_cs_id, 
                                     cs_measure, cs_lengthm, 
                                     # sinuosity,
                                     is_extended, 
@@ -319,6 +349,42 @@ for (i in 1:nrow(path_df)) {
     dplyr::relocate(hy_id, cs_id, pt_id, cs_lengthm, relative_distance, X, Y, Z, Z_source, 
                     class, point_type, 
                     bottom, left_bank, right_bank, valid_banks, has_relief)
+  
+  ids_before_align <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
+  
+  message("Aligning banks and smoothing bottoms...")
+  fixed_pts <- hydrofabric3D::align_banks_and_bottoms(fixed_pts)
+  
+  ids_after_align <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
+  
+  message("Reclassifying cross section points...")
+  fixed_pts <- hydrofabric3D::classify_points(
+                  cs_pts                   = fixed_pts, 
+                  pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF
+                  )
+  
+  ids_after_reclassify <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
+  
+  if(all(ids_original_cs_pts %in% ids_after_fixed_pts)) {
+    message("All hy_id/cs_ids in ORIGINAL DEM point extraction were found in the FIXED points")
+  } else {
+    message(" >>> Missing hy_id/cs_ids in ORIGINAL DEM point extraction compared to the FIXED points")
+  }
+  
+  if(all(ids_before_align %in% ids_after_align)) {
+    message("All hy_id/cs_ids are kept in tact after bank alignment and bottom smoothing")
+  } else {
+    message(" >>> Missing hy_id/cs_ids after bank alignment and bottom smoothing")
+  }
+  
+  if(all(ids_after_align %in% ids_after_reclassify)) {
+    message("All hy_id/cs_ids are kept in tact after RECLASSIFICATION")
+  } else {
+    message(" >>> Missing hy_id/cs_ids after RECLASSIFICATION")
+  }
+  
+  # all(hydrofabric3D::add_tmp_id(fixed_pts2)$tmp_id %in% hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id)
+  # all(hydrofabric3D::add_tmp_id(fixed_pts4)$tmp_id %in% hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id)
   
   ############################################################################## 
   
@@ -379,6 +445,9 @@ for (i in 1:nrow(path_df)) {
   message("- Completed at: ", end)
   message("==========================")
   
+  rm(fixed_pts)
+  gc()
+  gc()
 }
 
 # ###########################################################################################################################################

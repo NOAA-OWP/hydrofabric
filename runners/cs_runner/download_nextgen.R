@@ -40,6 +40,10 @@ if(!dir.exists(model_attr_dir)) {
   dir.create(model_attr_dir)
 }
 
+# ---------------------------------------------------------------------------
+# ---- List/Get the nextgen gpkgs from S3 bucket  ----
+# ---------------------------------------------------------------------------
+
 # list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
 command <- paste0('#!/bin/bash
             # AWS S3 Bucket and Directory information
@@ -71,7 +75,10 @@ for (key in bucket_keys) {
   message("------------------")
 }
 
-# ---- Get nextgen model attributes parquets ----
+# ---------------------------------------------------------------------------
+# ---- List/Get nextgen model attributes parquets from S3 bucket ----
+# ---------------------------------------------------------------------------
+
 # aws s3 ls s3://lynker-spatial/v20/3D/model_attributes/
 
 # list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
@@ -103,6 +110,11 @@ for (key in model_attr_keys) {
   message("Download '", paste0(model_attr_prefix, key), "' complete!")
   message("------------------")
 }
+
+# ---------------------------------------------------------------------------
+# ---- List/Get reference features from S3 bucket ----
+# ---------------------------------------------------------------------------
+
 ## Go get a list of the reference features geopackages from S3 and create a save path using the S3 file names to save reference features to local directory
 
 # list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
@@ -134,3 +146,16 @@ for (key in ref_features) {
   message("Download '", paste0(ref_features_dir, "gpkg/", key), "' complete!")
   message("------------------")
 }
+
+# ---------------------------------------------------------------------------
+# ---- Get ML outputs data from S3 bucket ----
+# ---------------------------------------------------------------------------
+
+ml_copy_cmd <- paste0('aws s3 cp ', ML_OUTPUTS_URI, ' ', paste0(ML_OUTPUTS_DIR, basename(ML_OUTPUTS_URI)))
+
+message("Copying S3 object:\n", ML_OUTPUTS_URI)
+system(ml_copy_cmd)
+
+message("Download '", paste0(ML_OUTPUTS_DIR, basename(ML_OUTPUTS_URI)), "' complete!")
+message("------------------")
+

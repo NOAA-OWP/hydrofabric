@@ -55,12 +55,16 @@ final_dir <- paste0(base_dir, "/cross_sections/")
 # directory to copy nextgen bucket data too
 ref_features_dir <- paste0(base_dir, "/00_reference_features/")
 
+# make a directory for the ML outputs data
+ML_OUTPUTS_DIR <- paste0(base_dir, "/ml-outputs/")
+
 # create directories 
 dir.create(transects_dir, showWarnings = FALSE)
 dir.create(cs_pts_dir,    showWarnings = FALSE)
 dir.create(ref_features_dir,     showWarnings = FALSE)
 dir.create(paste0(ref_features_dir, "gpkg/"),     showWarnings = FALSE)
 dir.create(final_dir,     showWarnings = FALSE)
+dir.create(ML_OUTPUTS_DIR,     showWarnings = FALSE)
 # dir.create(model_attr_dir,  showWarnings = FALSE)
 
 ## Go get a list of the reference features geopackages from S3 and create a save path using the S3 file names to save reference features to local directory
