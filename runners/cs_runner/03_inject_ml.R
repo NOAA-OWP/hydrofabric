@@ -188,21 +188,45 @@ for (i in 1:nrow(path_df)) {
   # dplyr::filter(owp_tw_inchan <= 0 | owp_tw_bf <= 0) 
   # dplyr::left_join( stream_order, by = "hy_id") 
   
+  missing_cs <- 
+    cs_pts %>% 
+    dplyr::filter(is.na(hf_id) | is.na(owp_tw_inchan) | is.na(owp_y_inchan) | is.na(owp_tw_bf) | is.na(owp_y_bf) | is.na(owp_dingman_r)) %>% 
+    hydrofabric3D::add_tmp_id()
   
   # Split the cross sections into 2 groups:
   # - "Inchannel cs" group are points with BOTH valid banks AND relief --> These get the INCHANNEL TW and Y values from the ML model
   # - "Bankful cs" group are points WITHOUT valid banks OR any relief  --> These get the BANKFUL TW and Y values from the ML model
-  inchannel_cs <- dplyr::filter(cs_pts, 
-                                valid_banks & has_relief)
+  inchannel_cs <-
+    cs_pts %>% 
+    hydrofabric3D::add_tmp_id() %>% 
+    dplyr::filter(!tmp_id %in% unique(missing_cs$tmp_id)) %>% 
+    dplyr::select(-tmp_id) %>% 
+    dplyr::filter(valid_banks & has_relief) %>% 
+    dplyr::rename(
+      TW        = owp_tw_inchan, 
+      DEPTH     = owp_y_inchan,
+      DINGMAN_R = owp_dingman_r
+    )
   
-  bankful_cs   <- dplyr::filter(cs_pts, 
-                                !valid_banks | !has_relief)
+  bankful_cs   <- 
+    cs_pts %>% 
+    hydrofabric3D::add_tmp_id() %>% 
+    dplyr::filter(!tmp_id %in% unique(missing_cs$tmp_id)) %>% 
+    dplyr::select(-tmp_id) %>% 
+    dplyr::filter(!valid_banks | !has_relief) %>% 
+    dplyr::rename(
+      TW        = owp_tw_bf, 
+      DEPTH     = owp_y_bf,
+      DINGMAN_R = owp_dingman_r
+    )
   
-  split_kept_all_rows <- nrow(cs_pts) == nrow(bankful_cs) + nrow(inchannel_cs)
+  split_kept_all_rows <- nrow(cs_pts) == nrow(bankful_cs) + nrow(inchannel_cs) + nrow(missing_cs)
+  # split_kept_all_rows <- nrow(cs_pts) == nrow(bankful_cs) + nrow(inchannel_cs)
   
   if (!split_kept_all_rows) {
     warning("When splitting cross section points into 'bankful' and 'inchannel' groups, some points were not put in either group")
   }
+  
     # Add bathymetry using "inchannel" estimates
     cs_bathy_inchannel <- add_cs_bathymetry(
       cross_section_pts = inchannel_cs,
@@ -223,6 +247,56 @@ for (i in 1:nrow(path_df)) {
     
   final_cs <- dplyr::bind_rows(cs_bathy_inchannel, cs_bathy_bankful)
   
+  final_cs <- dplyr::bind_rows(
+                  dplyr::select(cs_bathy_inchannel, 
+                                -owp_tw_bf, -owp_y_bf, -hf_id),
+                  dplyr::select(cs_bathy_bankful, 
+                                -owp_tw_inchan, -owp_y_inchan, -hf_id)
+                ) %>% 
+    dplyr::group_by(hy_id, cs_id) %>% 
+    tidyr::fill(
+      c(cs_lengthm, Z_source, TW, DEPTH, DINGMAN_R)
+    ) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(
+      -point_type, 
+      -class,
+      -bottom, -left_bank, -right_bank,
+      -has_relief, -valid_banks
+    )
+  
+  final_cs <- hydrofabric3D::classify_points(final_cs)
+  # final_classified %>% 
+  #   dplyr::filter(!valid_banks | !has_relief) 
+  # system.time({
+  #   final_classified <- 
+  #     final_cs %>% 
+  #     hydrofabric3D::classify_points()
+  # })
+
+  final_cs <- dplyr::bind_rows(
+                dplyr::relocate(
+                  final_cs,
+                    hy_id, cs_id, pt_id, 
+                    Z, relative_distance, cs_lengthm, class, point_type, 
+                    X, Y, Z_source, bottom, left_bank, right_bank, valid_banks, has_relief, 
+                    TW, DEPTH, DINGMAN_R, is_dem_point
+                  ),
+                dplyr::relocate(  
+                  dplyr::mutate(
+                    dplyr::select(missing_cs, 
+                                  -tmp_id, -hf_id, -owp_tw_inchan, -owp_y_inchan, -owp_tw_bf, -owp_y_bf, -owp_dingman_r),
+                    TW           = NA,
+                    DEPTH        = NA, 
+                    DINGMAN_R    = NA,
+                    is_dem_point = TRUE
+                  ),
+                  hy_id, cs_id, pt_id, 
+                  Z, relative_distance, cs_lengthm, class, point_type, 
+                  X, Y, Z_source, bottom, left_bank, right_bank, valid_banks, has_relief, 
+                  TW, DEPTH, DINGMAN_R, is_dem_point
+                )
+              )
   # ----------------------------------------------------------------------------------------------------------------
   # ---- Upload the cross section points parquet to S3 ----
   # ----------------------------------------------------------------------------------------------------------------
