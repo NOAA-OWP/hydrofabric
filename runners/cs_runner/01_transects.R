@@ -115,13 +115,7 @@ for(i in 1:nrow(path_df)) {
     dplyr::mutate(
       cs_source = net_source
     )
-    # dplyr::rename("cs_lengthm" = cs_widths)
   
-  # # add cs_source column and keep just the desired columns to save and upload to S3
-  # transects <- transects %>%
-  #   dplyr::mutate(cs_source = net_source) %>%
-  #   dplyr::select(hy_id, cs_source, cs_id, cs_measure, cs_lengthm = cs_widths, geometry)
-
   # save transects with only columns to be uploaded to S3 (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
   sf::write_sf(
     # save dataset with only subset of columns to upload to S3

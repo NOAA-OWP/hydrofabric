@@ -11,3 +11,6 @@ source("runners/cs_runner/01_transects.R")
 
 # generate and upload cross sections points datasets 
 source("runners/cs_runner/02_cs_pts.R")
+
+# Apply machine learning topwidths and depths estimates to DEM cross section points
+source("runners/cs_runner/02_cs_pts.R")
