@@ -63,6 +63,6 @@ ML_OUTPUTS_PATH <- paste0(base_dir, "/ml-outputs/", ML_OUTPUTS_FILE)
 
 # path to the remote CONUS net parquet file
 CONUS_NETWORK_FILENAME <- "conus_net.parquet"
-CONUS_NETWORK_URI <- paste0(s3_bucket, version_prefix, "/", CONUS_NETWORK_FILENAME)
+CONUS_NETWORK_URI      <- paste0(s3_bucket, version_prefix, "/", CONUS_NETWORK_FILENAME)
 
 ### EDIT ###

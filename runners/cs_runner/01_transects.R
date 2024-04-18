@@ -7,8 +7,6 @@ source("runners/cs_runner/config.R")
 # library(sf)
 # install.packages("devtools")
 
-# devtools::install_github("anguswg-ucsb/hydrofabric3D")
-
 # transect bucket prefix
 transects_prefix <- paste0(s3_bucket, version_prefix, "/3D/transects/")
 
