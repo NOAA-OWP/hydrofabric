@@ -44,7 +44,7 @@ FEMA_BUCKET_KEYS <- system(fema_list_command, intern = TRUE)
 # -------------------------------------------------------------------------------------
 
 # Parse the selected S3 objects keys from the FEMA100 bucket directory copy them to the local destination directory if the file does NOT exist yet
-for (key in FEMA_BUCKET_KEYS[3:length(FEMA_BUCKET_KEYS)]) {
+for (key in FEMA_BUCKET_KEYS[1:length(FEMA_BUCKET_KEYS)]) {
   local_save_path <- paste0(FEMA_FGB_PATH, "/", key)
   
   if(!file.exists(local_save_path)) {
@@ -54,9 +54,11 @@ for (key in FEMA_BUCKET_KEYS[3:length(FEMA_BUCKET_KEYS)]) {
     message("Downloading S3 object to:\n > '", local_save_path, "'")
     # message("Copy command:\n > '", copy_cmd, "'")
     
-    system(copy_cmd)
+    # system(copy_cmd)
     
     message(" > '", key, "' download complete!")
     message("----------------------------------")
+  } else {
+    message("File already exists at:\n > '", local_save_path, "'")
   }
 }
