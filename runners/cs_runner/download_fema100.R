@@ -166,6 +166,7 @@ for (fema_file in FEMA_geojson_paths) {
 
 # paths to FEMA 100 year flood plain files
 FEMA_clean_paths      <- list.files(FEMA_CLEAN_PATH, full.names = TRUE)
+# rmapshaper::ms_explode()
 
 for (fema_file in FEMA_clean_paths) {
   message("Fema 100 year flood plain:\n > '", basename(fema_file), "'")
@@ -181,8 +182,8 @@ for (fema_file in FEMA_clean_paths) {
   # test_file_path <- "/Users/anguswatters/Desktop/lynker-spatial/FEMA100_simplified/Wyoming-100yr-flood_valid_clean.geojson"
   ogr2ogr_command = paste0("ogr2ogr -nlt MULTIPOLYGON ", output_path, " ", fema_file)
   
-  # system(ogr2ogr_command)
-  
+  system(ogr2ogr_command)
+  # message("ogr2ogr: ", ogr2ogr_command)
   message("Saved '", output_gpkg_filename, "' saved to: \n > '", output_path, "'")
   message()
 }
@@ -191,33 +192,37 @@ for (fema_file in FEMA_clean_paths) {
 # # ---- Apply hydrofab::clean_geometries() to cleaned FEMA geometries  ----
 # # -------------------------------------------------------------------------------------
 # 
-# # paths to FEMA 100 year flood plain files
-# FEMA_gpkg_paths      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
-# 
-# for (fema_file in FEMA_gpkg_paths) {
-#   message("Applying final cleaning process to:\n > '", basename(fema_file), "'")
-#   
-#   fema <- sf::read_sf(fema_file)
-#   
-#   fema
-#   
-#   # message("Fema 100 year flood plain:\n > '", fema_file, "'")
-#   output_gpkg_filename <- gsub("_clean.geojson", "_clean.gpkg", basename(fema_file))
-#   output_path <- paste0(FEMA_GPKG_PATH, "/", output_gpkg_filename)
-#   
-#   message("Converting geojson files to gpkg...")
-#   
-#   message("Converting \n > '", fema_file, "' to geojson '", output_gpkg_filename, "'")
-#   
-#   # mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', fema_file, ' -simplify 0.15 visvalingam -o ', output_path)
-#   # test_file_path <- "/Users/anguswatters/Desktop/lynker-spatial/FEMA100_simplified/Wyoming-100yr-flood_valid_clean.geojson"
-#   ogr2ogr_command = paste0("ogr2ogr -nlt MULTIPOLYGON ", output_path, " ", fema_file)
-#   
-#   system(ogr2ogr_command)
-#   
-#   message("Saved '", output_gpkg_filename, "' saved to: \n > '", output_path, "'")
-#   message()
-# }
+# paths to FEMA 100 year flood plain files
+FEMA_gpkg_paths      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
+
+for (fema_file in FEMA_gpkg_paths) {
+  message("Applying final cleaning process to:\n > '", basename(fema_file), "'")
+
+  fema <- 
+    fema_file %>% 
+    sf::read_sf() %>% 
+    sf::st_transform(5070)%>% 
+    dplyr::mutate(
+      fema_id = 1:dplyr::n()
+    ) %>% 
+    dplyr::relocate(fema_id)
+  
+  fema_clean <- hydrofab::clean_geometry(catchments = sf::st_cast(fema, "POLYGON"), ID = "fema_id")
+  # mapview::mapview(fema, col.region = "red") + mapview::mapview(fema_clean, col.region = "green")
+  
+  # message("Fema 100 year flood plain:\n > '", fema_file, "'")
+  # output_gpkg_filename <- gsub("_clean.geojson", "_clean.gpkg", basename(fema_file))
+  # output_path <- paste0(FEMA_GPKG_PATH, "/", output_gpkg_filename)
+
+  message("Applying hydrofab::clean_geometry() \n > '", fema_file)
+  sf::write_sf(
+    fema_clean,
+    fema_file
+  )
+
+  message("Rewritting '", fema_file, "'")
+  message()
+}
 
 # -------------------------------------------------------------------------------------
 # ---- Generate bounding box gpkg for each FEMA FGB ----
