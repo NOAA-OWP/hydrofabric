@@ -25,12 +25,12 @@ FEMA_FGB_PATH <- paste0(base_dir, "/FEMA100")
 FEMA_GEOJSON_PATH    <- paste0(base_dir, "/FEMA100_geojson")
 FEMA_CLEAN_PATH      <- paste0(base_dir, "/FEMA100_clean")
 FEMA_GPKG_PATH       <- paste0(base_dir, "/FEMA100_gpkg")
-FEMA_GPKG_BB_PATH    <- paste0(base_dir, "/FEMA100_bounding_box")
+FEMA_GPKG_BB_PATH    <- paste0(base_dir, "/FEMA100_bounding_box") # TODO: Probably can be deleted too, not sure yet
 
 # TODO: these can be deleted
-FEMA_SIMPLIFIED_PATH <- paste0(base_dir, "/FEMA100_simplified")
-FEMA_DISSOLVED_PATH  <- paste0(base_dir, "/FEMA100_dissolved")
-FEMA_EXPLODED_PATH   <- paste0(base_dir, "/FEMA100_exploded")
+# FEMA_SIMPLIFIED_PATH <- paste0(base_dir, "/FEMA100_simplified")
+# FEMA_DISSOLVED_PATH  <- paste0(base_dir, "/FEMA100_dissolved")
+# FEMA_EXPLODED_PATH   <- paste0(base_dir, "/FEMA100_exploded")
 
 
 # ----------------------------------------------------------------------------

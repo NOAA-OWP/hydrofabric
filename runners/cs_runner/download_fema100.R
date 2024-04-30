@@ -9,7 +9,7 @@ source("runners/cs_runner/config_vars.R")
 # -------------------------------------------------------------------------------------
 # ---- Create FEMA100/ directory and bounding box dir (if it does NOT exist) ----
 # -------------------------------------------------------------------------------------
-# create FEMA FGB directory (if not exists) 
+
 if (!dir.exists(FEMA_FGB_PATH)) {
   message(paste0("FEMA100/ directory does not exist...\nCreating directory:\n > '", FEMA_FGB_PATH, "'"))
   dir.create(FEMA_FGB_PATH)
@@ -57,6 +57,10 @@ if (!dir.exists(FEMA_GPKG_BB_PATH)) {
   dir.create(FEMA_GPKG_BB_PATH)
 }
 
+if (!dir.exists(FEMA_FGB_BB_PATH)) {
+  message(paste0(FEMA_FGB_BB_PATH, " directory does not exist...\nCreating directory:\n > '", FEMA_FGB_BB_PATH, "'"))
+  dir.create(FEMA_FGB_BB_PATH)
+}
 
 # -------------------------------------------------------------------------------------
 # ---- Get list of FEMA FGB files in S3 bucket ----
@@ -91,7 +95,7 @@ FEMA_BUCKET_KEYS <- system(fema_list_command, intern = TRUE)
 # -------------------------------------------------------------------------------------
 
 # Parse the selected S3 objects keys from the FEMA100 bucket directory copy them to the local destination directory if the file does NOT exist yet
-for (key in FEMA_BUCKET_KEYS[1:length(FEMA_BUCKET_KEYS)]) {
+for (key in FEMA_BUCKET_KEYS) {
   local_save_path <- paste0(FEMA_FGB_PATH, "/", key)
   
   if(!file.exists(local_save_path)) {
@@ -109,157 +113,9 @@ for (key in FEMA_BUCKET_KEYS[1:length(FEMA_BUCKET_KEYS)]) {
     message("File already exists at:\n > '", local_save_path, "'")
   }
 }
-# -------------------------------------------------------------------------------------
-# ---- Run ogr2ogr to get FGB files into geojson ----
-# -------------------------------------------------------------------------------------
 
-for (key in FEMA_BUCKET_KEYS) {
-  
-  local_fema_path <- paste0(FEMA_FGB_PATH, "/", key)
-  
-  geojson_filename     <- gsub(".fgb", ".geojson", key)
-  geojson_save_path    <- paste0(FEMA_GEOJSON_PATH, "/", geojson_filename)
-  
-  message("S3 Key: '", key, "'")
-  message("Converting \n > '", key, "' to geojson '", geojson_filename, "'")
-  
-  ogr2ogr_command = paste0("ogr2ogr ", geojson_save_path, " ", local_fema_path)
-  
-  system(ogr2ogr_command)
-  
-  message("Saved '", geojson_filename, "' saved to: \n > '", geojson_save_path, "'")
-  message()
-}  
 
-# -------------------------------------------------------------------------------------
-# ---- Clean FEMA geometries (Simplify, Dissolve, Explode) ----
-# -------------------------------------------------------------------------------------
 
-# paths to FEMA 100 year flood plain files
-FEMA_geojson_paths      <- list.files(FEMA_GEOJSON_PATH, full.names = TRUE)
-# FEMA_BB_paths   <- list.files(FEMA_GPKG_BB_PATH, full.names = TRUE)
-
-for (fema_file in FEMA_geojson_paths) {
-  message("Fema 100 year flood plain:\n > '", basename(fema_file), "'")
-  # message("Fema 100 year flood plain:\n > '", fema_file, "'")
-  output_clean_filename <- gsub(".geojson", "_clean.geojson", basename(fema_file))
-  output_path <- paste0(FEMA_CLEAN_PATH, "/", output_clean_filename)
-  
-  message("Running mapshaper 'simplify', 'dissolve', and 'explode' via CLI...")
-  
-  # mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', fema_file, ' -simplify 0.15 visvalingam -o ', output_path)
-  # test_file_path <- "/Users/anguswatters/Desktop/lynker-spatial/FEMA100_simplified/Wyoming-100yr-flood_valid_clean.geojson"
-  mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', fema_file, 
-                             ' -simplify 0.15 visvalingam \\', 
-                             ' -dissolve \\', 
-                             ' -explode \\', 
-                             ' -o ', output_path
-                             )
-  system(mapshaper_command)
-  message("Mapshaper command: ", mapshaper_command)
-  message()
-}
-
-# -------------------------------------------------------------------------------------
-# ---- Convert cleaned FEMA geometries to geopackages ----
-# -------------------------------------------------------------------------------------
-
-# paths to FEMA 100 year flood plain files
-FEMA_clean_paths      <- list.files(FEMA_CLEAN_PATH, full.names = TRUE)
-# rmapshaper::ms_explode()
-
-for (fema_file in FEMA_clean_paths) {
-  message("Fema 100 year flood plain:\n > '", basename(fema_file), "'")
-  # message("Fema 100 year flood plain:\n > '", fema_file, "'")
-  output_gpkg_filename <- gsub("_clean.geojson", "_clean.gpkg", basename(fema_file))
-  output_path <- paste0(FEMA_GPKG_PATH, "/", output_gpkg_filename)
-  
-  message("Converting geojson files to gpkg...")
-  
-  message("Converting \n > '", fema_file, "' to geojson '", output_gpkg_filename, "'")
-  
-  # mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', fema_file, ' -simplify 0.15 visvalingam -o ', output_path)
-  # test_file_path <- "/Users/anguswatters/Desktop/lynker-spatial/FEMA100_simplified/Wyoming-100yr-flood_valid_clean.geojson"
-  ogr2ogr_command = paste0("ogr2ogr -nlt MULTIPOLYGON ", output_path, " ", fema_file)
-  
-  system(ogr2ogr_command)
-  # message("ogr2ogr: ", ogr2ogr_command)
-  message("Saved '", output_gpkg_filename, "' saved to: \n > '", output_path, "'")
-  message()
-}
-
-# # -------------------------------------------------------------------------------------
-# # ---- Apply hydrofab::clean_geometries() to cleaned FEMA geometries  ----
-# # -------------------------------------------------------------------------------------
-# 
-# paths to FEMA 100 year flood plain files
-FEMA_gpkg_paths      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
-
-for (fema_file in FEMA_gpkg_paths) {
-  message("Applying final cleaning process to:\n > '", basename(fema_file), "'")
-
-  fema <- 
-    fema_file %>% 
-    sf::read_sf() %>% 
-    sf::st_transform(5070)%>% 
-    dplyr::mutate(
-      fema_id = 1:dplyr::n()
-    ) %>% 
-    dplyr::relocate(fema_id)
-  
-  fema_clean <- hydrofab::clean_geometry(catchments = sf::st_cast(fema, "POLYGON"), ID = "fema_id")
-  # mapview::mapview(fema, col.region = "red") + mapview::mapview(fema_clean, col.region = "green")
-  
-  # message("Fema 100 year flood plain:\n > '", fema_file, "'")
-  # output_gpkg_filename <- gsub("_clean.geojson", "_clean.gpkg", basename(fema_file))
-  # output_path <- paste0(FEMA_GPKG_PATH, "/", output_gpkg_filename)
-
-  message("Applying hydrofab::clean_geometry() \n > '", fema_file)
-  sf::write_sf(
-    fema_clean,
-    fema_file
-  )
-
-  message("Rewritting '", fema_file, "'")
-  message()
-}
-
-# -------------------------------------------------------------------------------------
-# ---- Generate bounding box gpkg for each FEMA FGB ----
-# -------------------------------------------------------------------------------------
-
-for (key in FEMA_BUCKET_KEYS) {
- 
-  local_fema_path <- paste0(FEMA_FGB_PATH, "/", key)
-  
-  gpkg_filename   <- gsub(".fgb", "_bb.gpkg", key)
-  bb_save_path    <- paste0(FEMA_GPKG_BB_PATH, "/", gpkg_filename)
-  
-  message("S3 Key: '", key, "'")
-  message("Local FEMA file:\n > '", local_fema_path, "'")
-  message("Local output FEMA bounding box file:\n > '", bb_save_path, "'")
-  
-  # fema <- sf::read_sf(local_fema_path)
-  
-  fema_bb <- 
-    local_fema_path %>% 
-    sf::read_sf() %>% 
-    sf::st_bbox() %>% 
-    sf::st_as_sfc() %>% 
-    sf::st_as_sf() %>% 
-    dplyr::mutate(
-      fema_fgb      = key,
-      fema_fgb_path = local_fema_path,
-      state         = gsub("-100yr-flood_valid.fgb", "", key)
-    ) %>% 
-    dplyr::select(fema_fgb, fema_fgb_path, state, geometry = x) %>% 
-    sf::st_transform(5070)
-  
-  message("Saving FEMA bounding box file:\n > '", bb_save_path, "'")
-  
-  sf::write_sf(fema_bb, bb_save_path)
-  message()
-}  
   
 
 
