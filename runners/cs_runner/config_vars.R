@@ -27,6 +27,18 @@ FEMA_CLEAN_PATH      <- paste0(base_dir, "/FEMA100_clean")
 FEMA_GPKG_PATH       <- paste0(base_dir, "/FEMA100_gpkg")
 FEMA_GPKG_BB_PATH    <- paste0(base_dir, "/FEMA100_bounding_box") # TODO: Probably can be deleted too, not sure yet
 
+FEMA_BY_VPU_PATH     <- paste0(base_dir, "/FEMA_BY_VPU")
+VPU_IDS              <- sf::st_drop_geometry(nhdplusTools::get_boundaries())$VPUID
+
+FEMA_VPU_SUBFOLDERS <- paste0(FEMA_BY_VPU_PATH, "/VPU_", VPU_IDS)
+
+# FEMA_VPU_SUBFOLDERS <- paste0(
+#                         FEMA_BY_VPU_PATH, "/VPU_",
+#                         unlist(
+#                           lapply(list.files(nextgen_dir, full.names = FALSE), function(vpu_file_names) {
+#                             unlist(regmatches(vpu_file_names,  gregexpr("\\d+[A-Za-z]*", vpu_file_names)))})
+#                           )
+#                         )
 # TODO: these can be deleted
 # FEMA_SIMPLIFIED_PATH <- paste0(base_dir, "/FEMA100_simplified")
 # FEMA_DISSOLVED_PATH  <- paste0(base_dir, "/FEMA100_dissolved")

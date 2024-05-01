@@ -13,9 +13,12 @@
 
 # load config variables
 source("runners/cs_runner/config_vars.R")
+source("runners/cs_runner/config.R")
+source("runners/cs_runner/utils.R")
 
 library(dplyr)
 library(sf)
+library(geos)
 
 # -------------------------------------------------------------------------------------
 # ---- OVERWRITE_FEMA_FILES constant logical ----
@@ -47,6 +50,24 @@ if (!dir.exists(FEMA_GPKG_PATH)) {
   message(paste0(FEMA_GPKG_PATH, " directory does not exist...\nCreating directory:\n > '", FEMA_GPKG_PATH, "'"))
   dir.create(FEMA_GPKG_PATH)
 }
+
+# create directory for FEMA geomteries partioned by VPU
+if (!dir.exists(FEMA_BY_VPU_PATH)) {
+  message(paste0(FEMA_BY_VPU_PATH, " directory does not exist...\nCreating directory:\n > '", FEMA_BY_VPU_PATH, "'"))
+  dir.create(FEMA_BY_VPU_PATH)
+}
+
+for (VPU_SUBFOLDER in FEMA_VPU_SUBFOLDERS) {
+  # create directory for FEMA geomteries by VPU
+  if (!dir.exists(VPU_SUBFOLDER)) {
+    message("Creating FEMA VPU subfolder...")
+    message(paste0("'/", basename(VPU_SUBFOLDER), "' directory does not exist...\nCreating directory:\n > '", VPU_SUBFOLDER, "'"))
+    dir.create(VPU_SUBFOLDER)
+  }
+}
+
+# FEMA_VPU_SUBFOLDERS <- paste0(FEMA_BY_VPU_PATH, "/VPU_", VPU_IDS)
+
 
 # create FEMA GPKG Bounding Boxes directory (if not exists)
 if (!dir.exists(FEMA_GPKG_BB_PATH)) {
@@ -211,6 +232,136 @@ for (file_path in FEMA_gpkg_paths) {
   
 }
 
+# # -------------------------------------------------------------------------------------
+# # ---- Partion parts of each FEMA GPKGs to the a Nextgen VPU ---- 
+# # -------------------------------------------------------------------------------------
+
+# Clean FEMA GPKG files
+FEMA_CLEAN_GPKG_PATHS      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
+
+# paths to nextgen datasets and model attribute parquet files
+NEXTGEN_FILENAMES  <- list.files(nextgen_dir, full.names = FALSE)
+NEXTGEN_FILE_PATHS <- paste0(nextgen_dir, NEXTGEN_FILENAMES)
+
+for (file_path in FEMA_CLEAN_GPKG_PATHS) {
+  fema_file <- basename(file_path)
+  message("Partioning FEMA polygons by VPU: \n > FEMA gpkg: '", fema_file, "'")
+  
+  # read in fema polygons
+  fema <- sf::read_sf(file_path)
+  
+  for (nextgen_path in NEXTGEN_FILE_PATHS) {
+    nextgen_basename <- basename(nextgen_path)
+    vpu              <- unlist(regmatches(nextgen_basename, gregexpr("\\d+[A-Za-z]*", nextgen_basename)))
+    
+    message("VPU: ", vpu)   
+    message("- nextgen gpkg:\n > '", nextgen_path, "'")   
+    message(" > Checking if '", fema_file, "' intersects with '", nextgen_basename, "'")
+    
+    # nextgen_path <- NEXTGEN_FILE_PATHS[13]
+    
+    # read in nextgen flowlines 
+    flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
+
+    # get the FEMA polygons that intersect with the nextgen flowlines
+    fema_intersect <- polygons_with_line_intersects(fema, flines)
+
+    fema_in_nextgen <-  nrow(fema_intersect) != 0
+    
+    message("FEMA intersects with nextgen flowlines? ", fema_in_nextgen)
+
+    if(fema_in_nextgen) {
+      
+      # create filepaths
+      vpu_subfolder      <- paste0("VPU_", vpu)
+      vpu_subfolder_path <- paste0(FEMA_BY_VPU_PATH, "/", vpu_subfolder)
+      # vpu_subfolder_path <- FEMA_VPU_SUBFOLDERS[grepl(vpu_subfolder, FEMA_VPU_SUBFOLDERS)]
+      
+      fema_intersect <-
+        fema_intersect %>%
+        dplyr::mutate(
+          vpu = vpu
+        ) %>%
+        dplyr::select(vpu, fema_id, source, state,
+                      areasqkm, geom)
+      
+      # state <- gsub("-100yr-flood_valid_clean.gpkg", "", fema_file)
+
+      fema_vpu_filename <- gsub(".gpkg", paste0("_", vpu, ".gpkg"), fema_file)
+      fema_vpu_path     <- paste0(vpu_subfolder_path, "/", fema_vpu_filename)
+      
+
+      if (OVERWRITE_FEMA_FILES) {
+        message("Writting '", basename(fema_vpu_filename), "' to: \n > '", fema_vpu_path, "'")
+        
+        sf::write_sf(
+          fema_intersect,
+          fema_vpu_path
+        )
+      }
+
+        
+    }
+    message()
+  }
+  
+  
+  message(
+    "--------------------------------------------------------------\n", 
+    "Completed all VPU intersections for: \n > '", fema_file, "'",
+    "\n--------------------------------------------------------------\n"
+    )
+  
+}
+#  
+#   text = "nextgen_03W.gpkg"
+#   VPU <- unlist(regmatches(text, 
+#                         gregexpr("\\d+[A-Za-z]*", text)
+#                         ))
+# 
+#   fema <-
+#     file_path %>%
+#     sf::read_sf() %>%
+#     sf::st_transform(5070) %>%
+#     sf::st_cast("POLYGON") %>%
+#     dplyr::mutate(
+#       fema_id = 1:dplyr::n()
+#     ) %>%
+#     dplyr::select(fema_id, geometry = geom)
+# 
+#   message(" > ", nrow(fema), " POLYGONs")
+#   message("Start time: ", Sys.time())
+# 
+#   fema_clean <- hydrofab::clean_geometry(
+#     catchments = fema,
+#     ID         = "fema_id"
+#     )
+#   
+#   fema_clean <-
+#     fema_clean %>%
+#     dplyr::mutate(
+#       source = basename(file_path),
+#       state  = gsub("-100yr-flood_valid_clean.gpkg", "", source)
+#     ) %>%
+#     dplyr::select(fema_id, source, state, areasqkm, geometry)
+# 
+#   message("End time: ", Sys.time())
+#   
+#   # geom_diff <- sf::st_difference(fema[1, ], fema_clean[1, ])
+#   # mapview::mapview(fema[1, ], col.regions = "red") +
+#   # mapview::mapview(fema_clean[1, ], col.regions = "green") +
+#   # mapview::mapview(geom_diff, col.regions = "white")
+#   
+#   if (OVERWRITE_FEMA_FILES) {
+#     message("Writting '", basename(file_path), "' to: \n > '", file_path, "'")
+#     sf::write_sf(
+#       fema_clean,
+#       file_path
+#     )
+#   }
+#   message()
+#   
+# }
 # -------------------------------------------------------------------------------------
 # ---- Generate bounding box gpkg for each FEMA FGB ----
 # -------------------------------------------------------------------------------------
