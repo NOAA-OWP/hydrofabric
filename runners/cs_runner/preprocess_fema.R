@@ -258,8 +258,6 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
     message("- nextgen gpkg:\n > '", nextgen_path, "'")   
     message(" > Checking if '", fema_file, "' intersects with '", nextgen_basename, "'")
     
-    # nextgen_path <- NEXTGEN_FILE_PATHS[13]
-    
     # read in nextgen flowlines 
     flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
 
@@ -313,55 +311,6 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
     )
   
 }
-#  
-#   text = "nextgen_03W.gpkg"
-#   VPU <- unlist(regmatches(text, 
-#                         gregexpr("\\d+[A-Za-z]*", text)
-#                         ))
-# 
-#   fema <-
-#     file_path %>%
-#     sf::read_sf() %>%
-#     sf::st_transform(5070) %>%
-#     sf::st_cast("POLYGON") %>%
-#     dplyr::mutate(
-#       fema_id = 1:dplyr::n()
-#     ) %>%
-#     dplyr::select(fema_id, geometry = geom)
-# 
-#   message(" > ", nrow(fema), " POLYGONs")
-#   message("Start time: ", Sys.time())
-# 
-#   fema_clean <- hydrofab::clean_geometry(
-#     catchments = fema,
-#     ID         = "fema_id"
-#     )
-#   
-#   fema_clean <-
-#     fema_clean %>%
-#     dplyr::mutate(
-#       source = basename(file_path),
-#       state  = gsub("-100yr-flood_valid_clean.gpkg", "", source)
-#     ) %>%
-#     dplyr::select(fema_id, source, state, areasqkm, geometry)
-# 
-#   message("End time: ", Sys.time())
-#   
-#   # geom_diff <- sf::st_difference(fema[1, ], fema_clean[1, ])
-#   # mapview::mapview(fema[1, ], col.regions = "red") +
-#   # mapview::mapview(fema_clean[1, ], col.regions = "green") +
-#   # mapview::mapview(geom_diff, col.regions = "white")
-#   
-#   if (OVERWRITE_FEMA_FILES) {
-#     message("Writting '", basename(file_path), "' to: \n > '", file_path, "'")
-#     sf::write_sf(
-#       fema_clean,
-#       file_path
-#     )
-#   }
-#   message()
-#   
-# }
 # -------------------------------------------------------------------------------------
 # ---- Generate bounding box gpkg for each FEMA FGB ----
 # -------------------------------------------------------------------------------------

@@ -13,7 +13,6 @@ library(sf)
 
 # cross section bucket prefix
 cs_pts_prefix <- paste0(s3_bucket, version_prefix, "/3D/dem-cross-sections/")
-# cs_pts_prefix <- paste0(s3_bucket, "v20/3D/dem-cross-sections/")
 
 # transect bucket prefix
 transects_prefix <- paste0(s3_bucket, version_prefix, "/3D/transects/")
@@ -48,9 +47,8 @@ path_df <- align_files_by_vpu(
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
-for (i in 13:nrow(path_df)) {
-  
-  # i = 1
+for (i in 1:nrow(path_df)) {
+
   
   start <- Sys.time()
   
@@ -102,8 +100,7 @@ for (i in 13:nrow(path_df)) {
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 1: Extract cs points from DEM ----
   # ----------------------------------------------------------------------------------------------------------------
-  # system.time({
-    
+
   # get cross section point elevations
   cs_pts <- hydrofabric3D::cross_section_pts(
     cs             = transects,
@@ -111,7 +108,7 @@ for (i in 13:nrow(path_df)) {
     min_pts_per_cs = 10,
     dem            = DEM_URL
   )
-  # })
+
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points ----
   # ----------------------------------------------------------------------------------------------------------------
@@ -313,9 +310,7 @@ for (i in 13:nrow(path_df)) {
                   ) %>% 
                     dplyr::select(-cs_id, -tmp_id) %>% 
                     dplyr::rename(cs_id = new_cs_id)
-  
-  ###################################### 
-  
+
   # ----------------------------------------------------------------------------------------------------------------
   # ---- Cross section points parquet to S3 ----
   # ----------------------------------------------------------------------------------------------------------------

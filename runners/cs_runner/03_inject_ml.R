@@ -35,24 +35,12 @@ path_df <- align_files_by_vpu(
 # ML Outputs
 ml_output <- arrow::read_parquet(ML_OUTPUTS_PATH)
 
-# cs_ml_data_path <- "/Users/anguswatters/Desktop/cs_pts_for_ml_tests/nextgen_06_cross_sections_for_ml.parquet"
-# ml_output_path <- "/Users/anguswatters/Desktop/lynker-spatial/ml-outputs/channel_ml_outputs.parquet"
-# conus_network_path <- 's3://lynker-spatial/v20.1/conus_net.parquet'
-
-# for (i in 1:5000) {
-#   start <- Sys.time()
-#   message(i, " - time: '", start, "'")
-# }
-
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
 for (i in 1:nrow(path_df)) {
   
-  # i = 8
-  
   start <- round(Sys.time())
-  
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
@@ -61,10 +49,6 @@ for (i in 1:nrow(path_df)) {
   # model attributes file and full path
   cs_file      <- path_df$y[i]
   cs_pts_path  <- paste0(cs_pts_dir, cs_file)
-  
-  # # model attributes file and full path
-  # ref_file <- path_df$ref_file[i]
-  # ref_path <- paste0(ref_features_dir, "gpkg/", ref_file)
   
   # current VPU being processed
   VPU = path_df$vpu[i]
@@ -141,10 +125,6 @@ for (i in 1:nrow(path_df)) {
   # ---- Subset ML data to specific VPU and add "hy_id" column to ML data -----
   # ----------------------------------------------------------------------------------------------------------------
   
-  
-  # # ML Outputs
-  # ml_output <- arrow::read_parquet(ML_OUTPUTS_PATH)
-  
   # Join hy_id onto the ML outputs and then remove the rows WITHOUT matches in hy_id
   #  this should give us a (nearly) one-to-one cross walk between "hy_id" in the cross section points 
   # and "hf_id" in the ML outputs dataset
@@ -197,9 +177,6 @@ for (i in 1:nrow(path_df)) {
       )
     ) %>% 
     dplyr::select(-bottom_length)
-  
-  # cs_pts %>% dplyr::filter(owp_tw_inchan <= 0 | owp_tw_bf <= 0)
-  # dplyr::left_join( stream_order, by = "hy_id") 
   
   # extract any cross sections that didn't get matched with a "hf_id" and (or?) no ML data
   # TODO: look at this stuff with Arash (04/09/2024)
