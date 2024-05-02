@@ -3,7 +3,6 @@
 # ----------------------------------------------------------------------------
 # ---- General paths and constants variables ----
 # ----------------------------------------------------------------------------
-
 base_dir     <- '/Users/anguswatters/Desktop/lynker-spatial'
 
 # AWS profile to run CLI commands 
@@ -31,7 +30,6 @@ FEMA_BY_VPU_PATH     <- paste0(base_dir, "/FEMA_BY_VPU")
 VPU_IDS              <- sf::st_drop_geometry(nhdplusTools::get_boundaries())$VPUID
 
 FEMA_VPU_SUBFOLDERS <- paste0(FEMA_BY_VPU_PATH, "/VPU_", VPU_IDS)
-
 # FEMA_VPU_SUBFOLDERS <- paste0(
 #                         FEMA_BY_VPU_PATH, "/VPU_",
 #                         unlist(
@@ -39,11 +37,6 @@ FEMA_VPU_SUBFOLDERS <- paste0(FEMA_BY_VPU_PATH, "/VPU_", VPU_IDS)
 #                             unlist(regmatches(vpu_file_names,  gregexpr("\\d+[A-Za-z]*", vpu_file_names)))})
 #                           )
 #                         )
-# TODO: these can be deleted
-# FEMA_SIMPLIFIED_PATH <- paste0(base_dir, "/FEMA100_simplified")
-# FEMA_DISSOLVED_PATH  <- paste0(base_dir, "/FEMA100_dissolved")
-# FEMA_EXPLODED_PATH   <- paste0(base_dir, "/FEMA100_exploded")
-
 
 # ----------------------------------------------------------------------------
 # ---- Cross section point extraction constant variables ----

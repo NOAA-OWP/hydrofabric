@@ -3,12 +3,6 @@ library(dplyr)
 # Generate the flowlines layer for the final cross_sections_<VPU>.gpkg for each VPU
 source("runners/cs_runner/config.R")
 
-# # # # load libraries
-# library(hydrofabric3D)
-# library(dplyr)
-# library(sf)
-# install.packages("devtools")
-
 # transect bucket prefix
 transects_prefix <- paste0(s3_bucket, version_prefix, "/3D/transects/")
 
