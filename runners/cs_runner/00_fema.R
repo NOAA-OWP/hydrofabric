@@ -52,6 +52,7 @@ us_states <-
   
   # read in nextgen data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
+  
   flines_bb <- 
     flines %>% 
     sf::st_bbox() %>% 

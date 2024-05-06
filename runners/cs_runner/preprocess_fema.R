@@ -311,6 +311,50 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
     )
   
 }
+
+# -------------------------------------------------------------------------------------
+# ---- Loop through each VPU subfolder and merge all of the Geopackages into one---- 
+# -------------------------------------------------------------------------------------
+
+DELETE_STAGING_GPKGS <- TRUE
+
+for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
+  
+  message("Merging files in VPU dir '", vpu_dir, "'")
+  fema_vpu_gpkgs <- list.files(vpu_dir, full.names = TRUE)
+  
+  master_name <- paste0("fema_", tolower(basename(vpu_dir)))
+  master_gpkg_name <- paste0(master_name, ".gpkg")
+  
+  for(gpkg_file in fema_vpu_gpkgs) {
+    message("- Appending '", basename(gpkg_file), "' to master FEMA VPU gpkg:\n  >  '", 
+            paste0(vpu_dir, "/", master_gpkg_name), "'")
+    
+    ogr2ogr_merge_command <- paste0("ogr2ogr -f 'gpkg' -append -nln ", master_name, " ",   
+                                    paste0(vpu_dir, "/", master_gpkg_name), 
+                                    " ", gpkg_file
+                                    )
+    
+    if (OVERWRITE_FEMA_FILES) {
+      system(ogr2ogr_merge_command)
+    }
+    
+    if(DELETE_STAGING_GPKGS) {
+      message("Deleting individual gpkgs from\n > '", vpu_dir, "'")
+      
+      files_to_delete <- fema_vpu_gpkgs[!grepl(master_gpkg_name, fema_vpu_gpkgs)]
+      remove_gpkg_cmds <- paste0("rm ", files_to_delete)
+      
+      for (remove_cmd in remove_gpkg_cmds) {
+        message("  >  '", remove_cmd, "'")
+        system(remove_cmd)
+      }
+    }
+    message()
+  }
+   
+}
+
 # -------------------------------------------------------------------------------------
 # ---- Generate bounding box gpkg for each FEMA FGB ----
 # -------------------------------------------------------------------------------------
