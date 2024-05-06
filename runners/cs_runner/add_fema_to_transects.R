@@ -59,12 +59,87 @@ us_states <-
   
   FEMA_vpu_dir <- FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", VPU), basename(FEMA_VPU_SUBFOLDERS))]
   
-  list.files(FEMA_vpu_dir)
+  vpu_fema_file <- list.files(FEMA_vpu_dir, full.names = TRUE)
   
+  FEMA_vpu_dir
   VPU
   
-  fema <- sf::read_sf()
+  fema <- sf::read_sf(vpu_fema_file)
+    
+   
+  transects <- sf::read_sf(transect_path)
+  
+  transects_geos <- geos::as_geos_geometry(transects)
+  
+  fema_geos <- geos::as_geos_geometry(fema)     
+
+  
+  fema_geos  
+  fema_transects_matrix <- geos::geos_intersects_matrix(transects_geos, fema_geos) 
+  transects_fema_matrix <- geos::geos_intersects_matrix(fema_geos, transects_geos) 
+  
+  fema_transects_matrix
+  # get the polygons that have atleast 1 intersection with the 'lines'
+  transects_with_fema <- transects[lengths(fema_transects_matrix) != 0, ]
+  fema_with_transects <- fema[lengths(transects_fema_matrix) != 0, ]
+  
+  lengths(transects_fema_matrix)
+  mapview::mapview(transects_with_fema, color = "green") + fema_with_transects
+  unique(hydrofabric3D::add_tmp_id(transects)$tmp_id)[1:30]
+  transects  %>% 
+    hydrofabric3D::add_tmp_id(transects) %>% 
+    .$tmp_id %>% 
+    unique() %>% .[1:30]
+  trans_subset <- 
+    transects %>% 
+    hydrofabric3D::add_tmp_id() %>% 
+    dplyr::filter(tmp_id %in%  unique(hydrofabric3D::add_tmp_id(transects)$tmp_id)[1:30])
+  
+  fema_subset <- 
+    fema %>% 
+    dplyr::filter(fema_id == "1268")
+
+  extended <- hydrofabric3D:::extend_by_length(trans_subset,    rep(500, nrow(trans_subset)))
+  extended
+  clipped_trans <- rmapshaper::ms_clip(extended, fema)
+  
+  rmapshaper::ms_clip(extended, fema_subset)
+  mapview::mapview(trans_subset, color = "red") + 
+    mapview::mapview(extended, color = "yellow") +
+    # mapview::mapview(  sf::st_difference(extended, fema_subset), color = "green") +
+    mapview::mapview(clipped_trans,  color = "green") +
+    fema 
+  
+   rep(50, nrow(trans_subset))
+  extended <- hydrofabric3D:::extend_by_length(trans_subset,    rep(50, nrow(trans_subset)))
   
   
+  hydrofabric3D::geos_extend_line(trans_subset, 50) %>% 
+    sf::st_as_sf() %>% mapview::mapview()
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+ 
+  
+  
+       
+  
+     
+  
+     
+  
+     
+  
+    
   
     
