@@ -59,11 +59,32 @@ if (!dir.exists(FEMA_BY_VPU_PATH)) {
 
 for (VPU_SUBFOLDER in FEMA_VPU_SUBFOLDERS) {
   # create directory for FEMA geomteries by VPU
+  # message(VPU_SUBFOLDER)
+  
+  state_dir  = paste0(VPU_SUBFOLDER, "/states/")
+  merged_dir = paste0(VPU_SUBFOLDER, "/merged/")
+  
   if (!dir.exists(VPU_SUBFOLDER)) {
     message("Creating FEMA VPU subfolder...")
-    message(paste0("'/", basename(VPU_SUBFOLDER), "' directory does not exist...\nCreating directory:\n > '", VPU_SUBFOLDER, "'"))
+    message(paste0("'/", basename(VPU_SUBFOLDER), "' directory does not exist...\n  Creating directory:\n > '", VPU_SUBFOLDER, "'"))
     dir.create(VPU_SUBFOLDER)
   }
+  
+  if (!dir.exists(state_dir)) { 
+      message("Creating FEMA VPU states subfolder...")
+      message(paste0("'/", basename(state_dir), "' directory does not exist...\n  Creating directory:\n > '", state_dir, "'"))
+      
+      dir.create(state_dir)
+     
+     }
+  
+  if (!dir.exists(merged_dir)) { 
+    message("Creating FEMA VPU merged subfolder...")
+    message(paste0("'/", basename(merged_dir), "' directory does not exist...\n  Creating directory:\n > '", merged_dir, "'"))
+    
+    dir.create(merged_dir)
+    
+    }
 }
 
 # FEMA_VPU_SUBFOLDERS <- paste0(FEMA_BY_VPU_PATH, "/VPU_", VPU_IDS)
@@ -242,6 +263,7 @@ FEMA_CLEAN_GPKG_PATHS      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
 # paths to nextgen datasets and model attribute parquet files
 NEXTGEN_FILENAMES  <- list.files(nextgen_dir, full.names = FALSE)
 NEXTGEN_FILE_PATHS <- paste0(nextgen_dir, NEXTGEN_FILENAMES)
+# OVERWRITE_FEMA_FILES
 
 for (file_path in FEMA_CLEAN_GPKG_PATHS) {
   fema_file <- basename(file_path)
@@ -272,7 +294,7 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
       
       # create filepaths
       vpu_subfolder      <- paste0("VPU_", vpu)
-      vpu_subfolder_path <- paste0(FEMA_BY_VPU_PATH, "/", vpu_subfolder)
+      vpu_subfolder_path <- paste0(FEMA_BY_VPU_PATH, "/", vpu_subfolder, "/states")
       # vpu_subfolder_path <- FEMA_VPU_SUBFOLDERS[grepl(vpu_subfolder, FEMA_VPU_SUBFOLDERS)]
       
       fema_intersect <-
@@ -316,43 +338,62 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
 # ---- Loop through each VPU subfolder and merge all of the Geopackages into one---- 
 # -------------------------------------------------------------------------------------
 
-DELETE_STAGING_GPKGS <- TRUE
+DELETE_STAGING_GPKGS <- FALSE 
+
+# FEMA_VPU_SUBFOLDERS
 
 for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
+  message("Merging files in '", basename(vpu_dir), "' directory...")
   
-  message("Merging files in VPU dir '", vpu_dir, "'")
-  fema_vpu_gpkgs <- list.files(vpu_dir, full.names = TRUE)
+  # vpu_dir <- '/Users/anguswatters/Desktop/lynker-spatial/FEMA_BY_VPU/VPU_06'
+  vpu_subdirs    <- list.files(vpu_dir, full.names = TRUE)
   
-  master_name <- paste0("fema_", tolower(basename(vpu_dir)))
+  states_dir <- vpu_subdirs[grepl(paste0(vpu_dir, "/states"), vpu_subdirs)]
+  merged_dir <- vpu_subdirs[grepl(paste0(vpu_dir, "/merged"), vpu_subdirs)]
+  
+  # fema state geopackages partioned for the specific VPU
+  fema_state_gpkgs <- list.files(states_dir, full.names = TRUE)
+  
+  master_name      <- paste0("fema_", gsub("VPU", "vpu", basename(vpu_dir)))
   master_gpkg_name <- paste0(master_name, ".gpkg")
   
-  for(gpkg_file in fema_vpu_gpkgs) {
-    message("- Appending '", basename(gpkg_file), "' to master FEMA VPU gpkg:\n  >  '", 
-            paste0(vpu_dir, "/", master_gpkg_name), "'")
+  # path to the merged directory where the final merged geopackge will end up
+  master_filepath  <- paste0(merged_dir, "/", master_gpkg_name)
+  
+  for(gpkg_file in fema_state_gpkgs) {
+    # message(" - Appending '", basename(gpkg_file), "' to master FEMA VPU gpkg:\n  >  '", 
+    #         basename(gpkg_file), " > ", basename(master_filepath), 
+    #         "'")
+    message(" > '", 
+            basename(gpkg_file), " > ", basename(master_filepath), 
+            "'")
     
     ogr2ogr_merge_command <- paste0("ogr2ogr -f 'gpkg' -append -nln ", master_name, " ",   
-                                    paste0(vpu_dir, "/", master_gpkg_name), 
+                                    master_filepath, 
                                     " ", gpkg_file
                                     )
     
     if (OVERWRITE_FEMA_FILES) {
       system(ogr2ogr_merge_command)
     }
-    
-    if(DELETE_STAGING_GPKGS) {
-      message("Deleting individual gpkgs from\n > '", vpu_dir, "'")
-      
-      files_to_delete <- fema_vpu_gpkgs[!grepl(master_gpkg_name, fema_vpu_gpkgs)]
-      remove_gpkg_cmds <- paste0("rm ", files_to_delete)
-      
-      for (remove_cmd in remove_gpkg_cmds) {
-        message("  >  '", remove_cmd, "'")
-        system(remove_cmd)
-      }
-    }
-    message()
   }
-   
+  
+  if(DELETE_STAGING_GPKGS) {
+    message(" - Deleting individual gpkgs from '/states' directory...")
+    # message("- Deleting individual gpkgs from 'states' directory:\n > '", states_dir, "'")
+    
+    remove_gpkg_cmds <- paste0("rm ", fema_state_gpkgs)
+    
+    for (remove_cmd in remove_gpkg_cmds) {
+      message("  >  '", remove_cmd, "'")
+      system(remove_cmd)
+    }
+  }
+  
+  # message()
+  message("Merge complete!")
+  message("Merged '", basename(vpu_dir), "' FEMA output geopackage:\n --> '", master_filepath, "'")
+  message()
 }
 
 # -------------------------------------------------------------------------------------

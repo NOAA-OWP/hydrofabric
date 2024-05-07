@@ -80,6 +80,23 @@ us_states <-
   
   fema_transects_matrix
   # get the polygons that have atleast 1 intersection with the 'lines'
+  fema_transects_matrix[[557]]
+  fema_tmp <- fema[fema_transects_matrix[[557]], ]
+  trans_tmp <- transects[557, ]
+  
+ fema_dissolve <-  rmapshaper::ms_dissolve(fema_tmp)
+ fema_simple <- rmapshaper::ms_simplify(fema_tmp, keep = 1) %>% 
+   # rmapshaper::ms_dissolve(field = "state")
+ sf::st_union()
+  mapview::mapview(trans_tmp, color = "green") + 
+    mapview::mapview(fema_tmp[1, ], col.region = "red") + 
+    mapview::mapview(fema_tmp[2, ],  col.region = "dodgerblue") + 
+    mapview::mapview(fema_simple,  col.region = "yellow")
+  transects
+  
+  
+  fema_transects_matrix
+  
   transects_with_fema <- transects[lengths(fema_transects_matrix) != 0, ]
   fema_with_transects <- fema[lengths(transects_fema_matrix) != 0, ]
   
