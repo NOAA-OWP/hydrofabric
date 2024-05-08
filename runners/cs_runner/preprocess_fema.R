@@ -342,8 +342,12 @@ DELETE_STAGING_GPKGS <- FALSE
 
 # FEMA_VPU_SUBFOLDERS
 
-for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
+# for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
+for (i in 1:4) {
+  vpu_dir = FEMA_VPU_SUBFOLDERS[i]
   message("Merging files in '", basename(vpu_dir), "' directory...")
+  
+# }
   
   # vpu_dir <- '/Users/anguswatters/Desktop/lynker-spatial/FEMA_BY_VPU/VPU_06'
   vpu_subdirs    <- list.files(vpu_dir, full.names = TRUE)
@@ -393,6 +397,76 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
   # message()
   message("Merge complete!")
   message("Merged '", basename(vpu_dir), "' FEMA output geopackage:\n --> '", master_filepath, "'")
+  message()
+}
+
+# -------------------------------------------------------------------------------------
+# ---- Union each VPU geopackage (either on state or just touching predicate) ---- 
+# -------------------------------------------------------------------------------------
+
+MERGED_DIRS <- paste0(FEMA_VPU_SUBFOLDERS, "/merged")
+
+for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
+  vpu_dir = FEMA_VPU_SUBFOLDERS[i]
+  
+  VPU        <- basename(vpu_dir)
+  
+  message("Attempting to union FEMA polygons for '", VPU, "'...")
+  merged_dir <- paste0(vpu_dir, "/merged")
+  fema_vpu_file <- list.files(merged_dir, full.names = TRUE)
+  
+  has_fema_vpu_file <- ifelse(length(fema_vpu_file) > 0, TRUE, FALSE)
+  # message()
+  # fema_vpu_file
+# }
+  if(!has_fema_vpu_file) { 
+    message("No FEMA geometries in '", VPU, "'")
+    message()
+    next
+  }
+
+  message("> Re-unioning and re-exploding geometries in '", basename(fema_vpu_file), "'")
+  
+  fema_vpu_file <- fema_vpu_file[!grepl("_union.gpkg", fema_vpu_file)]
+
+  fema_vpu <- sf::read_sf(fema_vpu_file)
+
+  # fema_ids <- c(695)
+  # fema_vpu <-
+  #   fema_vpu %>%
+  #   dplyr::group_by(source) %>%
+  #   dplyr::summarise()  %>%
+  #   dplyr::ungroup()
+  
+  # 2633 = old number of polygons
+  fema_vpu  <- rmapshaper::ms_dissolve(fema_vpu,
+                                       field = "source",
+                                       sys = TRUE,
+                                       sys_mem = 16
+                                       )
+  fema_vpu  <- rmapshaper::ms_explode(fema_vpu,     
+                                      sys = TRUE,
+                                      sys_mem = 16)
+
+  fema_vpu <-
+    fema_vpu %>%
+    dplyr::group_by(source) %>%
+    dplyr::mutate(
+      state    = tolower(gsub("-100yr-flood_valid_clean.gpkg", "", source)),
+      vpu      = gsub("VPU_", "", VPU),
+      fema_id  = paste0(state, "_", 1:dplyr::n())
+      ) %>%
+    dplyr::ungroup() %>%
+    dplyr::relocate(vpu, fema_id, source, state, geom)
+  
+  if (OVERWRITE_FEMA_FILES) {
+    union_file_path <- gsub(".gpkg", "_union.gpkg", fema_vpu_file)
+    message("> Writting '", basename(union_file_path), "' (unioned and exploded version)")
+    sf::write_sf(
+      fema_vpu,
+      union_file_path
+      )
+  }
   message()
 }
 
