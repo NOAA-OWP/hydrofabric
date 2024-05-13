@@ -1,0 +1,55 @@
+---
+title: "Prerequisite"
+description: |
+  "NOAA's Enterprise Hydrofabric System"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+
+author:
+  - name: "Arash Modaresi Rad"
+    url: https://github.com/arashmodrad 
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "100%", message = TRUE)
+```
+
+# Background
+
+Last year, we unveiled the groundbreaking concept of a [hydrofabric](https://noaa-owp.github.io/hydrofabric/articles/01-intro-deep-dive.html), representing the bedrock of NextGen operations. This foundational data structure encapsulates the intricate landscape and flow network discretizations, the essential connectivity of network features, and the pivotal reporting locations known as nexus points.
+
+## Key Highlights
+1. Introduction of a sophisticated software package designed specifically for working with hydrofabrics.
+2. Comprehensive overview of the system's intricate design, meticulously crafted to meet the demands of NextGen operations.
+3. In-depth exploration of two primary [network manipulation processes](https://noaa-owp.github.io/hydrofabric/articles/03-processing-deep-dive.html): refactoring and aggregating, essential for optimizing data utilization.
+4. Unveiling of the fundamental data model meticulously tailored for hydrofabric applications, ensuring efficiency and accuracy.
+5. Demonstrations showcasing the seamless [extraction of data subsets](https://noaa-owp.github.io/hydrofabric/articles/05-subsetting.html) to meet diverse analytical needs.
+6. Optional coverage on accessing and harnessing landscape characteristics, enriching the modeling process.
+7. Emphasis on the [NextGen Hydrofabric Data Model](https://noaa-owp.github.io/hydrofabric/articles/04-data-model-deep-dive.html), a pinnacle of precision and efficiency, catering to modeling, subsetting, cross walking, and indexing needs.
+8. Adapting the design philosophy from the esteemed OGC [HY Feature conceptual model](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) report, with bespoke modifications tailored for NextGen applications.
+9. Illumination on the current data model, featuring seven spatial and two a-spatial layers, with plans underway for an eighth layer dedicated to water bodies, affirming the robustness of the geopackage model.
+
+In conclusion, the development of the NextGen Hydrofabric represents a collaborative venture between the USGS Water Mission Area, the NOAA Office of Water Prediction, and Lynker. This innovative system addresses the crucial need for a single reference system to serve diverse modeling applications. Analogous to a coordinate reference system (CRS), the reference fabric provides maximum feature set compatibility across interconnected models. Furthermore, it facilitates persistent identification (PID) for durable data integration and model interoperability, essential for effective decision-making in hydrological modeling and prediction.
+
+# 2023 CIROH Developers Conference
+
+
+# Lynker spatial
+
+
+# Hfsubset 
+
+# R, Rstudio, hydrofabric library
+- mac, linux
+- windows
+
+# QGIS
+ 
+ 
