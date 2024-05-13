@@ -16,12 +16,10 @@ author:
     affiliation_url: https://lynker.com
 output: distill::distill_article
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, out.width = "100%", message = TRUE)
 ```
-
-# Background
+# 2023 CIROH Developers Conference
 
 Last year, we unveiled the groundbreaking concept of a [hydrofabric](https://noaa-owp.github.io/hydrofabric/articles/01-intro-deep-dive.html), representing the bedrock of NextGen operations. This foundational data structure encapsulates the intricate landscape and flow network discretizations, the essential connectivity of network features, and the pivotal reporting locations known as nexus points.
 
@@ -36,10 +34,11 @@ Last year, we unveiled the groundbreaking concept of a [hydrofabric](https://noa
 8. Adapting the design philosophy from the esteemed OGC [HY Feature conceptual model](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) report, with bespoke modifications tailored for NextGen applications.
 9. Illumination on the current data model, featuring seven spatial and two a-spatial layers, with plans underway for an eighth layer dedicated to water bodies, affirming the robustness of the geopackage model.
 
+```{r, echo = FALSE}
+knitr::include_graphics("../man/figures/hydrofabric.png")
+```
+
 In conclusion, the development of the NextGen Hydrofabric represents a collaborative venture between the USGS Water Mission Area, the NOAA Office of Water Prediction, and Lynker. This innovative system addresses the crucial need for a single reference system to serve diverse modeling applications. Analogous to a coordinate reference system (CRS), the reference fabric provides maximum feature set compatibility across interconnected models. Furthermore, it facilitates persistent identification (PID) for durable data integration and model interoperability, essential for effective decision-making in hydrological modeling and prediction.
-
-# 2023 CIROH Developers Conference
-
 
 # Lynker spatial
 
@@ -47,8 +46,54 @@ In conclusion, the development of the NextGen Hydrofabric represents a collabora
 # Hfsubset 
 
 # R, Rstudio, hydrofabric library
-- mac, linux
-- windows
+
+To utilize the developed hydrofabric, you'll need R, which can be installed on macOS, windows and Linux. Once installed, you can enhance your workflow by adding RStudio, a user-friendly interface for R projects. With these tools, you will be able to effectively analyze hydrofabric data for scientific research and decision-making in hydrological modeling and prediction.
+
+## macOS
+### Step 1: Installing R
+
+```{shell}
+# Download and install R for macOS
+curl -o R-4.4.0-arm64.pkg https://cloud.r-project.org/bin/macosx/big-sur-arm64/base/R-4.4.0-arm64.pkg
+open R-4.4.0-arm64.pkg
+```
+
+### Step 2: Installing RStudio
+
+```{shell}
+# Download and install RStudio
+curl -o RStudio.dmg https://download1.rstudio.org/electron/macos/RStudio-2024.04.1-748.dmg
+open RStudio.dmg
+```
+
+## Linux
+### Step 1: Installing R
+
+```{shell}
+# Download and install R for Ubuntu
+# update indices
+sudo apt update -qq
+# install two helper packages we need
+sudo apt install --no-install-recommends software-properties-common dirmngr
+# add the signing key (by Michael Rutter) for these repos
+# To verify key, run gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc 
+# Fingerprint: E298A3A825C0D65DFD57CBB651716619E084DAB9
+wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+# add the R 4.0 repo from CRAN -- adjust 'focal' to 'groovy' or 'bionic' as needed
+sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+```
+
+### Step 2: Installing RStudio
+
+```{shell}
+# Download and install RStudio
+curl -o RStudio.dmg https://download1.rstudio.org/electron/jammy/amd64/rstudio-2024.04.1-748-amd64.deb
+open RStudio.dmg
+```
+
+
+## Windows
+
 
 # QGIS
  
