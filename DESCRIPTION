@@ -1,53 +1,50 @@
 Package: hydrofabric
+Type: Package
 Title: Easily Install and Load 'hydrofabric' tools
-Version: 0.0.8
+Description: The 'hydrofabric' meta package loads a set of packages that work in harmony to complete hydroscience tasks. 
+Version: 0.0.9
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
              role = c("aut", "cre"),
-             email = "mikecp11@gmail.com"),
+             email = "jjohnson@lynker.com"),
       person("NOAA", role = c("fnd")),
       person("USGS", role = c("fnd")),
       person("Lynker", role = c("fnd")))
-Description: The 'hydrofabric' meta package is a set of packages that work in harmony
-    to complete hydrofabric and hydroscience tasks. 
-License: MIT + file LICENSE
-URL: https://github.com/NOAA-OWP/hydrofabric
+Maintainer: Mike Johnson <jjohnson@lynker.com>
 BugReports: https://github.com/NOAA-OWP/hydrofabric
+URL: https://github.com/NOAA-OWP/hydrofabric
 Depends: 
-    R (>= 3.5)
+    R (>= 4.2)
 Imports: 
-    cli (>= 2.4.0),
     arrow,
     aws.s3,
+    cli (>= 3.6.1),
+    climateR,
     crayon (>= 1.4.1),
-    dplyr,
     DBI,
+    dplyr,
+    glue,
+    hydrofab,
+    magrittr,
+    nhdplusTools,
+    purrr,
+    rstudioapi,
     RSQLite,
     sf,
     terra,
-    glue,
-    rstudioapi,
-    nhdplusTools,
-    hydrofab,
-    ngen.hydrofab,
-    zonal,
-    climateR,
-    purrr,
-    magrittr
-Remotes: 
-    mikejohnson51/hydrofabric3D,
-    mikejohnson51/hydrofab,
-    mikejohnson51/ngen.hydrofab,
-    mikejohnson51/zonal,
-    mikejohnson51/climateR
+    zonal
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.1
 Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
-VignetteBuilder: 
-    knitr
-Encoding: UTF-8
-RoxygenNote: 7.2.3
-LazyData: true
+Remotes: 
+    mikejohnson51/hydrofab,
+    mikejohnson51/zonal,
+    mikejohnson51/climateR
 Config/testthat/edition: 3
+VignetteBuilder: knitr

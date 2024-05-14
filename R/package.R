@@ -1,15 +1,36 @@
-#' @import climateR
+#' @keywords internal
+"_PACKAGE"
+
+#' Hydrofabric Data Model
+#' @family catalog
+
+"hf_dm"
+
+NULL
+
+#' @importFrom DBI dbConnect dbDisconnect
+#' @importFrom RSQLite SQLite
+#' @importFrom aws.s3 get_bucket_df save_object
+#' @importFrom arrow read_parquet write_parquet open_dataset
+#' @importFrom glue glue
+
+#' @rawNamespace import(climateR, except = c(plot))
+#' @rawNamespace import(dplyr, except = c(intersect, union))
 #' @import hydrofab
 #' @import ngen.hydrofab
 #' @import nhdplusTools
 #' @import zonal
-#' @rawNamespace import(dplyr, except = c(intersect, union))
-#' @rawNamespace import(glue, except = trim)
 #' @import terra
 #' @import sf
-#' @importFrom DBI dbConnect dbDisconnect
-#' @importFrom RSQLite SQLite
-#' @importFrom arrow open_dataset
-#' @importFrom aws.s3 get_bucket_df save_object
 
-NULL
+#' @export
+arrow::read_parquet
+
+#' @export
+arrow::write_parquet
+
+#' @export
+arrow::open_dataset
+
+#' @export
+glue::glue

@@ -11,11 +11,11 @@ subset_network(
   nldi_feature = NULL,
   xy = NULL,
   bbox = NULL,
-  base_s3 = "s3://lynker-spatial/v20/",
+  base_s3 = "s3://lynker-spatial/v20.1/",
   base_dir = NULL,
   lyrs = c("divides", "nexus", "flowpaths", "network", "hydrolocations",
-    "reference_flowline", "reference_catchment", "refactored_flowpaths",
-    "refactored_divides"),
+    "flowpath_attributes", "reference_flowline", "reference_catchment",
+    "refactored_flowpaths", "refactored_divides"),
   areasqkm = NULL,
   pathlengthkm = NULL,
   ms_pathlengthkm = NULL,
@@ -26,16 +26,6 @@ subset_network(
 )
 }
 \arguments{
-\item{id}{hydrofabric id (relevant only to nextgen fabrics)}
-
-\item{comid}{NHDPlusV2 COMID}
-
-\item{hl_uri}{hydrolocation URI (relevant only to nextgen fabrics)}
-
-\item{nldi_feature}{list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.}
-
-\item{xy}{Location given as vector of XY in CRS 4326 (long, lat)}
-
 \item{bbox}{a numeric vector of length four, with xmin, ymin, xmax and ymax values}
 
 \item{base_s3}{the base hydrofabric directory to access in Lynker's s3}

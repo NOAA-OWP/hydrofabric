@@ -1,29 +1,46 @@
-ls_env <- function(env) { ls(pos = env) }
+ls_env <- function(env) {
+  x <- ls(pos = env)
+  
+  # intersect, setdiff, setequal, union come from generics
+  if (env %in% c("package:dplyr", "package:lubridate")) {
+    x <- setdiff(x, c("intersect", "setdiff", "setequal", "union"))
+  }
+  
+  if (env == "package:lubridate") {
+    x <- setdiff(x, c(
+      "as.difftime", # lubridate makes into an S4 generic
+      "date"         # matches base behaviour
+    ))
+  }
+  
+  x
+}
 
 #' Conflicts between the hydrofabric and other packages
 #'
 #' This function lists all the conflicts between packages in the hydrofabric
 #' and other packages that you have loaded.
 #'
-#' There are four conflicts that are deliberately ignored: \code{intersect},
-#' \code{union}, \code{setequal}, and \code{setdiff} from dplyr. These functions
-#' make the base equivalents generic, so shouldn't negatively affect any
-#' existing code.
-#'
 #' @export
 #' @examples
 #' hydrofabric_conflicts()
 
-hydrofabric_conflicts <- function() {
+hydrofabric_conflicts <- function(only = NULL) {
   
   envs <- grep("^package:", base::search(), value = TRUE)
   envs <- purrr::set_names(envs)
+  
+  if (!is.null(only)) {
+    only <- union(only, core)
+    envs <- envs[names(envs) %in% paste0("package:", only)]
+  }
+  
   objs <- invert(lapply(envs, ls_env))
   
   conflicts <- purrr::keep(objs, ~ length(.x) > 1)
   
-  tidy_names <- paste0("package:", hydrofabric_packages())
-  tidy_names = tidy_names[tidy_names != "package:hydrofabric"]
+  tidy_names <- paste0("package:", hydrofabric_packages(include_self = FALSE))
+  #tidy_names = tidy_names[tidy_names != "package:hydrofabric"]
   conflicts <- purrr::keep(conflicts, ~ any(.x %in% tidy_names))
 
   
@@ -46,6 +63,8 @@ hydrofabric_conflicts <- function() {
   
   structure(c, class = "hydrofabric_conflicts")
 }
+
+
 
 hydrofabric_conflict_message <- function(x) {
   if (length(x) == 0) return("")
@@ -76,6 +95,7 @@ hydrofabric_conflict_message <- function(x) {
 #' @export
 print.hydrofabric_conflicts <- function(x, ..., startup = FALSE) {
   cli::cat_line(hydrofabric_conflict_message(x))
+  invisible(x)
 }
 
 #' @importFrom magrittr %>%

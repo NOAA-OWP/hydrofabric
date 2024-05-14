@@ -4,17 +4,11 @@
 \alias{hydrofabric_conflicts}
 \title{Conflicts between the hydrofabric and other packages}
 \usage{
-hydrofabric_conflicts()
+hydrofabric_conflicts(only = NULL)
 }
 \description{
 This function lists all the conflicts between packages in the hydrofabric
 and other packages that you have loaded.
-}
-\details{
-There are four conflicts that are deliberately ignored: \code{intersect},
-\code{union}, \code{setequal}, and \code{setdiff} from dplyr. These functions
-make the base equivalents generic, so shouldn't negatively affect any
-existing code.
 }
 \examples{
 hydrofabric_conflicts()

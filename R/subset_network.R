@@ -1,85 +1,14 @@
+#' @title Is URL
+#' @description Identifies if a character string is a URL by searching 
+#' for www, http, or https
+#' @param x character string
+#' @return boolean
+#' @export
+
 is.url <- function(x) {
   grepl("www.|http:|https:", x)
 }
 
-read_qml = function (qml_file)  {
-  paste(readLines(qml_file), collapse = "\n")
-}
-
-create_style_row = function (gpkg_path,
-                             layer_name,
-                             style_name,
-                             style_qml) {
-  geom_col <-
-    sf::st_read(
-      gpkg_path,
-      query = paste0(
-        "SELECT column_name from gpkg_geometry_columns ",
-        "WHERE table_name = '",
-        layer_name,
-        "'"
-      ),
-      quiet = TRUE
-    )[1,
-      1]
-  data.frame(
-    f_table_catalog = "",
-    f_table_schema = "",
-    f_table_name = layer_name,
-    f_geometry_column = geom_col,
-    styleName = style_name,
-    styleQML = style_qml,
-    styleSLD = "",
-    useAsDefault = TRUE,
-    description = "Generated for hydrofabric",
-    owner = "",
-    ui = NA,
-    update_time = Sys.time()
-  )
-}
-
-append_style = function (gpkg_path,
-                         qml_dir = system.file("qml", package = "hydrofabric"),
-                         layer_names) {
-  f = list.files(qml_dir, full.names = TRUE)
-  
-  good_layers = gsub(".qml", "", basename(f))
-  
-  layer_names = layer_names[layer_names %in% good_layers]
-  
-  files = grep(paste(layer_names, collapse = "|"), f, value = TRUE)
-  
-  styles <- sapply(files, read_qml)
-  style_names <-
-    sapply(layer_names, paste0, "__hydrofabric_style")
-  style_rows <-
-    do.call(
-      rbind,
-      mapply(
-        create_style_row,
-        layer_names,
-        style_names,
-        styles,
-        MoreArgs = list(gpkg_path = gpkg_path),
-        SIMPLIFY = FALSE
-      )
-    )
-  if ("layer_styles" %in% sf::st_layers(gpkg_path)$name) {
-    try(sf::st_delete(gpkg_path, "layer_styles"), silent = TRUE)
-  }
-  
-  if(!is.null(style_rows)){
-    sf::st_write(
-      style_rows,
-      gpkg_path,
-      layer = "layer_styles",
-      append = FALSE,
-      quiet = TRUE
-    )
-  }
-
-  return(gpkg_path)
-}
 
 #' Access Hydrofabric Network
 #' @param VPU Vector Processing Unit
@@ -132,11 +61,7 @@ get_fabric = function(VPU,
 }
 
 #' Subset Hydrofabric Network
-#' @param id hydrofabric id (relevant only to nextgen fabrics)
-#' @param comid NHDPlusV2 COMID
-#' @param hl_uri hydrolocation URI (relevant only to nextgen fabrics)
-#' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'.
-#' @param xy Location given as vector of XY in CRS 4326 (long, lat)
+#' @inheritParams input_to_ref
 #' @param bbox a numeric vector of length four, with xmin, ymin, xmax and ymax values
 #' @param base_s3 the base hydrofabric directory to access in Lynker's s3
 #' @param base_dir the base hydrofabric directory
@@ -198,7 +123,7 @@ subset_network = function(id = NULL,
         net = filter(base, base == "conus_net.parquet") %>%
           dplyr::pull(file) %>%
           arrow::open_dataset() |>
-          dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
+          dplyr::select(id, toid, divide_id, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
           dplyr::collect() |>
           dplyr::distinct()
       } else {
@@ -207,7 +132,7 @@ subset_network = function(id = NULL,
     } else {
       net = tryCatch({
         arrow::open_dataset(glue::glue(base_s3, "conus_net.parquet")) |>
-          dplyr::select(id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
+          dplyr::select(id, divide_id, toid, hf_id, hl_uri, hf_hydroseq, hydroseq, vpu) |>
           dplyr::distinct() |>
           dplyr::collect() 
           
@@ -216,9 +141,8 @@ subset_network = function(id = NULL,
       })
     }
     
-    
     if (!is.null(id) & !is.null(net)) {
-      comid = dplyr::filter(net, id == !!id | toid == !!id) |>
+      comid = dplyr::filter(net, id == !!id | toid == !!id | divide_id == !!id) |>
         dplyr::slice_max(hf_hydroseq) |>
         dplyr::pull(hf_id) |>
         unique()

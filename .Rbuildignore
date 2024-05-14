@@ -10,6 +10,7 @@ Dockerfile
 ^pkgdown$
 dead
 vignettes/cihro-data
-data
+vignettes/tutorial
 docs
 tmp
+runners
