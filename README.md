@@ -8,7 +8,8 @@
 <!-- badges: start -->
 
 [![R CMD
-Check](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml)
+Check](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml)
+[![Dependencies](https://img.shields.io/badge/dependencies-18/102-red?style=flat)](#)
 <!-- badges: end -->
 
 <br>
@@ -40,21 +41,23 @@ This repository serves a few main purposes.
 
 ## Cloud Native Data Archives
 
-NextGen artifacts are distributed by *NHDPlusV2* **V**ector
-**P**rocessing **U**nits and are generated from a set of national
-reference datasets built in collaboration between NOAA, the USGS, and
-Lynker for federal water modeling efforts. These artifacts are designed
-to be easily updated, manipulated, and quality controlled to meet the
-needs of a wide range of modeling tasks while leveraging the best
-possible input data.
+NextGen artifacts are generated from a set of national reference
+datasets built in collaboration between NOAA, the USGS, and Lynker for
+federal water modeling efforts. These artifacts are designed to be
+easily updated, manipulated, and quality controlled to meet the needs of
+a wide range of modeling tasks while leveraging the best possible input
+data.
 
-NextGen artifacts are publicly available through Lynker
-(www.lynker-spatial.com). For each VPU a geopackage that contains all
-tables, spatial data, and lookups relevant to a hydrofabric data model
+NextGen artifacts are publicly available through
+Lynker(www.lynker-spatial.com) under an
+[ODbL](https://opendatacommons.org/licenses/odbl/summary/) license. If
+you use data, please ensure you (1) Attribute Lynker-Spatial, (2) Keep
+the data open, and that (3) any works produced from this data offer that
+adapted database under the ODbL.
 
 ### [NextGen Data Artifacts](https://lynker-spatial.com)
 
-<img src="man/figures/lynker-spatial.png" width="1533" style="display: block; margin: auto;" />
+<img src="man/figures/lynker-spatial.png" width="1700" style="display: block; margin: auto;" />
 
 ## R Package Installation and Use
 
@@ -67,19 +70,22 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 library(hydrofabric)
 ```
 
-    ## ── Attaching packages ────────────────────────────────────────────────────────── hydrofabric0.0.6 ──
+    ## ── Attaching packages ───────────────────────────────────────────────────────── hydrofabric 0.0.9 ──
 
-    ## ✔ dplyr         1.1.3        ✔ nhdplusTools  1.0.1   
-    ## ✔ terra         1.7.55       ✔ hydrofab      0.5.0   
-    ## ✔ ngen.hydrofab 0.0.3        ✔ zonal         0.0.2   
-    ## ✔ climateR      0.3.1.4      ✔ glue          1.6.2   
-    ## ✔ sf            1.0.14       ✔ arrow         13.0.0.1
+    ## ✔ dplyr        1.1.4      ✔ zonal        0.0.2 
+    ## ✔ climateR     0.3.5      ✔ sf           1.0.17
+    ## ✔ nhdplusTools 1.1.0      ✔ terra        1.7.71
+    ## ✔ hydrofab     0.5.1
 
     ## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──
-    ## ✖ arrow::buffer()    masks terra::buffer()
-    ## ✖ terra::intersect() masks dplyr::intersect()
-    ## ✖ glue::trim()       masks terra::trim()
-    ## ✖ terra::union()     masks dplyr::union()
+    ## ✖ terra::plot() masks climateR::plot()
+
+    ## 
+    ## Attaching package: 'hydrofabric'
+
+    ## The following objects are masked _by_ 'package:hydrofab':
+    ## 
+    ##     append_style, hf_dm
 
 `library(hydrofabric)` will load the core packages:
 
@@ -96,51 +102,29 @@ library(hydrofabric)
 
 Additionally it will load key spatial data science libraries:
 
-- `arrow`
 - `terra`
 - `sf`
 - `dplyr`
-- `glue`
 
 # Hydrofabric Subsetter
 
 ``` r
-# A hydrolocation URI
-hl = 'Gages-04185000'
-
-# The output directory
-o = "data/gray_test.gpkg"
-
-# Build subset
-## caching the downloaded VPU files to "data" and writing all layers to "o"
-subset_network(hl_uri = hl, cache_dir = "data", outfile = o)
+# # A hydrolocation URI
+# hl = 'Gages-04185000'
+# 
+# # The output directory
+# o = "data/gray_test.gpkg"
+# 
+# # Build subset
+# ## caching the downloaded VPU files to "data" and writing all layers to "o"
+# subset_network(hl_uri = hl, cache_dir = "data", outfile = o)
+# 
+# {
+# plot(sf::read_sf(o, "divides")$geom)
+# plot(sf::read_sf(o, "flowpaths")$geom, col = "blue", add = TRUE)
+# plot(sf::read_sf(o, "nexus")$geom, col = "red", pch = 16, add = TRUE)
+# }
 ```
-
-    ## Starting from: `nex-870116`
-
-    ## Subsetting: divides (1/5)
-
-    ## Subsetting: nexus (2/5)
-
-    ## Subsetting: flowpaths (3/5)
-
-    ## Subsetting: network (4/5)
-
-    ## Subsetting: hydrolocations (5/5)
-
-    ## Deleting layer `layer_styles' using driver `GPKG'
-
-    ## [1] "data/gray_test.gpkg"
-
-``` r
-{
-plot(sf::read_sf(o, "divides")$geom)
-plot(sf::read_sf(o, "flowpaths")$geom, col = "blue", add = TRUE)
-plot(sf::read_sf(o, "nexus")$geom, col = "red", pch = 16, add = TRUE)
-}
-```
-
-![](man/figures/unnamed-chunk-5-1.png)<!-- -->
 
 We have *also* created cloud based community subsetter. GO binaries of
 these can be installed at the [release
@@ -207,9 +191,7 @@ interested parties to build there own networks starting with either the
 
 <a href = "mailto:jjohnson@lynker.com?subject=NextGen Hydrofabric Questions">
 Mike Johnson</a> (Hydrofabric Lead)
-<a href = "mailto:trey.flowers@noaa.gov?subject=NextGen Hydrofabric Questions">
-and Trey Flowers</a> (Director, OWP Analysis and Prediction Division)
-
+<a href = "mailto:jjohnson@lynker.com?subject=NextGen Hydrofabric Questions">
 <br> <br>
 
 <img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
