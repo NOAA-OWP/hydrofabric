@@ -61,7 +61,7 @@ get_fabric = function(VPU,
 }
 
 #' Subset Hydrofabric Network
-#' @inheritParams input_to_ref
+#' @inheritParams input_to_reference_feature
 #' @param bbox a numeric vector of length four, with xmin, ymin, xmax and ymax values
 #' @param base_s3 the base hydrofabric directory to access in Lynker's s3
 #' @param base_dir the base hydrofabric directory
@@ -104,14 +104,14 @@ subset_network = function(id = NULL,
                           cache_overwrite = FALSE) {
   Key <-
     hf_hydroseq <-
-    hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- NULL
+    hf_id  <- hydroseq <- member_COMID <- toid  <- vpu <- divide_id <- NULL
   
   lookup <-c(id = "ID", id = "COMID", toid = "toID", toid = "toCOMID")
   
   if (!is.null(bbox)) {
     stopifnot(length(bbox) == 4)
     x = sf::st_as_sfc(sf::st_bbox(bbox, crs = 4326))
-    vpuid = sf::st_filter(sf::st_transform(vpu_boundaries, 4326), x)$VPUID
+    vpuid = sf::st_filter(sf::st_transform(nhdplusTools::vpu_boundaries, 4326), x)$VPUID
   } else {
     if (!is.null(base_dir)) {
       base = data.frame(file = list.files(base_dir,
@@ -447,6 +447,9 @@ area_length_filter = function(tmap,
                               areasqkm = NULL,
                               pathlengthkm = NULL,
                               ms_pathlengthkm = NULL) {
+  
+  lengthkm <- mainstem <- toid <-  cl <-  ca <-  NULL
+  
   l = sf::st_layers(gpkg)
   lyr = l$name[which(grepl("line", tolower(l$geomtype)))]
   
@@ -504,6 +507,8 @@ area_length_filter = function(tmap,
 add_parameters = function(gpkg = NULL,
                           lyrs = c("forcing_weights", "model_attributes"),
                           base_s3 = "s3://lynker-spatial/v20.1"){
+  
+  divide_id <-  NULL
   
   div = read_sf(gpkg, "divides")
   

@@ -27,6 +27,7 @@ Imports:
     glue,
     hydrofab,
     magrittr,
+    ngen.hydrofab,
     nhdplusTools,
     purrr,
     rstudioapi,
@@ -45,6 +46,7 @@ Suggests:
 Remotes: 
     mikejohnson51/hydrofab,
     mikejohnson51/zonal,
-    mikejohnson51/climateR
+    mikejohnson51/climateR,
+    mikejohnson51/ngen.hydrofab
 Config/testthat/edition: 3
 VignetteBuilder: knitr

@@ -1,3 +1,5 @@
+library(dm)
+
 hf_dm = list(
   flowlines = data.frame(
     id = integer(1L),
@@ -268,4 +270,5 @@ dm = dm::dm(
     blue = lakes
   )
 
+hf_dm = list(dm = dm, meta = meta)
 usethis::use_data(hf_dm, overwrite = TRUE)

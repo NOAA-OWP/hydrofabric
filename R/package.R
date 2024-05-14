@@ -13,6 +13,7 @@ NULL
 #' @importFrom aws.s3 get_bucket_df save_object
 #' @importFrom arrow read_parquet write_parquet open_dataset
 #' @importFrom glue glue
+#' @importFrom DBI  dbListTables
 
 #' @rawNamespace import(climateR, except = c(plot))
 #' @rawNamespace import(dplyr, except = c(intersect, union))

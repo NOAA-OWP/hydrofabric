@@ -10,9 +10,12 @@
 input_to_reference_feature = function(net, 
                                       id, 
                                       comid, 
-                                      hl_uri, 
+                                      hl_id, 
+                                      poi_id,
                                       nldi_feature, 
                                       xy){
+  
+  toid <- divide_id <- hf_hydroseq <- hf_id <- hydroseq <- vpu <- NULL
   
   if (!is.null(id) & !is.null(net)) {
     comid = dplyr::filter(net, id == !!id | toid == !!id | divide_id == !!id) |>
