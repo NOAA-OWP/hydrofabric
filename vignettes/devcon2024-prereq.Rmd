@@ -93,8 +93,70 @@ open RStudio.dmg
 
 
 ## Windows
+While R and RStudio generally perform well on Windows, certain packages like netCDF are optimized for Linux environments. Thus, we highly recommend installing R and the necessary packages on Windows using the following approach:
 
+Install Docker on Windows.
+
+Docker is a powerful tool for creating, deploying, and managing applications within containers. This guide will walk you through the process of installing Docker on a Windows machine.
+
+1. Download Docker Desktop for Windows
+
+Navigate to the [Docker Desktop download page](https://www.docker.com/products/docker-desktop) and download the Docker Desktop for Windows installer.
+
+2. Run the Installer
+
+Once the download is complete, run the Docker Desktop installer by double-clicking on the downloaded file (e.g., `Docker Desktop Installer.exe`).
+
+3. Install Docker Desktop
+
+Follow the on-screen instructions in the installer to install Docker Desktop on your Windows machine. You may be prompted to authorize the installer to make changes to your system; click "Yes" to proceed.
+
+4. Configure Docker Desktop
+
+After installation, Docker Desktop will launch automatically. If not, you can find and launch it from the Start menu.
+
+During the first launch, Docker Desktop may require additional permissions to run. Follow the prompts to grant the necessary permissions.
+
+Once Docker Desktop is running, you'll see the Docker icon in the system tray. Wait for Docker to finish initializing; you'll know it's ready when the Docker icon in the system tray changes to a whale.
+
+Verifying Installation
+
+To verify that Docker is installed correctly, open a command prompt or PowerShell window  (CMD) and run the following command:
+
+```bash
+docker --version
+```
+
+Congratulations! You have successfully installed Docker Desktop on your Windows machine. You can now use Docker to create, deploy, and manage your hydrofabric container for your development projects.
+
+1- Cloning the Rocker Versioned2 Repository
+
+The Rocker Project provides versioned Docker images for R environments. To get started, clone the Rocker Versioned2 repository from [here](https://github.com/rocker-org/rocker-versioned2) by running the following command:
+
+```bash
+cd /D D:\path_to_my_project\
+git clone https://github.com/rocker-org/rocker-versioned2.git
+```
+We have provided a preconfigured docker image that can be obtained via ...
+
+This command builds the Docker images based on the provided Dockerfile. This step is performed only once or as needed (in case additional packages are required refer to the [Rocker Project documentation](https://rocker-project.org/use/extending.html).).
+
+```bash
+docker build -f .\hydrofabric.Dockerfile -t hydrofabric .\rocker-versioned2
+```
+
+To launch the Docker image and start R and RStudio, run the following command
+
+```bash
+docker run -it --rm -p 8686:8686 -p 2200:2200 -e DISABLE_AUTH=true -e ROOT=TRUE hydrofabric
+```
+
+Once the Docker container is running, access RStudio by navigating to `localhost:8686` in your web browser.
+
+You've successfully set up R and RStudio with hydrofabric environment using Docker on your Windows machine!
 
 # QGIS
- 
+
+
+
  
