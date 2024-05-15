@@ -1,0 +1,198 @@
+---
+title: "Prerequisite"
+description: |
+  "NOAA's Enterprise Hydrofabric System"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+
+author:
+  - name: "Arash Modaresi Rad"
+    url: https://github.com/arashmodrad 
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "100%", message = TRUE)
+```
+# 2023 CIROH Developers Conference
+
+Last year, we unveiled the groundbreaking concept of a [hydrofabric](https://noaa-owp.github.io/hydrofabric/articles/01-intro-deep-dive.html), representing the bedrock of NextGen operations. This foundational data structure encapsulates the intricate landscape and flow network discretizations, the essential connectivity of network features, and the pivotal reporting locations known as nexus points.
+
+## Key Highlights
+1. Introduction of a sophisticated software package designed specifically for working with hydrofabrics.
+2. Comprehensive overview of the system's intricate design, meticulously crafted to meet the demands of NextGen operations.
+3. In-depth exploration of two primary [network manipulation processes](https://noaa-owp.github.io/hydrofabric/articles/03-processing-deep-dive.html): refactoring and aggregating, essential for optimizing data utilization.
+4. Unveiling of the fundamental data model meticulously tailored for hydrofabric applications, ensuring efficiency and accuracy.
+5. Demonstrations showcasing the seamless [extraction of data subsets](https://noaa-owp.github.io/hydrofabric/articles/05-subsetting.html) to meet diverse analytical needs.
+6. Optional coverage on accessing and harnessing landscape characteristics, enriching the modeling process.
+7. Emphasis on the [NextGen Hydrofabric Data Model](https://noaa-owp.github.io/hydrofabric/articles/04-data-model-deep-dive.html), a pinnacle of precision and efficiency, catering to modeling, subsetting, cross walking, and indexing needs.
+8. Adapting the design philosophy from the esteemed OGC [HY Feature conceptual model](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) report, with bespoke modifications tailored for NextGen applications.
+9. Illumination on the current data model, featuring seven spatial and two a-spatial layers, with plans underway for an eighth layer dedicated to water bodies, affirming the robustness of the geopackage model.
+
+```{r, echo = FALSE}
+knitr::include_graphics("../man/figures/hydrofabric.png")
+```
+
+In conclusion, the development of the NextGen Hydrofabric represents a collaborative venture between the USGS Water Mission Area, the NOAA Office of Water Prediction, and Lynker. This innovative system addresses the crucial need for a single reference system to serve diverse modeling applications. Analogous to a coordinate reference system (CRS), the reference fabric provides maximum feature set compatibility across interconnected models. Furthermore, it facilitates persistent identification (PID) for durable data integration and model interoperability, essential for effective decision-making in hydrological modeling and prediction.
+
+# Welcome to Lynker spatial: Your Hub for Hydrographic Data and Hydroinformatics  
+
+At [Lynker spatial](https://staging.lynker-spatial.com/), we are proud to offer a comprehensive platform that hosts a wealth of scientific developments and data, particularly focusing on hydrographic data. 
+
+## Federally Consistent Reference Product
+In collaboration with esteemed partners at Lynker, NOAA, and the USGS, we are not merely introducing a new suite of federal hydroinformatics products; we are spearheading a paradigm shift in how we perceive, represent, and manage water resources at a national level. Our Federally Consistent Reference Product sets a new standard for accuracy, reliability, and comprehensiveness in hydrographic data, empowering scientists, policymakers, and stakeholders alike to make informed decisions regarding water resource management.
+
+## Easily Accessible
+Gone are the days of navigating through cumbersome geodatabases. At Lynker Spatial, we champion open geospatial data practices, ensuring that our products are easily accessible in a variety of formats. Whether you're conducting web mapping, spatial analysis, or delving into data science, our platform offers products that cater to your specific needs. With just a few clicks, you can access the wealth of hydrographic data and seamlessly integrate it into your projects and research endeavors.
+
+## Intuitively Subsettable
+Understanding the intricate dynamics of water resources requires the ability to focus on specific areas of interest. Our platform allows for intuitive subsetting of upstream drainage areas using various parameters such as location, known identifiers, and critical resources. This capability enables users to extract relevant data subsets tailored to their research objectives, facilitating deeper insights and more targeted analyses.
+
+With Lynker Spatial, we invite you to explore a world of hydrographic data and hydroinformatics innovations, empowering you to make meaningful contributions to water resource management and scientific research.
+
+
+# Hfsubset 
+
+# R, Rstudio, hydrofabric library
+
+To utilize the developed hydrofabric, you'll need R, which can be installed on macOS, windows and Linux. Once installed, you can enhance your workflow by adding RStudio, a user-friendly interface for R projects. With these tools, you will be able to effectively analyze hydrofabric data for scientific research and decision-making in hydrological modeling and prediction.
+
+## macOS
+### Step 1: Installing R
+
+```{shell}
+# Download and install R for macOS
+curl -o R-4.4.0-arm64.pkg https://cloud.r-project.org/bin/macosx/big-sur-arm64/base/R-4.4.0-arm64.pkg
+open R-4.4.0-arm64.pkg
+```
+
+### Step 2: Installing RStudio
+
+```{shell}
+# Download and install RStudio
+curl -o RStudio.dmg https://download1.rstudio.org/electron/macos/RStudio-2024.04.1-748.dmg
+open RStudio.dmg
+```
+
+## Ubuntu/Debian
+### Step 1: Installing R
+
+```{shell}
+# Download and install R for Ubuntu
+# update indices
+sudo apt update -qq
+# install two helper packages we need
+sudo apt install --no-install-recommends software-properties-common dirmngr
+# add the signing key (by Michael Rutter) for these repos
+# To verify key, run gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc 
+# Fingerprint: E298A3A825C0D65DFD57CBB651716619E084DAB9
+wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+# add the R 4.0 repo from CRAN -- adjust 'focal' to 'groovy' or 'bionic' as needed
+sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+```
+
+### Step 2: Installing RStudio
+
+```{shell}
+# Download and install RStudio
+curl -o RStudio.dmg https://download1.rstudio.org/electron/jammy/amd64/rstudio-2024.04.1-748-amd64.deb
+open RStudio.dmg
+```
+
+
+## Windows
+While R and RStudio generally perform well on Windows, certain packages like netCDF are optimized for Linux environments. Thus, we highly recommend installing R and the necessary packages on Windows using the following approach:
+
+Install Docker on Windows.
+
+Docker is a powerful tool for creating, deploying, and managing applications within containers. This guide will walk you through the process of installing Docker on a Windows machine.
+
+1. Download Docker Desktop for Windows
+
+Navigate to the [Docker Desktop download page](https://www.docker.com/products/docker-desktop) and download the Docker Desktop for Windows installer.
+
+2. Run the Installer
+
+Once the download is complete, run the Docker Desktop installer by double-clicking on the downloaded file (e.g., `Docker Desktop Installer.exe`).
+
+3. Install Docker Desktop
+
+Follow the on-screen instructions in the installer to install Docker Desktop on your Windows machine. You may be prompted to authorize the installer to make changes to your system; click "Yes" to proceed.
+
+4. Configure Docker Desktop
+
+After installation, Docker Desktop will launch automatically. If not, you can find and launch it from the Start menu.
+
+During the first launch, Docker Desktop may require additional permissions to run. Follow the prompts to grant the necessary permissions.
+
+Once Docker Desktop is running, you'll see the Docker icon in the system tray. Wait for Docker to finish initializing; you'll know it's ready when the Docker icon in the system tray changes to a whale.
+
+Verifying Installation
+
+To verify that Docker is installed correctly, open a command prompt or PowerShell window  (CMD) and run the following command:
+
+```bash
+docker --version
+```
+
+Congratulations! You have successfully installed Docker Desktop on your Windows machine. You can now use Docker to create, deploy, and manage your hydrofabric container for your development projects.
+
+Here is a how you can get your hydrofabric environment setup.
+  
+Cloning the Rocker Versioned2 Repository
+
+The Rocker Project provides versioned Docker images for R environments. To get started, clone the Rocker Versioned2 repository from [here](https://github.com/rocker-org/rocker-versioned2) by running the following command:
+
+```bash
+cd /D D:\path_to_my_project\
+git clone https://github.com/rocker-org/rocker-versioned2.git
+```
+We have provided a preconfigured docker file that you can download `hydrofabric_windows.Dockerfile` form the hydrofabric repo
+
+```bash
+certutil -urlcache -split -f "https://github.com/NOAA-OWP/hydrofabric/raw/main/hydrofabric_windows.Dockerfile" "hydrofabric_windows.Dockerfile"
+```
+
+This command builds the Docker images based on the provided Dockerfile. This step is performed only once or as needed (in case additional packages are required refer to the [Rocker Project documentation](https://rocker-project.org/use/extending.html).).
+
+```bash
+docker build -f .\hydrofabric_windows.Dockerfile -t hydrofabric .\rocker-versioned2
+```
+
+To launch the Docker image and start R and RStudio, run the following command
+
+```bash
+docker run -it --rm -p 8787:8787 -p 4200:4200 -e DISABLE_AUTH=true -e ROOT=TRUE hydrofabric
+```
+
+Once the Docker container is running, access RStudio by navigating to `localhost:8787` in your web browser.
+
+You've successfully set up R and RStudio with hydrofabric environment using Docker on your Windows machine!
+
+# QGIS
+
+QGIS is a free and open-source geographic information system (GIS) software that allows users to visualize, analyze, and manage spatial data. Here's how to install QGIS on Linux, macOS, and Windows.
+
+## macOS
+
+```bash
+brew install qgis
+```
+ 
+## Ubuntu/Debian
+
+```bash
+sudo apt update
+sudo apt install qgis
+```
+
+## Windows
+
+Download the installer from the [QGIS download page](https://www.qgis.org/en/site/forusers/download.html).
+Run the downloaded installer file (.exe).
+Follow the on-screen instructions to complete the installation.
