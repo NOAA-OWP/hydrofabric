@@ -40,7 +40,20 @@ knitr::include_graphics("../man/figures/hydrofabric.png")
 
 In conclusion, the development of the NextGen Hydrofabric represents a collaborative venture between the USGS Water Mission Area, the NOAA Office of Water Prediction, and Lynker. This innovative system addresses the crucial need for a single reference system to serve diverse modeling applications. Analogous to a coordinate reference system (CRS), the reference fabric provides maximum feature set compatibility across interconnected models. Furthermore, it facilitates persistent identification (PID) for durable data integration and model interoperability, essential for effective decision-making in hydrological modeling and prediction.
 
-# Lynker spatial
+# Welcome to Lynker spatial: Your Hub for Hydrographic Data and Hydroinformatics  
+
+At [Lynker spatial](https://staging.lynker-spatial.com/), we are proud to offer a comprehensive platform that hosts a wealth of scientific developments and data, particularly focusing on hydrographic data. 
+
+## Federally Consistent Reference Product
+In collaboration with esteemed partners at Lynker, NOAA, and the USGS, we are not merely introducing a new suite of federal hydroinformatics products; we are spearheading a paradigm shift in how we perceive, represent, and manage water resources at a national level. Our Federally Consistent Reference Product sets a new standard for accuracy, reliability, and comprehensiveness in hydrographic data, empowering scientists, policymakers, and stakeholders alike to make informed decisions regarding water resource management.
+
+## Easily Accessible
+Gone are the days of navigating through cumbersome geodatabases. At Lynker Spatial, we champion open geospatial data practices, ensuring that our products are easily accessible in a variety of formats. Whether you're conducting web mapping, spatial analysis, or delving into data science, our platform offers products that cater to your specific needs. With just a few clicks, you can access the wealth of hydrographic data and seamlessly integrate it into your projects and research endeavors.
+
+## Intuitively Subsettable
+Understanding the intricate dynamics of water resources requires the ability to focus on specific areas of interest. Our platform allows for intuitive subsetting of upstream drainage areas using various parameters such as location, known identifiers, and critical resources. This capability enables users to extract relevant data subsets tailored to their research objectives, facilitating deeper insights and more targeted analyses.
+
+With Lynker Spatial, we invite you to explore a world of hydrographic data and hydroinformatics innovations, empowering you to make meaningful contributions to water resource management and scientific research.
 
 
 # Hfsubset 
@@ -66,7 +79,7 @@ curl -o RStudio.dmg https://download1.rstudio.org/electron/macos/RStudio-2024.04
 open RStudio.dmg
 ```
 
-## Linux
+## Ubuntu/Debian
 ### Step 1: Installing R
 
 ```{shell}
@@ -129,7 +142,11 @@ docker --version
 
 Congratulations! You have successfully installed Docker Desktop on your Windows machine. You can now use Docker to create, deploy, and manage your hydrofabric container for your development projects.
 
-1- Cloning the Rocker Versioned2 Repository
+Here is a how you can get your hydrofabric environment setup.
+  
+
+
+Cloning the Rocker Versioned2 Repository
 
 The Rocker Project provides versioned Docker images for R environments. To get started, clone the Rocker Versioned2 repository from [here](https://github.com/rocker-org/rocker-versioned2) by running the following command:
 
@@ -137,26 +154,47 @@ The Rocker Project provides versioned Docker images for R environments. To get s
 cd /D D:\path_to_my_project\
 git clone https://github.com/rocker-org/rocker-versioned2.git
 ```
-We have provided a preconfigured docker image that can be obtained via ...
+We have provided a preconfigured docker file that you can download `hydrofabric_windows.Dockerfile` form the hydrofabric repo
+
+```bash
+certutil -urlcache -split -f "https://github.com/NOAA-OWP/hydrofabric/raw/main/hydrofabric_windows.Dockerfile" "hydrofabric_windows.Dockerfile"
+```
 
 This command builds the Docker images based on the provided Dockerfile. This step is performed only once or as needed (in case additional packages are required refer to the [Rocker Project documentation](https://rocker-project.org/use/extending.html).).
 
 ```bash
-docker build -f .\hydrofabric.Dockerfile -t hydrofabric .\rocker-versioned2
+docker build -f .\hydrofabric_windows.Dockerfile -t hydrofabric .\rocker-versioned2
 ```
 
 To launch the Docker image and start R and RStudio, run the following command
 
 ```bash
-docker run -it --rm -p 8686:8686 -p 2200:2200 -e DISABLE_AUTH=true -e ROOT=TRUE hydrofabric
+docker run -it --rm -p 8787:8787 -p 4200:4200 -e DISABLE_AUTH=true -e ROOT=TRUE hydrofabric
 ```
 
-Once the Docker container is running, access RStudio by navigating to `localhost:8686` in your web browser.
+Once the Docker container is running, access RStudio by navigating to `localhost:8787` in your web browser.
 
 You've successfully set up R and RStudio with hydrofabric environment using Docker on your Windows machine!
 
 # QGIS
 
+QGIS is a free and open-source geographic information system (GIS) software that allows users to visualize, analyze, and manage spatial data. Here's how to install QGIS on Linux, macOS, and Windows.
 
+## macOS
 
+```bash
+brew install qgis
+```
  
+## Ubuntu/Debian
+
+```bash
+sudo apt update
+sudo apt install qgis
+```
+
+## Windows
+
+Download the installer from the [QGIS download page](https://www.qgis.org/en/site/forusers/download.html).
+Run the downloaded installer file (.exe).
+Follow the on-screen instructions to complete the installation.
