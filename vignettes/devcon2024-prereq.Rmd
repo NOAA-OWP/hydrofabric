@@ -144,8 +144,6 @@ Congratulations! You have successfully installed Docker Desktop on your Windows 
 
 Here is a how you can get your hydrofabric environment setup.
   
-
-
 Cloning the Rocker Versioned2 Repository
 
 The Rocker Project provides versioned Docker images for R environments. To get started, clone the Rocker Versioned2 repository from [here](https://github.com/rocker-org/rocker-versioned2) by running the following command:
