@@ -53,8 +53,8 @@ path_df
   vpu_fema_files <- list.files(fema_vpu_dir, full.names = TRUE)
   # vpu_fema_file1 <- vpu_fema_files[grepl("_union.gpkg", vpu_fema_files)]
   
-  # vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, ".gpkg"), vpu_fema_files)]
-  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_union.gpkg"), vpu_fema_files)]
+  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, ".gpkg"), vpu_fema_files)]
+  # vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_union.gpkg"), vpu_fema_files)]
   vpu_fema_file
   
   # fema polygons and transect lines
@@ -66,6 +66,28 @@ path_df
   # read in nextgen flowlines data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
 
+  # fema$fema_id %>% unique() %>% length()
+  
+  # # union then explode FEMA polygons 
+  # fema <- 
+  #   fema %>%
+  #   sf::st_union()
+  # 
+  # fema <- rmapshaper::ms_explode(fema)
+  # # fema %>% mapview::npts()
+  # 
+  # # reassign IDs and change geometry column name
+  # fema <- 
+  #   fema %>% 
+  #   sf::st_as_sf() %>% 
+  #   dplyr::mutate(fema_id = 1:dplyr::n()) %>% 
+  #   dplyr::select(fema_id, geom = x)
+  
+  # sf::st_union() %>% 
+  #   rmapshaper::ms_explode() %>% 
+  #   sf::st_as_sf() %>% 
+  #   dplyr::mutate(fema_id = 1:dplyr::n()) %>% 
+  #   dplyr::select(fema_id, geom = x)
   # Given 2 geos_geometry point geometries, create a line between the 2 points
   # start: geos_geoemtry, point
   # end: geos_geoemtry, point
@@ -91,24 +113,34 @@ path_df
   # transect_lines, set of Sf linestrigns to extend (only if the transect lines are ENTIRELLY within a polygons)
   # polygons, set of sf polygons that transect lines should be exteneded 
   # max_extension_distance numeric, maximum distance (meters) to extend a transect line in either direction to try and intersect one of the "polygons"
-  get_transect_extension_distances_to_polygons <- function(transect_lines, polygons, max_extension_distance) {
+  get_transect_extension_distances_to_polygons <- function(transect_lines, 
+                                                           polygons, 
+                                                           flines,
+                                                           max_extension_distance) {
     
     ###    ###    ###    ###    ###    ###    ###
     ###    ###    ###    ###    ###    ###    ###
-    # transect_lines <- transects
-    # polygons <- fema
-    # max_extension_distance <- 2500
-    ###    ###    ###    ###    ###    ###    ###
+    transect_lines <- transects
+    polygons <- fema
+    # # flines <- flines
+    max_extension_distance <- 3000
+    # ###    ###    ###    ###    ###    ###    ###
     ###    ###    ###    ###    ###    ###    ###
     
     # keep 10% of the original points for speed
-    polygons <- rmapshaper::ms_simplify(polygons, keep = 0.10)
+    polygons <- rmapshaper::ms_simplify(polygons, keep_shapes = F, keep = 0.10)
     
+    mapview::npts(fema)
+     mapview::npts(polygons)
     # transects <- sf::read_sf(transect_path)
     
+     # polygons
     transects_geos  <- geos::as_geos_geometry(transects)
     polygons_geos   <- geos::as_geos_geometry(polygons)     
-
+    
+    # geos::geos_union( polygons_geos, polygons_geos) %>% length()
+    # polygons_geos %>% length()
+    # polygons
     # polygons_geos  
     transects_polygons_matrix <- geos::geos_intersects_matrix(transects_geos, polygons_geos) 
     polygons_transects_matrix <- geos::geos_intersects_matrix(polygons_geos, transects_geos) 
@@ -121,11 +153,21 @@ path_df
     # This can be done with just linestrings (not sure if this is actually more performent but I'm pretty sure it is....)
     intersect_lines <- 
       intersect_polygons %>% 
+      # geos::geos_make_valid() %>% 
       sf::st_as_sf() %>% 
+      # sf::st_union() %>% 
+      # rmapshaper::ms_explode() %>% 
+      # sf::st_as_sf() %>% 
+      # dplyr::mutate(fema_id = 1:dplyr::n()) %>% 
+      # dplyr::select(fema_id, geom = x) %>% 
       sf::st_cast("MULTILINESTRING") %>% 
       geos::as_geos_geometry() %>% 
       geos::geos_simplify_preserve_topology(25)
-
+    
+ #    intersect_polygons %>% 
+ #      geos::geos_make_valid() %>% 
+ #      geos::geos_is_valid() %>% all()
+ # is.null(intersect_lines$geometry )
     # use half of the shortest transect line as the segmentation length for all transects (ensures all transects will have a midpoint...?)
     # TODO: Double check this logic.
     min_segmentation <- min(intersect_transects$cs_lengthm %/% 2)
@@ -217,6 +259,13 @@ path_df
                     geom
       ) 
     
+    max_extension_distance = 3000
+    which(transects_with_distances$hy_id == "wb-1003839")
+    
+    left_trans[which(left_trans$hy_id == "wb-1003839"), ]$cs_lengthm
+    right_trans[which(left_trans$hy_id == "wb-1003839"), ]$cs_lengthm
+    which(right_trans$hy_id == "wb-1003839")
+    
     left_distances <- calc_extension_distances(
       geos_geoms             = left_trans_geos,
       ids                    = left_trans$tmp_id,
@@ -238,6 +287,8 @@ path_df
     left_trans$left_distance    <- left_distances
     right_trans$right_distance  <- right_distances
     
+    extensions_by_id %>% 
+      dplyr::filter(hy_id == "wb-1003839")
     # distance to extend LEFT and/or RIGHT for each hy_id/cs_id
     extensions_by_id <- dplyr::left_join(
                           sf::st_drop_geometry(
@@ -252,7 +303,7 @@ path_df
                           by = c("hy_id", "cs_id")
                           )
     
-    ######### ######## ######## ######## ####### 
+     ######### ######## ######## ######## ####### 
     # TODO: This is temporary !!!!!!
     fema_index_df <- dplyr::left_join(
       sf::st_drop_geometry(
@@ -268,24 +319,24 @@ path_df
     )
     ######## ######## ######## ######## ########
     
-    foi <- sf::st_as_sf(intersect_polygons[fema_uids]) %>% dplyr::mutate(
-      fema_id = fema_uids
-    )
-    
-    polygons_to_merge <- sf::st_as_sf(intersect_polygons[fema_uids]) %>% dplyr::mutate(
-      fema_id = fema_uids
-    ) %>% 
-      dplyr::filter(fema_id %in% c(1563, 1566, 1567, 590))
-    merged_polygon <- 
-      polygons_to_merge %>% 
-      sf::st_union()
-    merged_polygon %>% 
-      rmapshaper::ms_explode()
-    mapview::mapview(foi, col.regions = "dodgerblue") +
-      mapview::mapview(polygons_to_merge, col.regions = "yellow") +
-      mapview::mapview(merged_polygon, col.regions = "green") +
-      mapview::mapview(toi, color = "red") +
-      mapview::mapview(og_trans, color = "green")
+    # foi <- sf::st_as_sf(intersect_polygons[fema_uids]) %>% dplyr::mutate(
+    #   fema_id = fema_uids
+    # )
+    # 
+    # polygons_to_merge <- sf::st_as_sf(intersect_polygons[fema_uids]) %>% dplyr::mutate(
+    #   fema_id = fema_uids
+    # ) %>% 
+    #   dplyr::filter(fema_id %in% c(1563, 1566, 1567, 590))
+    # merged_polygon <- 
+    #   polygons_to_merge %>% 
+    #   sf::st_union()
+    # merged_polygon %>% 
+    #   rmapshaper::ms_explode()
+    # mapview::mapview(foi, col.regions = "dodgerblue") +
+    #   mapview::mapview(polygons_to_merge, col.regions = "yellow") +
+    #   mapview::mapview(merged_polygon, col.regions = "green") +
+    #   mapview::mapview(toi, color = "red") +
+    #   mapview::mapview(og_trans, color = "green")
     # polygons %>% 
       # dplyr::filter(fema_id )
     ######## ######## ######## ######## ########
@@ -318,6 +369,8 @@ path_df
       ) %>% 
       hydrofabric3D::add_tmp_id()
     
+    transects_with_distances %>% 
+      dplyr::filter(hy_id == "wb-1003839")
     # transects
     # flines %>% 
     #   dplyr::arrange(-tot_drainage_areasqkm) 
@@ -354,10 +407,6 @@ fema_uids
       mapview::mapview(og_trans, color = "green")
     ######## ######## ### ##### ######## ######## ######## ######## ######## 
     
-    left_extended_flag   <- rep(FALSE, length(transect_ids))   
-    right_extended_flag  <- rep(FALSE, length(transect_ids))
-    both_extended_flag   <- rep(FALSE, length(transect_ids))
-    
     fline_id_array       <- flines$id
     
     # Convert the net object into a geos_geometry
@@ -372,24 +421,30 @@ fema_uids
     right_distances      <- transects_with_distances$right_distance
     
     # preallocate vector that stores the extension. distances
-    new_transects <- vctrs::vec_c(rep(geos::geos_empty(), length(transect_ids)))
+    new_transects <- vctrs::vec_c(rep(geos::geos_empty(), length(transect_hy_id_array)))
+    
+    left_extended_flag   <- rep(FALSE, length(transect_hy_id_array))   
+    right_extended_flag  <- rep(FALSE, length(transect_hy_id_array))
+    both_extended_flag   <- rep(FALSE, length(transect_hy_id_array))
+    
     # new_transects <- geos::geos_empty()
     # # measures  <- vctrs::vec_c()
     # transects_with_distances[1:20, ]
     # transects[1:20, ]
     
     # number of geometries that will be iterated over, keeping this variable to reference in message block  
-    total <- length(transect_ids)
+    total <- length(transect_hy_id_array)
 
     # output a message every ~10% intervals
-    message_interval <- total %/% 10
+    message_interval <- total %/% 5
     number_of_skips = 0
     
-    for (i in seq_along(transect_ids)) {
+    for (i in seq_along(transect_hy_id_array)) {
       # message("i: ", i)
       # if(i > 2000) {
       #   break
       # }
+      # i = 1
       # Check if the iteration is a multiple of 100
       if (i %% message_interval == 0) {
         
@@ -405,7 +460,8 @@ fema_uids
         #         " - (", percent_done, "%) ")
         
       }
-      # i = 29
+      # which(transects_with_distances$hy_id == "wb-1003839")
+      # i = 9587
       # get the current transect, hy_id, cs_id, flowline, and extension distances
       current_trans <- transect_geoms[i]
       
@@ -428,7 +484,9 @@ fema_uids
         next
       }
       
-     
+      # transects_with_distances %>% 
+      #   dplyr::filter(hy_id == "wb-1003839")
+      # transects
 #      curr_fema_index <- 
 #        left_trans %>% 
 #        dplyr::filter(hy_id == current_hy_id, cs_id == current_cs_id) %>% 
@@ -445,20 +503,54 @@ fema_uids
       # Check that the extended transect lines only intersect the current flowline once
       left_intersects_fline <- geos::geos_intersection(
         left_extended_trans,
-        current_fline
+        # current_fline
+        flines_geos
       )
       
       right_intersects_fline <- geos::geos_intersection(
         right_extended_trans,
-        current_fline
+        # current_fline
+        flines_geos
       )
       
+      # sum(geos::geos_type(left_intersects_fline) == "point")
+      # sum(geos::geos_type(right_intersects_fline) == "point")
+      
+      
+      # which(geos::geos_type(left_intersects_fline) == "point")
+      
+      # transects %>% 
+      #   dplyr::filter(hy_id == current_hy_id) %>% 
+      #   sf::st_length()
+      # current_hy_id
+      # 
+      # sf::st_as_sf(current_trans) %>% 
+      #   sf::st_length()
+      # tmp <- sf::read_sf(transect_path)
+      # 
+      # tmp %>% 
+      #   dplyr::filter(hy_id == current_hy_id) %>% 
+      #   sf::st_length()
+      
+      # mapview::mapview(sf::st_as_sf(flines_geos[which(geos::geos_type(left_intersects_fline) == "point")])) +
+      #   mapview::mapview(sf::st_as_sf(current_trans), color = "red") +
+      # mapview::mapview(sf::st_as_sf(left_extended_trans), color = "green") + 
+      # mapview::mapview(sf::st_as_sf(right_extended_trans), color = "green")
       # Define conditions to decide which version of the transect to use
+      
       # 1. Use transect with extension in BOTH directions
       # 2. Use transect with LEFT extension only
       # 3. Use transect with RIGHT extension only
-      left_intersects_fline_once  <- geos::geos_type(left_intersects_fline) == "point"
-      right_intersects_fline_once <- geos::geos_type(right_intersects_fline) == "point"
+      
+      # left_intersects_fline_once  <- geos::geos_type(left_intersects_fline) == "point"
+      # right_intersects_fline_once <- geos::geos_type(right_intersects_fline) == "point"
+      left_intersects_fline_once  <- sum(geos::geos_type(left_intersects_fline) == "point") == 1 && sum(geos::geos_type(left_intersects_fline) == "multipoint") == 0 
+      right_intersects_fline_once <- sum(geos::geos_type(right_intersects_fline) == "point") == 1 && sum(geos::geos_type(right_intersects_fline) == "multipoint") == 0 
+      
+      # sum(geos::geos_type(left_intersects_fline) == "point") == 1
+      # sum(geos::geos_type(right_intersects_fline) == "point") == 1
+      # sum(geos::geos_type(left_intersects_fline) == "multipoint") == 0 
+      
       
       # # TODO: Consider doing the opppsite of these conditions (i.e. "left_intersects_other_transects" = TRUE) 
       # left_does_not_intersect_other_transects  <- !any(geos::geos_intersects(left_extended_trans, transect_geoms[-i]))
@@ -558,6 +650,29 @@ fema_uids
       
      
     }
+    
+    # Update the "transects_to_extend" with new geos geometries ("geos_list")
+    sf::st_geometry(transects) <- sf::st_geometry(sf::st_as_sf(transect_geoms))
+    
+    transects$left_is_extended  <- left_extended_flag
+    transects$right_is_extended <- right_extended_flag
+    transects %>% 
+      dplyr::filter(left_is_extended | right_is_extended)
+    left_only_extended <- 
+      transects %>% 
+      dplyr::filter(!left_is_extended, right_is_extended)
+    left_only_flines <- 
+      flines %>% 
+      dplyr::filter(id %in% left_only_extended$hy_id)
+    # %>% 
+      mapview::mapview(left_only_flines, color = "dodgerblue") + 
+    mapview::mapview(left_only_extended, color = "red")
+    # transects$cs_lengthm  <- length_list
+    
+    transects
+  length(transect_geoms)
+    
+  
       # make the new transect line from the start and points 
       final_line <- geos::geos_make_linestring(x = c(X_start, X_end),
                                                y = c(Y_start, Y_end), 
@@ -613,8 +728,13 @@ fema_uids
       # lines_to_cut_indices   = left_trans$left_fema_index
       # direction              = "head"
       # max_extension_distance = max_extension_distance
-      
-      
+      # geos_geoms             = left_trans_geos
+      # ids                    = left_trans$tmp_id
+      # lines_to_cut           = intersect_lines
+      # lines_to_cut_indices   = left_trans$left_fema_index
+      # direction              = "head"
+      # max_extension_distance = max_extension_distance
+      # 
       
       #####   #####   #####   #####   #####
       
