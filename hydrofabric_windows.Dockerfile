@@ -39,13 +39,11 @@ RUN apt-get install -y chromium-browser
 
 
 RUN R -e "install.packages('gifski', repos='http://cran.rstudio.com/')"
-RUN R -q -e 'install.packages("devtools")'
 RUN R -q -e 'install.packages("remotes")'
-RUN R -q -e 'remotes::install_github("NOAA-OWP/hydrofabric")'
 RUN R -q -e 'remotes::install_github("mikejohnson51/ngen.hydrofab")'
-RUN R -q -e 'install.packages("mikejohnson51/climateR")'
-RUN R -q -e 'install.packages("NOAA-OWP/hydrofabric")'
-RUN R -q -e 'devtools::install_github("dblodgett-usgs/nhdplusTools")'
+RUN R -q -e 'remotes::install_github("mikejohnson51/climateR")'
+RUN R -q -e 'remotes::install_github("mikejohnson51/zonal")'
+RUN R -q -e 'remotes::install_github("NOAA-OWP/hydrofabric")'
 RUN R -q -e 'remotes::install_github("rstudio/webshot2")'
 
 EXPOSE 8787
