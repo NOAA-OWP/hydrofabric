@@ -27,6 +27,9 @@ get_vpu_fabric(
 Must be a gpkg file path. 
 If NULL a list object of divides, flowpaths, and a network table will be returned.}
 }
+\value{
+path or list
+}
 \description{
 Extract VPU GPKG from Lynker-Spatial
 Data from a Parquet Dataset will be extracted for a VPU. 

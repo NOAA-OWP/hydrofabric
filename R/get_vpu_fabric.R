@@ -8,7 +8,7 @@
 #' @param outfile Data will be written to a file if supplied. 
 #' Must be a gpkg file path. 
 #' If NULL a list object of divides, flowpaths, and a network table will be returned.
-#' @return
+#' @return path or list 
 #' @export
 
 get_vpu_fabric = function(vpu = "01", 
@@ -21,12 +21,12 @@ get_vpu_fabric = function(vpu = "01",
    
   fl = open_dataset(glue('{source}/v{version}/{type}/conus_flowlines/')) %>% 
     filter(vpuid == vpu) %>% 
-    sfarrow::read_sf_dataset() %>% 
+    read_sf_dataset() %>% 
     st_set_crs(5070)
   
   div = open_dataset(glue('{source}/v{version}/{type}/conus_divides/')) %>% 
     filter(vpuid == vpu) %>% 
-    sfarrow::read_sf_dataset() %>% 
+    read_sf_dataset() %>% 
     st_set_crs(5070)
   
   net = open_dataset(glue('{source}/v{version}/{type}/conus_network/')) %>% 
@@ -44,6 +44,3 @@ get_vpu_fabric = function(vpu = "01",
     return(outfile)
   }
 }
-
-x = get_vpu_fabric("01", "reference")
-x = get_vpu_fabric("01", "reference", outfile = "test01.gpkg")
