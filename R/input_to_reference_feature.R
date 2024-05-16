@@ -8,7 +8,7 @@
 #' @param poi_id POI identifier. datatype: int / vector of int e.g., 266387 or c(266387, 266745)
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'. datatype: a url e.g., 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/census2020-nhdpv2'
 #' @param xy Location given as vector of XY and CRS (e.g., 4326) (longitude, latitude, crs)
-#' @param base An s3 bucket link where network files are ('s3://lynker-spatial/hydrofabric') or local directory
+#' @param source An s3 bucket link where network files are ('s3://lynker-spatial/hydrofabric') or local directory
 #' @param type The name of target geospatial fabric ("reference")
 #' @param version The version of the target geospatial fabric(e.g., "2.2") 
 #' 
@@ -20,17 +20,17 @@ input_to_reference_feature = function(id = NULL,
                                       poi_id = NULL, 
                                       nldi_feature = NULL, 
                                       xy = NULL, 
-                                      base,
-                                      type,
-                                      version) {
+                                      type = "reference",
+                                      version = "2.2", 
+                                      source = "s3://lynker-spatial/hydrofabric") {
   
   # Initialize as Null variables an default varaibles
   toid <- divide_id <- hf_hydroseq <- hf_id <- hydroseq <- vpu <- NULL
 
-  hook = glue("{base}/v{version}/conus_hl")
+  hook = glue("{source}/v{version}/conus_hl")
   net_hl = arrow::open_dataset(hook)
 
-  hook = glue("{base}/v{version}/{type}/conus")
+  hook = glue("{source}/v{version}/{type}/conus")
   net = arrow::open_dataset(glue("{hook}_network")) 
   
   # Network present -------------------------------------------------
@@ -267,7 +267,7 @@ input_to_reference_feature = function(id = NULL,
         poi_id <- as.integer(poi_id)
         
         # Read network and grab comids
-        hook = glue("{base}/v{version}/{type}/conus")
+        hook = glue("{source}/v{version}/{type}/conus")
         net_data = arrow::open_dataset(glue("{hook}_network")) 
         poi_df <- net_data %>%
                   filter(poi_id %in% poi_id) %>%
