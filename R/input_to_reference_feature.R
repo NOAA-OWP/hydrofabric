@@ -1,5 +1,5 @@
 # A function to find the most terminal feature given ids or coordinates
-#' @title Find a Refernece Feature
+#' @title Find a Reference Feature
 #' @param network table from network file default is NULL. datatype: dataframe e.g., conus_network
 #' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
 #' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
@@ -8,23 +8,59 @@
 #' @param poi_id POI identifier. datatype: int / vector of int e.g., 266387 or c(266387, 266745)
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'. datatype: a url e.g., 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/census2020-nhdpv2'
 #' @param xy Location given as vector of XY and CRS (e.g., 4326) (longitude, latitude, crs)
-#' @param s3 An s3 bucket link where network files are ('s3://lynker-spatial/hydrofabric')
-#' @param type The name of target geospatial fabric ("reference")
-#' @param version The version of the target geospatial fabric(e.g., "2.2") 
+#' @inheritParams get_vpu_fabric
 
-input_to_reference_feature = function(net = NULL,  
-                                      id = NULL, 
+
+input_to_reference_feature = function(id = NULL, 
                                       comid = NULL,  
                                       hl_id = NULL, 
                                       hl_uri = NULL, 
                                       poi_id = NULL, 
                                       nldi_feature = NULL, 
                                       xy = NULL, 
-                                      s3,
-                                      type,
-                                      version) {
+                                      type = "reference",
+                                      version = "2.2", 
+                                      source = "s3://lynker-spatial/hydrofabric"
+                                      ) {
   
+  
+  # ____ NOTES ________ # 
+  # 
+  # id = 101
+  # network_dir = 's3://lynker-spatial/hydrofabric/v2.2/reference/conus_network/'
+  # if(!is.null(id)){
+  #   net = open_dataset(network_dir) %>% 
+  #     filter(comid == !!id) %>% 
+  #     select(vpuid, id) %>% 
+  #     distinct() %>% 
+  #     collect()
+  # }
+  # 
+  # if(!is.null(hl_id)){
+  #   open_dataset('/Volumes/MyBook/conus-hydrofabric/v2.2/conus_hl') %>% 
+  #     filter(hl_id == !!hl_id) %>% 
+  #     select(vpuid, poi_id) %>% 
+  #     distinct() %>% 
+  #     collect()
+  # }
+  # 
+  # if(!is.null(poi_id)){
+  #   open_dataset(network_dir) %>% 
+  #     filter(poi_id == !!poi_id) %>% 
+  #     select(vpuid, comid) %>% 
+  #     distinct() %>% 
+  #     collect()
+  # }
+  # 
+  # if(net$topo == "fl-fl"){
+  #   outlet = net$id
+  # } else if(net$topo == "fl-nex"){
+  #   outlet = net$toid
+  # }
+  # 
+  # return(vpu = net$vpuid, outlet = outlet)
   # Initialize as Null variables an default varaibles
+  # 
   toid <- divide_id <- hf_hydroseq <- hf_id <- hydroseq <- vpu <- NULL
 
   # Network present -------------------------------------------------

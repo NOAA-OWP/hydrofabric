@@ -9,6 +9,93 @@ is.url <- function(x) {
   grepl("www.|http:|https:", x)
 }
 
+
+.subset = function( source = 's3://lynker-spatial/hydrofabric',
+                    type = "reference",
+                    version = "2.2",
+                    vpuid = NULL,
+                    outlet = NULL ){
+ 
+    hook = source("{s3}/v{version}/{type}/conus")
+    
+    d = open_dataset(glue("{hook}_network")) 
+    
+    net  = collect(select(filter(d, vpuid == vpuid), id, toid))
+    
+    subset = nhdplusTools::sort_network(net, outlets = outlet)
+    
+    ll = unique(as.vector(unlist(subset[-nrow(subset),])))
+    
+    fl = open_dataset(glue("{hook}_flowlines")) %>% 
+      filter(vpuid == vpuid) %>% 
+      filter(comid %in% ll) %>% 
+      read_sf_dataset() %>% 
+      st_set_crs(5070)
+    
+    div = open_dataset(glue("{hook}_divides")) %>% 
+      filter(vpuid == vpuid) %>% 
+      filter(featureid %in% ll) %>% 
+      read_sf_dataset() %>% 
+      st_set_crs(5070)
+    
+    net = open_dataset(glue("{hook}_network")) %>% 
+      filter(vpuid == vpuid) %>% 
+      filter(featureid %in% ll) %>% 
+      read_sf_dataset() %>% 
+      st_set_crs(5070)
+    
+    if(is.null(outfile)){
+      list(divides = div,
+           flowpaths = fl,
+           network = net)
+    } else {
+      write_sf(fl, outfile, "flowpaths")
+      write_sf(div, outfile, "divides")
+      write_sf(net, outfile, "network")
+      return(outfile)
+    }
+
+}
+#' Subset Hydrofabric Network
+#' @inheritParams input_to_reference_feature
+
+subset_network = function(type = "reference",
+                          version = "2.2", 
+                          source = "s3://lynker-spatial/hydrofabric",
+                          id = NULL, 
+                          comid = NULL,  
+                          hl_id = NULL, 
+                          hl_uri = NULL, 
+                          poi_id = NULL, 
+                          nldi_feature = NULL, 
+                          xy = NULL){
+  
+  ll = input_to_reference_feature(net = NULL,  
+                                      id = NULL, 
+                                      comid = NULL,  
+                                      hl_id = NULL, 
+                                      hl_uri = NULL, 
+                                      poi_id = NULL, 
+                                      nldi_feature = NULL, 
+                                      xy = NULL, 
+                                      type = "reference",
+                                      version = "2.2", 
+                                      source = "s3://lynker-spatial/hydrofabric")
+  
+  list(vpuid = XXX, outlet)
+  
+  topo = v("fl-fl", "fl-nex")
+  
+  .subset(type = "reference",
+          version = "2.2", 
+          source = "s3://lynker-spatial/hydrofabric",
+          vpuid,
+          outlet)
+  
+  
+}
+
+
 #' Subset Hydrofabric Network
 #' @inheritParams input_to_reference_feature
 #' @param bbox a numeric vector of length four, with xmin, ymin, xmax and ymax values
@@ -30,7 +117,9 @@ subset_network = function(id = NULL,
                           nldi_feature = NULL,
                           xy = NULL,
                           bbox = NULL,
-                          base_s3 = 's3://lynker-spatial/v20.1/',
+                          type = "reference",
+                          version = "2.2", 
+                          source = "s3://lynker-spatial/hydrofabric",
                           base_dir = NULL,
                           lyrs  = c(
                             "divides",
