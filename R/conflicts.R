@@ -98,7 +98,6 @@ print.hydrofabric_conflicts <- function(x, ..., startup = FALSE) {
   invisible(x)
 }
 
-#' @importFrom magrittr %>%
 #' @importFrom purrr map keep
 
 confirm_conflict <- function(packages, name) {
