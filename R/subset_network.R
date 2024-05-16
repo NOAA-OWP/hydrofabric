@@ -9,57 +9,6 @@ is.url <- function(x) {
   grepl("www.|http:|https:", x)
 }
 
-
-#' Access Hydrofabric Network
-#' @param VPU Vector Processing Unit
-#' @param base_s3 the base hydrofabric directory to access in Lynker's s3
-#' @param cache_dir should data be cached to a local directory? Will speed up multiple subsets in the same region
-#' @param cache_overwrite description. Should a cached file be overwritten
-#' @return file path
-#' @export
-
-get_fabric = function(VPU,
-                      base_s3 = 's3://lynker-spatial/v20/',
-                      cache_dir = NULL,
-                      cache_overwrite = FALSE) {
-  Key <- NULL
-  
-  xx = aws.s3::get_bucket_df(
-    bucket = dirname(base_s3),
-    prefix = glue::glue("{basename(base_s3)}/gpkg"),
-    region = 'us-west-2'
-  ) |>
-    dplyr::filter(grepl(basename(base_s3), Key) &
-                    grepl(paste0(VPU, ".gpkg$"), Key)) |>
-    dplyr::filter(!grepl("[.]_", Key))
-  
-  if (!is.null(cache_dir)) {
-    dir.create(cache_dir,
-               recursive = TRUE,
-               showWarnings = FALSE)
-    gpkg = glue::glue("{cache_dir}/{basename(xx$Key)}")
-    if (cache_overwrite) {
-      unlink(gpkg)
-    }
-    temp = FALSE
-  } else {
-    gpkg = tempfile(fileext  = ".gpkg")
-    temp = TRUE
-  }
-  
-  if (!file.exists(gpkg)) {
-    aws.s3::save_object(
-      bucket = xx$Bucket,
-      object = xx$Key,
-      file = gpkg,
-      region = 'us-west-2'
-    )
-  }
-  
-  return(gpkg)
-  
-}
-
 #' Subset Hydrofabric Network
 #' @inheritParams input_to_reference_feature
 #' @param bbox a numeric vector of length four, with xmin, ymin, xmax and ymax values
