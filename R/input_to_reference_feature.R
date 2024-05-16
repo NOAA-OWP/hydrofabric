@@ -1,18 +1,17 @@
 # A function to find the most terminal feature given ids or coordinates
 #' @title Find a Refernece Feature
-#' @param network table from network file default is NULL. datatype: dataframe e.g., CONUS_Net file
-#' @param id hydrofabric id (relevant only to nextgen fabrics). datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
+#' @param network table from network file default is NULL. datatype: dataframe e.g., conus_network
+#' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
 #' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
-#' @param hl_id hydrolocation id (relevant only to nextgen fabrics). datatype: int / vector of int e.g., 01236 or c(01236 , 01244) 
-#' @param hl_uri hydrolocation URI (relevant only to nextgen fabrics). datatype: string / vector of string / a url e.g., HUC12-010100100101 or c(HUC12-010100100101 , HUC12-010100110104) 
+#' @param hl_id hydrolocation id. datatype: int / vector of int e.g., 01236 or c(01236 , 01244) 
+#' @param hl_uri hydrolocation URI. datatype: string / vector of string / a url e.g., HUC12-010100100101 or c(HUC12-010100100101 , HUC12-010100110104) 
 #' @param poi_id POI identifier. datatype: int / vector of int e.g., 266387 or c(266387, 266745)
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'. datatype: a url e.g., 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/census2020-nhdpv2'
 #' @param xy Location given as vector of XY and CRS (e.g., 4326) (longitude, latitude, crs)
 #' @param s3 An s3 bucket link where network files are ('s3://lynker-spatial/hydrofabric')
 #' @param type The name of target geospatial fabric ("reference")
 #' @param version The version of the target geospatial fabric(e.g., "2.2") 
-#' 
-# Inputs 
+
 input_to_reference_feature = function(net = NULL,  
                                       id = NULL, 
                                       comid = NULL,  
