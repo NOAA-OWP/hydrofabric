@@ -651,22 +651,114 @@ fema_uids
      
     }
     
-    # Update the "transects_to_extend" with new geos geometries ("geos_list")
-    sf::st_geometry(transects) <- sf::st_geometry(sf::st_as_sf(transect_geoms))
-    
-    transects$left_is_extended  <- left_extended_flag
-    transects$right_is_extended <- right_extended_flag
-    transects %>% 
-      dplyr::filter(left_is_extended | right_is_extended)
-    left_only_extended <- 
+    transects2 <-
       transects %>% 
-      dplyr::filter(!left_is_extended, right_is_extended)
+      dplyr::mutate(
+        new_cs_lengthm = as.numeric(sf::st_length(geom))
+      ) %>% 
+      dplyr::relocate(hy_id, cs_id, cs_lengthm, new_cs_lengthm)
+    
+    
+    # Update the "transects_to_extend" with new geos geometries ("geos_list")
+    sf::st_geometry(transects2) <- sf::st_geometry(sf::st_as_sf(transect_geoms))
+    
+    transects2 <- 
+      transects2 %>% 
+      dplyr::mutate(
+        new_cs_lengthm = as.numeric(sf::st_length(geom))
+      ) %>% 
+      dplyr::relocate(hy_id, cs_id, cs_lengthm, new_cs_lengthm)
+    
+    # transects2 %>% 
+    #   dplyr::filter(
+    #     new_cs_lengthm > cs_lengthm
+    #   )
+    # 
+    
+    transects2$left_is_extended  <- left_extended_flag
+    transects2$right_is_extended <- right_extended_flag
+    
+    transects2 %>% 
+      dplyr::filter(left_is_extended, right_is_extended)
+    
+    both_extended <- 
+      transects2 %>% 
+      dplyr::filter(left_is_extended, right_is_extended)
+    
+    both_flines <- 
+      flines %>% 
+      dplyr::filter(id %in% both_extended$hy_id)
+    
+    left_only_extended <- 
+      transects2 %>% 
+      dplyr::filter(left_is_extended, !right_is_extended)
+    
     left_only_flines <- 
       flines %>% 
       dplyr::filter(id %in% left_only_extended$hy_id)
+    
+    right_only_extended <- 
+      transects2 %>% 
+      dplyr::filter(!left_is_extended, right_is_extended)
+    
+    right_only_flines <- 
+      flines %>% 
+      dplyr::filter(id %in% right_only_extended$hy_id)
+  
+    # left_fema_polygons <- 
+      # left_trans %>% 
+      
+    fema_indexes_in_aoi <-
+      dplyr::bind_rows(
+        sf::st_drop_geometry(
+          dplyr::rename(left_trans, fema_index = left_fema_index)
+        ),
+        sf::st_drop_geometry(     
+          dplyr::rename(right_trans, 
+                        fema_index = right_fema_index)
+        )
+      ) %>% 
+      hydrofabric3D::add_tmp_id() %>% 
+      dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id)
+      # dplyr::filter(
+      #   # tmp_id %in% hydrofabric3D::add_tmp_id(left_only_extended)$tmp_id |
+      #   # tmp_id %in% hydrofabric3D::add_tmp_id(right_only_extended)$tmp_id
+      #  
+      #   tmp_id %in%  unique(hydrofabric3D::add_tmp_id(dplyr::filter(transects2, left_is_extended, right_is_extended))$tmp_id)
+      #   
+      #   ) %>% 
+      # dplyr::filter(left_is_within_fema | right_is_within_fema) %>% 
+      dplyr::slice(1:200) %>%
+      .$fema_index %>% 
+      unlist() %>% 
+      na.omit() %>% 
+      unique() %>% 
+      sort()  
+      # length()
+    
+    polygons[fema_indexes_in_aoi, ]
+    
+    extended_for_map <- 
+      both_extended %>% 
+      dplyr::slice(1:5000)
+    
+    og_transects_for_map <- 
+      transects %>% 
+      hydrofabric3D::add_tmp_id() %>% 
+      dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id)
+
+    # hydrofabric3D::add_tmp_id(left_only_extended)$tmp_id
+    # transects_with_distances
     # %>% 
-      mapview::mapview(left_only_flines, color = "dodgerblue") + 
-    mapview::mapview(left_only_extended, color = "red")
+    mapview::mapview(polygons[fema_indexes_in_aoi, ], col.regions = "yellow") + 
+      mapview::mapview(both_flines, color = "dodgerblue") + 
+      mapview::mapview(og_transects_for_map, color = "red") + 
+      mapview::mapview(extended_for_map, color = "green") 
+      
+      # mapview::mapview(left_only_flines, color = "dodgerblue") + 
+      #     mapview::mapview(right_only_flines, color = "dodgerblue") + 
+    # mapview::mapview(left_only_extended, color = "red") + 
+    #      mapview::mapview(right_only_extended, color = "green")
     # transects$cs_lengthm  <- length_list
     
     transects
