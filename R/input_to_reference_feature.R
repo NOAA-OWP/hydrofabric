@@ -8,7 +8,10 @@
 #' @param poi_id POI identifier. datatype: int / vector of int e.g., 266387 or c(266387, 266745)
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'. datatype: a url e.g., 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/census2020-nhdpv2'
 #' @param xy Location given as vector of XY and CRS (e.g., 4326) (longitude, latitude, crs)
-
+#' @param s3 An s3 bucket link where network files are ('s3://lynker-spatial/hydrofabric)
+#' @param type The name of target geospatial fabric ("reference")
+#' @param version The version of the target geospatial fabric(e.g., "2.2") 
+#' 
 # Inputs 
 input_to_reference_feature = function(net, 
                                       id, 
@@ -17,15 +20,18 @@ input_to_reference_feature = function(net,
                                       hl_uri, 
                                       poi_id,
                                       nldi_feature, 
-                                      xy) {
+                                      xy,
+                                      s3,
+                                      type,
+                                      version) {
   
   # Initialize as Null variables an default varaibles
   toid <- divide_id <- hf_hydroseq <- hf_id <- hydroseq <- vpu <- NULL
-  s3 = 's3://lynker-spatial/hydrofabric'
-  type = "reference"
-  version = "2.2"
 
   # Network present -------------------------------------------------
+  # If network file is present return origin such that it includes id, toid, hf_id, and vpu 
+  # as dataframe it works with single variable input and vector 
+
   # Given an id and network file 
   if (!is.null(id) & !is.null(net)) {
     # Check if input is a string or a vector
@@ -96,25 +102,25 @@ input_to_reference_feature = function(net,
   if (!is.null(hl_uri) & !is.null(net)) {
     # If url  and comid not present then retrive the comid first and keep the most terminal
     if (is.url(hl_uri)) {
-        if (is.null(comid)) {
-            # Retrive the comid for features
-            comid = unique(suppressWarnings(sf::read_sf(nldi_feature) %>%
-                    select(one_of("COMID", "comid", "nhdpv2_comid")) %>%
-                    unlist(use.names = FALSE)))        
-            comid <- comid[comid != ""]
-        }
-        # Filter net file to those comids and keep the most terminal
-        origin <- net[net$hf_id %in% comid, ] |>
-                  group_by(id) %>%
-                  mutate(max_hf_hydroseq = max(hf_hydroseq, na.rm = TRUE)) %>%
-                  filter(hf_hydroseq == max_hf_hydroseq) %>%
-                  distinct(id, .keep_all = TRUE) %>%
-                  select(id, toid, hf_id, vpu) %>%
-                  as.data.frame()
-        if (is.null(origin)) {
-          stop("Single origin not found")
-        }
-        return(origin)
+      if (is.null(comid)) {
+          # Retrive the comid for features
+          comid = unique(suppressWarnings(sf::read_sf(nldi_feature) %>%
+                  select(one_of("COMID", "comid", "nhdpv2_comid")) %>%
+                  unlist(use.names = FALSE)))        
+          comid <- comid[comid != ""]
+      }
+      # Filter net file to those comids and keep the most terminal
+      origin <- net[net$hf_id %in% comid, ] |>
+                group_by(id) %>%
+                mutate(max_hf_hydroseq = max(hf_hydroseq, na.rm = TRUE)) %>%
+                filter(hf_hydroseq == max_hf_hydroseq) %>%
+                distinct(id, .keep_all = TRUE) %>%
+                select(id, toid, hf_id, vpu) %>%
+                as.data.frame()
+      if (is.null(origin)) {
+        stop("Single origin not found")
+      }
+      return(origin)
     } else {
         origin <- dplyr::filter(net, hl_uri %in% !!hl_uri) |>
                   group_by(id) %>%
@@ -156,7 +162,7 @@ input_to_reference_feature = function(net,
               distinct(id, .keep_all = TRUE) %>%
               as.data.frame()%>%
               select(id, toid, hf_id, vpu) 
-  return(origin)
+    return(origin)
   }
 
   # Given an nldi_feature
@@ -211,7 +217,9 @@ input_to_reference_feature = function(net,
   }
   
   # Network not present -------------------------------------------------
-  
+  # If network file is not present return origin such that it includes comid and vpu 
+  # as dataframe it works with single variable input and vector 
+
   if (is.null(net)) {
     # Check if no comid is provided then compute one
     if (is.null(comid)) {
