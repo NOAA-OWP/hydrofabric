@@ -16,12 +16,6 @@ subset_bbox(
 }
 \arguments{
 \item{gpkg}{a path to a gpkg to subset}
-
-\item{bbox}{a numeric vector of length four, with xmin, ymin, xmax and ymax values}
-
-\item{lyrs}{layers to extract. Default is all possible in the hydrofabric GPKG data model}
-
-\item{outfile}{file path to write to. Must have ".gpkg" extension}
 }
 \value{
 file path (outfile) or list of features

@@ -16,12 +16,6 @@ area_length_filter(
 \item{tmap}{Topologic Map}
 
 \item{gpkg}{a geopackage}
-
-\item{areasqkm}{the maximum upstream area to subset}
-
-\item{pathlengthkm}{the maximum upstream path length to subset}
-
-\item{ms_pathlengthkm}{the maximum upstream mainstem path length to subset}
 }
 \value{
 data.frame

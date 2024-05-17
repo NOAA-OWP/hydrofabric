@@ -6,15 +6,15 @@
 \usage{
 create_metadata(
   df,
-  version = "2.2",
-  license = "ObDL",
+  hf_version = "2.2",
+  license = "ODbL",
   source = "lynker-spatial"
 )
 }
 \arguments{
 \item{df}{object of class \code{sf}}
 
-\item{version}{dataset version}
+\item{hf_version}{dataset version}
 
 \item{license}{dataset license}
 

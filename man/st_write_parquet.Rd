@@ -7,8 +7,8 @@
 st_write_parquet(
   obj,
   dsn,
-  version = "2.2",
-  license = "ObDL",
+  hf_version = "2.2",
+  license = "ODbL",
   source = "lynker-spatial",
   ...
 )
@@ -18,7 +18,7 @@ st_write_parquet(
 
 \item{dsn}{data source name. A path and file name with .parquet extension}
 
-\item{version}{dataset version}
+\item{hf_version}{dataset version}
 
 \item{license}{dataset license}
 

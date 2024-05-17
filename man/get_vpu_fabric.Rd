@@ -9,7 +9,7 @@ Optionally this data can be written to a GPKG.}
 get_vpu_fabric(
   vpu = "01",
   type = "reference",
-  version = "2.2",
+  hf_version = "2.2",
   source = "s3://lynker-spatial/hydrofabric",
   outfile = NULL
 )
@@ -19,7 +19,7 @@ get_vpu_fabric(
 
 \item{type}{hydrofabric type}
 
-\item{version}{hydrofabric version}
+\item{hf_version}{hydrofabric version}
 
 \item{source}{hydrofabric source (local root directory or s3 link)}
 

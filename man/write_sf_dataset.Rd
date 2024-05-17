@@ -9,8 +9,8 @@ write_sf_dataset(
   path,
   format = "parquet",
   partitioning = dplyr::group_vars(obj),
-  version = "2.2",
-  license = "ObDL",
+  hf_version = "2.2",
+  license = "ODbL",
   source = "lynker-spatial",
   ...
 )
@@ -25,7 +25,7 @@ write_sf_dataset(
 \item{partitioning}{character vector of columns in \code{obj} for grouping or
 the \code{dplyr::group_vars}}
 
-\item{version}{dataset version}
+\item{hf_version}{dataset version}
 
 \item{license}{dataset license}
 

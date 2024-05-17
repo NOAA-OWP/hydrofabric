@@ -1,6 +1,6 @@
 #' @title Create standardized geo metadata for Parquet files
 #' @param df object of class \code{sf}
-#' @param version dataset version
+#' @param hf_version dataset version
 #' @param license dataset license
 #' @param source dataset source
 #' @details Reference for metadata standard:
@@ -11,14 +11,14 @@
 
 create_metadata <-
   function(df,
-           version = "2.2",
-           license = "ObDL",
+           hf_version = "2.2",
+           license = "ODbL",
            source = "lynker-spatial") {
     
-    warning(strwrap(glue("This is writing {source} supported metadata for hydrofabric version {version}. 
+    warning(strwrap(glue("This is writing {source} supported metadata for hydrofabric version {hf_version}. 
                     Use of the data follows an {license} license."),
                     prefix = "\n", initial = ""
-    ), call.=FALSE)
+    ), call. = FALSE)
     
     geom_cols <- lapply(df, \(i) inherits(i, "sfc"))
     geom_cols <- names(which(geom_cols == TRUE))
@@ -35,7 +35,7 @@ create_metadata <-
     geo_metadata <- list(
       primary_column = attr(df, "sf_column"),
       columns = col_meta,
-      version = version,
+      version = hf_version,
       licence = license,
       source = source,
       schema_version = "0.1.0",
@@ -118,6 +118,7 @@ encode_wkb <- function(df) {
 #' @keywords internal
 
 arrow_to_sf <- function(tbl, metadata) {
+  
   geom_cols <- names(metadata$columns)
   geom_cols <- intersect(colnames(tbl), geom_cols)
   
@@ -204,8 +205,8 @@ st_read_parquet <- function(dsn, col_select = NULL,
 #' @export
 
 st_write_parquet <- function(obj, dsn, 
-                             version = "2.2",
-                             license = "ObDL",
+                             hf_version = "2.2",
+                             license = "ODbL",
                              source = "lynker-spatial", 
                              ...) {
   if (!inherits(obj, "sf")) { stop("Must be sf data format") }
@@ -213,7 +214,7 @@ st_write_parquet <- function(obj, dsn,
   if (missing(dsn)) { stop("Missing output file") }
   
   geo_metadata <- create_metadata(obj, 
-                                  version = version,
+                                  hf_version = hf_version,
                                   license = license,
                                   source = source)
   
@@ -301,8 +302,8 @@ write_sf_dataset <- function(obj,
                              path,
                              format = "parquet",
                              partitioning = dplyr::group_vars(obj),
-                             version = "2.2",
-                             license = "ObDL",
+                             hf_version = "2.2",
+                             license = "ODbL",
                              source = "lynker-spatial", 
                              ...) {
   if (!inherits(obj, "sf")) {
@@ -314,9 +315,9 @@ write_sf_dataset <- function(obj,
   }
   
   geo_metadata <- create_metadata(obj,
-                                  version = "2.2",
-                                  license = "ObDL",
-                                  source = "lynker-spatial")
+                                  hf_version = hf_version,
+                                  license = license,
+                                  source = source)
   
   if (inherits(obj, "grouped_df")) {
     partitioning <- force(partitioning)
