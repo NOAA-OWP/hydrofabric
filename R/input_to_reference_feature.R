@@ -1,21 +1,23 @@
 #' @title Build a hydrofabric subset
 #' @inheritParams get_vpu_fabric
-#' @param id hydrofabric id. datatype: string / vector of strings e.g., 'wb-10026' or c('wb-10026', 'wb-10355') 
-#' @param comid NHDPlusV2 COMID. datatype: int / vector of int e.g., 61297116 or c(61297116 , 6129261) 
-#' @param hl_uri hydrolocation URI. datatype: string / vector of string / a url e.g., HUC12-010100100101 or c(HUC12-010100100101 , HUC12-010100110104) 
-#' @param poi_id POI identifier. datatype: int / vector of int e.g., 266387 or c(266387, 266745)
+#' @param outfile path to write the subset to e.g., /path/my_subset.gpkg
+#' @param id hydrofabric id. datatype: string e.g., 'wb-10026' 
+#' @param comid NHDPlusV2 COMID. datatype: int e.g., 61297116 
+#' @param hl_uri hydrolocation URI. datatype: string / a url e.g., HUC12-010100100101 
+#' @param poi_id POI identifier. datatype: int e.g., 266387 
 #' @param nldi_feature list with names 'featureSource' and 'featureID' where 'featureSource' is derived from the "source" column of the response of dataRetrieval::get_nldi_sources() and the 'featureID' is a known identifier from the specified 'featureSource'. datatype: a url e.g., 'https://labs.waterdata.usgs.gov/api/nldi/linked-data/census2020-nhdpv2'
-#' @param xy Location given as vector of XY and CRS (e.g., 4326) (longitude, latitude, crs)
+#' @param xy Location given as vector of XY (longitude, latitude)
 
-get_subset = function(id = NULL, 
-                                      comid = NULL,  
-                                      hl_uri = NULL, 
-                                      poi_id = NULL, 
-                                      nldi_feature = NULL, 
-                                      xy = NULL, 
-                                      type = "reference",
-                                      hf_version = "2.2", 
-                                      source = "s3://lynker-spatial/hydrofabric") {
+get_subset = function(outfile,
+                      id = NULL, 
+                      comid = NULL,  
+                      hl_uri = NULL, 
+                      poi_id = NULL, 
+                      nldi_feature = NULL, 
+                      xy = NULL, 
+                      type = "reference",
+                      hf_version = "2.2", 
+                      source = "s3://lynker-spatial/hydrofabric") {
   
   hook      <- glue("{source}/v{hf_version}/{type}/conus")
   net_hook  <- glue("{hook}_network")
