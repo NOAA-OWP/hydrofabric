@@ -123,7 +123,8 @@ path_df
     transect_lines <- transects
     polygons <- fema
     # # flines <- flines
-    max_extension_distance <- 3000
+    # max_extension_distance <- 3000
+    max_extension_distance = 3500
     # ###    ###    ###    ###    ###    ###    ###
     ###    ###    ###    ###    ###    ###    ###
     
@@ -131,7 +132,7 @@ path_df
     polygons <- rmapshaper::ms_simplify(polygons, keep_shapes = F, keep = 0.10)
     
     mapview::npts(fema)
-     mapview::npts(polygons)
+    mapview::npts(polygons)
     # transects <- sf::read_sf(transect_path)
     
      # polygons
@@ -162,7 +163,10 @@ path_df
       # dplyr::select(fema_id, geom = x) %>% 
       sf::st_cast("MULTILINESTRING") %>% 
       geos::as_geos_geometry() %>% 
-      geos::geos_simplify_preserve_topology(25)
+      geos::geos_simplify_preserve_topology(20)
+    
+    # mapview::npts(sf::st_as_sf(intersect_lines))
+
     
  #    intersect_polygons %>% 
  #      geos::geos_make_valid() %>% 
@@ -259,12 +263,13 @@ path_df
                     geom
       ) 
     
-    max_extension_distance = 3000
-    which(transects_with_distances$hy_id == "wb-1003839")
+    # max_extension_distance = 3000
+    # which(transects_with_distances$hy_id == "wb-1003839")
     
     left_trans[which(left_trans$hy_id == "wb-1003839"), ]$cs_lengthm
     right_trans[which(left_trans$hy_id == "wb-1003839"), ]$cs_lengthm
-    which(right_trans$hy_id == "wb-1003839")
+    
+    # which(right_trans$hy_id == "wb-1003839")
     
     left_distances <- calc_extension_distances(
       geos_geoms             = left_trans_geos,
@@ -289,6 +294,7 @@ path_df
     
     extensions_by_id %>% 
       dplyr::filter(hy_id == "wb-1003839")
+    
     # distance to extend LEFT and/or RIGHT for each hy_id/cs_id
     extensions_by_id <- dplyr::left_join(
                           sf::st_drop_geometry(
@@ -651,12 +657,11 @@ fema_uids
      
     }
     
-    transects2 <-
-      transects %>% 
-      dplyr::mutate(
-        new_cs_lengthm = as.numeric(sf::st_length(geom))
-      ) %>% 
-      dplyr::relocate(hy_id, cs_id, cs_lengthm, new_cs_lengthm)
+    transects2 <- transects 
+      # dplyr::mutate(
+      #   new_cs_lengthm = as.numeric(sf::st_length(geom))
+      # ) %>% 
+      # dplyr::relocate(hy_id, cs_id, cs_lengthm, new_cs_lengthm)
     
     
     # Update the "transects_to_extend" with new geos geometries ("geos_list")
@@ -681,33 +686,44 @@ fema_uids
     transects2 %>% 
       dplyr::filter(left_is_extended, right_is_extended)
     
-    both_extended <- 
+    any_extended <- 
       transects2 %>% 
-      dplyr::filter(left_is_extended, right_is_extended)
+      dplyr::filter(left_is_extended | right_is_extended)
     
-    both_flines <- 
+    any_flines <- 
       flines %>% 
-      dplyr::filter(id %in% both_extended$hy_id)
+      dplyr::filter(id %in% any_extended$hy_id)
     
-    left_only_extended <- 
-      transects2 %>% 
-      dplyr::filter(left_is_extended, !right_is_extended)
-    
-    left_only_flines <- 
-      flines %>% 
-      dplyr::filter(id %in% left_only_extended$hy_id)
-    
-    right_only_extended <- 
-      transects2 %>% 
-      dplyr::filter(!left_is_extended, right_is_extended)
-    
-    right_only_flines <- 
-      flines %>% 
-      dplyr::filter(id %in% right_only_extended$hy_id)
+    # left_only_extended <- 
+    #   transects2 %>% 
+    #   dplyr::filter(left_is_extended, !right_is_extended)
+    # 
+    # left_only_flines <- 
+    #   flines %>% 
+    #   dplyr::filter(id %in% left_only_extended$hy_id)
+    # 
+    # right_only_extended <- 
+    #   transects2 %>% 
+    #   dplyr::filter(!left_is_extended, right_is_extended)
+    # 
+    # right_only_flines <- 
+    #   flines %>% 
+    #   dplyr::filter(id %in% right_only_extended$hy_id)
   
     # left_fema_polygons <- 
       # left_trans %>% 
-      
+    # ----------------------------------------------------------------
+    # ------- Subset data for mapping ----------- 
+    # ----------------------------------------------------------------
+    extended_for_map <- 
+      any_extended %>% 
+      dplyr::slice(1:5000)
+    
+    og_transects_for_map <- 
+      transects %>% 
+      hydrofabric3D::add_tmp_id() %>% 
+      dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id)
+    
     fema_indexes_in_aoi <-
       dplyr::bind_rows(
         sf::st_drop_geometry(
@@ -719,7 +735,7 @@ fema_uids
         )
       ) %>% 
       hydrofabric3D::add_tmp_id() %>% 
-      dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id)
+      dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id) %>% 
       # dplyr::filter(
       #   # tmp_id %in% hydrofabric3D::add_tmp_id(left_only_extended)$tmp_id |
       #   # tmp_id %in% hydrofabric3D::add_tmp_id(right_only_extended)$tmp_id
@@ -728,42 +744,32 @@ fema_uids
       #   
       #   ) %>% 
       # dplyr::filter(left_is_within_fema | right_is_within_fema) %>% 
-      dplyr::slice(1:200) %>%
+      # dplyr::slice(1:200) %>%
       .$fema_index %>% 
       unlist() %>% 
       na.omit() %>% 
       unique() %>% 
-      sort()  
+      sort()
       # length()
     
-    polygons[fema_indexes_in_aoi, ]
-    
-    extended_for_map <- 
-      both_extended %>% 
-      dplyr::slice(1:5000)
-    
-    og_transects_for_map <- 
-      transects %>% 
-      hydrofabric3D::add_tmp_id() %>% 
-      dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id)
+    sf::st_as_sf(intersect_polygons[fema_indexes_in_aoi])
 
     # hydrofabric3D::add_tmp_id(left_only_extended)$tmp_id
     # transects_with_distances
     # %>% 
-    mapview::mapview(polygons[fema_indexes_in_aoi, ], col.regions = "yellow") + 
-      mapview::mapview(both_flines, color = "dodgerblue") + 
-      mapview::mapview(og_transects_for_map, color = "red") + 
-      mapview::mapview(extended_for_map, color = "green") 
-      
+    mapview::mapview( sf::st_as_sf(intersect_polygons[fema_indexes_in_aoi]),  col.regions = "lightblue") + 
+      mapview::mapview(any_flines, color = "dodgerblue") + 
+      mapview::mapview(og_transects_for_map, color = "green") + 
+      mapview::mapview(extended_for_map, color = "red") 
+
       # mapview::mapview(left_only_flines, color = "dodgerblue") + 
       #     mapview::mapview(right_only_flines, color = "dodgerblue") + 
     # mapview::mapview(left_only_extended, color = "red") + 
     #      mapview::mapview(right_only_extended, color = "green")
     # transects$cs_lengthm  <- length_list
-    
-    transects
-  length(transect_geoms)
-    
+    # ----------------------------------------------------------------
+    # ----------------------------------------------------------------
+    # ----------------------------------------------------------------  
   
       # make the new transect line from the start and points 
       final_line <- geos::geos_make_linestring(x = c(X_start, X_end),
