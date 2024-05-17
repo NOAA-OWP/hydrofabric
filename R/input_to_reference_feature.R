@@ -65,7 +65,7 @@ input_to_reference_feature = function(id = NULL,
   if (!is.null(comid) & !is.null(net)) {
     # Cast to int
     comid <- as.integer(comid)
-    origin <- dplyr::filter(net, comid %in% !!hf_id) |>
+    origin <- dplyr::filter(net, hf_id %in% !! comid) |>
               group_by(id) %>%
               mutate(max_hf_hydroseq = max(hf_hydroseq, na.rm = TRUE)) %>%
               filter(hf_hydroseq == max_hf_hydroseq) %>%
