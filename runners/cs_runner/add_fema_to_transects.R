@@ -50,11 +50,13 @@ path_df
   
  
   fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))], "/merged")
+  # fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))], "/merged")
+
   vpu_fema_files <- list.files(fema_vpu_dir, full.names = TRUE)
   # vpu_fema_file1 <- vpu_fema_files[grepl("_union.gpkg", vpu_fema_files)]
   
-  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, ".gpkg"), vpu_fema_files)]
-  # vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_union.gpkg"), vpu_fema_files)]
+  # vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, ".gpkg"), vpu_fema_files)]
+  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_union.gpkg"), vpu_fema_files)]
   vpu_fema_file
   
   # fema polygons and transect lines
@@ -65,7 +67,36 @@ path_df
   
   # read in nextgen flowlines data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
-
+  # library(nngeo)
+  #   
+  # fema
+  # 
+  # fema %>% 
+  #   dplyr::group_by(fema_id) %>% 
+  #   dplyr::mutate(
+  #     n = dplyr::n()
+  #   ) %>% 
+  #   dplyr::arrange(-n) %>% 
+  #   dplyr::relocate(n)
+  # fema_sub <-   
+  #   fema %>% 
+  #   dplyr::filter(fema_id %in% c(1726))
+  # 
+  # # fema %>% 
+  #   # dplyr::filter(fema_id %in% c(1726)) %>%
+  #   mapview::mapview(fema_sub[1, ], col.regions = "red") +
+  #       mapview::mapview(sf::st_buffer(fema_sub[2, ], 500), col.regions = "green")
+  # fema_no_holes <- nngeo::st_remove_holes(fema)
+  # fema_no_holes_union <- sf::st_union(fema_no_holes)
+  # 
+  # touching_list = sf::st_touches(fema_no_holes)
+  # mapview::npts(fema)
+  # mapview::npts(fema_no_holes)
+  # mapview::npts(fema_no_holes_union)
+  # fema_no_holes %>% 
+  #   dplyr::mutate(new_fema_id = 1:dplyr::n()) %>% 
+  #   dplyr::group_by(new_fema_id)
+  # fema_no_holes_union
   # fema$fema_id %>% unique() %>% length()
   
   # # union then explode FEMA polygons 
@@ -106,7 +137,49 @@ path_df
         return(geos_ls)                                              
         
         
-      }
+  }
+  
+  #' Check if an updated transect line is valid relative to the other transects and flowlines in the network
+  #' The 'transect_to_check' should be 'used' (i.e. function returns TRUE) if 
+  #' the 'transect_to_check' does NOT interesect any other transects ('transect_lines') AND it only intersects a single flowline ONCE.
+  #' If the 'transect_to_check' intersects ANY other transects OR intersects a flowline more
+  #' than once (OR more than one flowline in the network) then the function returns FALSE.
+  #' @param transect_to_check geos_geometry, linestring
+  #' @param transect_lines geos_geometry, linestring
+  #' @param flowlines geos_geometry, linestring
+  #'
+  #' @return TRUE if the extension should be used, FALSE if it shouldn't be used
+  #' @importFrom geos geos_intersection geos_type
+  is_valid_transect_line <- function(transect_to_check, transect_lines, flowlines) {
+    
+    # ###   ##   ##   ##   ##   ##   ##   ##   ##   ##  
+    # extension_line <- left_extended_trans
+    # transect_lines <- transect_geoms
+    # flowlines <- flines_geos
+    # ###   ##   ##   ##   ##   ##   ##   ##   ##   ##  
+    
+    # Define conditions to decide which version of the transect to use
+    
+    # 1. Use transect with extension in BOTH directions
+    # 2. Use transect with LEFT extension only
+    # 3. Use transect with RIGHT extension only
+    
+    # Check that the extended transect lines only intersect a single flowline in the network only ONCE
+    intersects_with_flowlines <- geos::geos_intersection(
+      transect_to_check,
+      flowlines
+    )
+    intersects_flowline_only_once <- sum(geos::geos_type(intersects_with_flowlines) == "point") == 1 && 
+      sum(geos::geos_type(intersects_with_flowlines) == "multipoint") == 0 
+    
+    # check that the extended transect line does NOT intersect other transect lines (other than SELF)
+    intersects_other_transects <- sum(geos::geos_intersects(transect_to_check, transect_lines)) > 1
+    
+    # TRUE == Only one flowline is intersected a single time AND no other transect lines are intersected
+    use_transect <- intersects_flowline_only_once  && !intersects_other_transects
+    
+    return(use_transect)
+  }
   
   # Give a set of transecct linestrings and poylgons and get the minimum distance to extend each transect line (from both directions, to try and reach the edge of a "polygons")
   # internal function for extending transect lines out to FEMA 100 year flood plain polygons
@@ -163,7 +236,7 @@ path_df
       # dplyr::select(fema_id, geom = x) %>% 
       sf::st_cast("MULTILINESTRING") %>% 
       geos::as_geos_geometry() %>% 
-      geos::geos_simplify_preserve_topology(20)
+      geos::geos_simplify_preserve_topology(25)
     
     # mapview::npts(sf::st_as_sf(intersect_lines))
 
@@ -433,6 +506,10 @@ fema_uids
     right_extended_flag  <- rep(FALSE, length(transect_hy_id_array))
     both_extended_flag   <- rep(FALSE, length(transect_hy_id_array))
     
+    
+    updated_left_distances    <- rep(0, length(transect_hy_id_array))   
+    updated_right_distances   <- rep(0, length(transect_hy_id_array))   
+    
     # new_transects <- geos::geos_empty()
     # # measures  <- vctrs::vec_c()
     # transects_with_distances[1:20, ]
@@ -442,12 +519,14 @@ fema_uids
     total <- length(transect_hy_id_array)
 
     # output a message every ~10% intervals
-    message_interval <- total %/% 5
+    message_interval <- total %/% 20
     number_of_skips = 0
     
     for (i in seq_along(transect_hy_id_array)) {
       # message("i: ", i)
+      # i = 13
       # if(i > 2000) {
+      #   message("-----> STOP BECAUSE at i", i)
       #   break
       # }
       # i = 1
@@ -490,108 +569,155 @@ fema_uids
         next
       }
       
-      # transects_with_distances %>% 
-      #   dplyr::filter(hy_id == "wb-1003839")
-      # transects
-#      curr_fema_index <- 
-#        left_trans %>% 
-#        dplyr::filter(hy_id == current_hy_id, cs_id == current_cs_id) %>% 
-#        .$left_fema_index %>% .[[1]]
-      
       # message("Extending transect line left and right")
       # extend the lines
-      left_extended_trans  <- hydrofabric3D::geos_extend_line(current_trans, left_distance_to_extend, "head")
-      right_extended_trans <- hydrofabric3D::geos_extend_line(current_trans, right_distance_to_extend, "tail")
+      left_extended_trans  <- hydrofabric3D::geos_extend_line(current_trans, 
+                                                              left_distance_to_extend, "head")
+      right_extended_trans <- hydrofabric3D::geos_extend_line(current_trans, 
+                                                              right_distance_to_extend, "tail")
       
-      # neighbor_transects <- 
-      # message("Checking left and right intersections with flowline...")
-      
-      # Check that the extended transect lines only intersect the current flowline once
-      left_intersects_fline <- geos::geos_intersection(
-        left_extended_trans,
-        # current_fline
-        flines_geos
-      )
-      
-      right_intersects_fline <- geos::geos_intersection(
-        right_extended_trans,
-        # current_fline
-        flines_geos
-      )
-      
-      # sum(geos::geos_type(left_intersects_fline) == "point")
-      # sum(geos::geos_type(right_intersects_fline) == "point")
-      
-      
-      # which(geos::geos_type(left_intersects_fline) == "point")
-      
-      # transects %>% 
-      #   dplyr::filter(hy_id == current_hy_id) %>% 
-      #   sf::st_length()
-      # current_hy_id
-      # 
-      # sf::st_as_sf(current_trans) %>% 
-      #   sf::st_length()
-      # tmp <- sf::read_sf(transect_path)
-      # 
-      # tmp %>% 
-      #   dplyr::filter(hy_id == current_hy_id) %>% 
-      #   sf::st_length()
-      
-      # mapview::mapview(sf::st_as_sf(flines_geos[which(geos::geos_type(left_intersects_fline) == "point")])) +
-      #   mapview::mapview(sf::st_as_sf(current_trans), color = "red") +
-      # mapview::mapview(sf::st_as_sf(left_extended_trans), color = "green") + 
-      # mapview::mapview(sf::st_as_sf(right_extended_trans), color = "green")
-      # Define conditions to decide which version of the transect to use
-      
-      # 1. Use transect with extension in BOTH directions
-      # 2. Use transect with LEFT extension only
-      # 3. Use transect with RIGHT extension only
-      
-      # left_intersects_fline_once  <- geos::geos_type(left_intersects_fline) == "point"
-      # right_intersects_fline_once <- geos::geos_type(right_intersects_fline) == "point"
-      left_intersects_fline_once  <- sum(geos::geos_type(left_intersects_fline) == "point") == 1 && sum(geos::geos_type(left_intersects_fline) == "multipoint") == 0 
-      right_intersects_fline_once <- sum(geos::geos_type(right_intersects_fline) == "point") == 1 && sum(geos::geos_type(right_intersects_fline) == "multipoint") == 0 
-      
-      # sum(geos::geos_type(left_intersects_fline) == "point") == 1
-      # sum(geos::geos_type(right_intersects_fline) == "point") == 1
-      # sum(geos::geos_type(left_intersects_fline) == "multipoint") == 0 
-      
-      
-      # # TODO: Consider doing the opppsite of these conditions (i.e. "left_intersects_other_transects" = TRUE) 
-      # left_does_not_intersect_other_transects  <- !any(geos::geos_intersects(left_extended_trans, transect_geoms[-i]))
-      # right_does_not_intersect_other_transects <- !any(geos::geos_intersects(right_extended_trans, transect_geoms[-i]))  
-      # 
-      # use_left_extension  <- left_intersects_fline_once && left_does_not_intersect_other_transects
-      # use_right_extension <- right_intersects_fline_once && right_does_not_intersect_other_transects
+      # initial check to make sure the extended versions of the transects are valid
+      use_left_extension  <- is_valid_transect_line(left_extended_trans, transect_geoms, flines_geos)
+      use_right_extension <- is_valid_transect_line(right_extended_trans, transect_geoms, flines_geos)
       # use_both_extensions <- use_left_extension && use_right_extension
       
+      used_half_of_left  <- FALSE
+      used_half_of_right <- FALSE
       
-      # TODO: This is the opposite phrasing of these conditions, i think this is clearer to read
-      left_intersects_other_transects  <- any(geos::geos_intersects(left_extended_trans, transect_geoms[-i]))
-      right_intersects_other_transects <- any(geos::geos_intersects(right_extended_trans, transect_geoms[-i]))  
+      # TODO: Probably should precompute this division BEFORE the loop...
+      half_left_distance   <- ifelse(left_distance_to_extend > 0, left_distance_to_extend %/% 2, 0)
+      half_right_distance  <- ifelse(right_distance_to_extend > 0, right_distance_to_extend %/% 2, 0)
       
-      # # make sure the extended transects don't hit any of the newly extended transects
-      # # NOTE: I think this could be just done with a single transect list that starts with the original transects and if an update happens then we replace that transect
-      # left_intersects_new_transects  <- any(geos::geos_intersects(left_extended_trans, new_transects))
-      # right_intersects_new_transects <- any(geos::geos_intersects(right_extended_trans, new_transects))
+      # if we CAN'T use the original LEFT extension distance, 
+      # we try HALF the distance (or some distane less than we extended by in the first place)
+      if (!use_left_extension) {
+        
+        # half_left_distance   <- ifelse(left_distance_to_extend > 0, left_distance_to_extend %/% 2, 0)
+        left_extended_trans  <- hydrofabric3D::geos_extend_line(current_trans, 
+                                                                half_left_distance, "head")
+        use_left_extension  <- is_valid_transect_line(left_extended_trans, transect_geoms, flines_geos)
+        
+        used_half_of_left <- ifelse(use_left_extension, TRUE,  FALSE)
+      }
       
-      # make TRUE/FALSE flags stating which transect should we use
-      # - BOTH extensions
-      # - LEFT ONLY extensions
-      # - RIGHT only extensions
-      use_left_extension  <- left_intersects_fline_once && !left_intersects_other_transects
-      use_right_extension <- right_intersects_fline_once && !right_intersects_other_transects
+      # if we CAN'T use the original RIGHT extension distance, 
+      # we try HALF the distance (or some distance less than we extended by in the first place)
+      if (!use_right_extension) {
+        
+        # half_right_distance  <- ifelse(right_distance_to_extend > 0, right_distance_to_extend %/% 2, 0)
+        right_extended_trans <- hydrofabric3D::geos_extend_line(current_trans, 
+                                                                half_right_distance, "tail")
+        use_right_extension <- is_valid_transect_line(right_extended_trans, transect_geoms, flines_geos)
+        
+        used_half_of_right  <- ifelse(use_right_extension, TRUE,  FALSE)
+        
+        # mapview::mapview(sf::st_as_sf(current_trans), color = "red") + 
+        #   mapview::mapview(sf::st_as_sf(left_extended_trans), color = "green") + 
+        #   mapview::mapview(sf::st_as_sf(right_extended_trans), color = "green") +
+        #   mapview::mapview(sf::st_as_sf(left_extended_trans2), color = "dodgerblue") + 
+        #   mapview::mapview(sf::st_as_sf(right_extended_trans2), color = "dodgerblue") 
+        
+      }
+
       use_both_extensions <- use_left_extension && use_right_extension
-      
-      # merged_trans <- geos::geos_union(left_extended_trans, right_extended_trans)
-      # sf::st_union(sf::st_cast(sf::st_as_sf(merged_trans), "LINESTRING"))
-      # mapview::mapview(sf::st_as_sf(merged_trans), color = "green") +
-      #   mapview::mapview(sf::st_as_sf(left_start), col.region = "red") +
-      #   mapview::mapview(sf::st_as_sf(left_end), col.region = "red") + 
-      #   mapview::mapview(sf::st_as_sf(right_start), col.region = "dodgerblue") +
-      #   mapview::mapview(sf::st_as_sf(right_end), col.region = "dodgerblue")
-      
+
+      # # message("Checking left and right intersections with flowline...")
+      # # ---------------------------------------------------------------------------------
+      # # TODO: UNCOMMENT BELOW ---> this was my original method 
+      # # ---------------------------------------------------------------------------------
+      # # Check that the extended transect lines only intersect the current flowline once
+      # left_intersects_fline <- geos::geos_intersection(
+      #   left_extended_trans,
+      #   # current_fline
+      #   flines_geos
+      # )
+      # 
+      # right_intersects_fline <- geos::geos_intersection(
+      #   right_extended_trans,
+      #   # current_fline
+      #   flines_geos
+      # )
+      # 
+      # 
+      # # mapview::mapview(sf::st_as_sf(flines_geos[which(geos::geos_type(left_intersects_fline) == "point")])) +
+      # #   mapview::mapview(sf::st_as_sf(current_trans), color = "red") +
+      # # mapview::mapview(sf::st_as_sf(left_extended_trans), color = "green") + 
+      # # mapview::mapview(sf::st_as_sf(right_extended_trans), color = "green")
+      # 
+      # # Define conditions to decide which version of the transect to use
+      # 
+      # # 1. Use transect with extension in BOTH directions
+      # # 2. Use transect with LEFT extension only
+      # # 3. Use transect with RIGHT extension only
+      # 
+      # # left_intersects_fline_once  <- geos::geos_type(left_intersects_fline) == "point"
+      # # right_intersects_fline_once <- geos::geos_type(right_intersects_fline) == "point"
+      # left_intersects_fline_once  <- sum(geos::geos_type(left_intersects_fline) == "point") == 1 && 
+      #                                sum(geos::geos_type(left_intersects_fline) == "multipoint") == 0 
+      # 
+      # right_intersects_fline_once <- sum(geos::geos_type(right_intersects_fline) == "point") == 1 &&
+      #                                sum(geos::geos_type(right_intersects_fline) == "multipoint") == 0 
+      # 
+      # # sum(geos::geos_type(left_intersects_fline) == "point") == 1
+      # # sum(geos::geos_type(right_intersects_fline) == "point") == 1
+      # # sum(geos::geos_type(left_intersects_fline) == "multipoint") == 0 
+      # 
+      # 
+      # 
+      # # # TODO: Consider doing the opppsite of these conditions (i.e. "left_intersects_other_transects" = TRUE) 
+      # # left_does_not_intersect_other_transects  <- !any(geos::geos_intersects(left_extended_trans, transect_geoms[-i]))
+      # # right_does_not_intersect_other_transects <- !any(geos::geos_intersects(right_extended_trans, transect_geoms[-i]))  
+      # # 
+      # # use_left_extension  <- left_intersects_fline_once && left_does_not_intersect_other_transects
+      # # use_right_extension <- right_intersects_fline_once && right_does_not_intersect_other_transects
+      # # use_both_extensions <- use_left_extension && use_right_extension
+      # 
+      # 
+      # # TODO: This is the opposite phrasing of these conditions, i think this is clearer to read
+      # left_intersects_other_transects  <- any(geos::geos_intersects(left_extended_trans, transect_geoms[-i]))
+      # right_intersects_other_transects <- any(geos::geos_intersects(right_extended_trans, transect_geoms[-i]))  
+      # 
+      # # # make sure the extended transects don't hit any of the newly extended transects
+      # # # NOTE: I think this could be just done with a single transect list that starts with the original transects and if an update happens then we replace that transect
+      # # left_intersects_new_transects  <- any(geos::geos_intersects(left_extended_trans, new_transects))
+      # # right_intersects_new_transects <- any(geos::geos_intersects(right_extended_trans, new_transects))
+      # 
+      # # make TRUE/FALSE flags stating which transect should we use
+      # # - BOTH extensions
+      # # - LEFT ONLY extensions
+      # # - RIGHT only extensions
+      # use_left_extension  <- left_intersects_fline_once && !left_intersects_other_transects
+      # use_right_extension <- right_intersects_fline_once && !right_intersects_other_transects
+      # use_both_extensions <- use_left_extension && use_right_extension
+      # 
+      # new_use_left_extension  <- is_valid_transect_line(left_extended_trans, transect_geoms, flines_geos)
+      # new_use_right_extension <- is_valid_transect_line(right_extended_trans, transect_geoms, flines_geos)
+      # new_use_both_extensions <- new_use_left_extension && new_use_right_extension
+      # 
+      # message("--------------------------------------------")
+      # message("Left intersects FLINE ONCE: ", left_intersects_fline_once)
+      # message("Right intersects FLINE ONCE: ", right_intersects_fline_once)
+      # message()
+      # message("Left intersects OTHER TRANSECTS: ", left_intersects_other_transects)
+      # message("Right intersects OTHER TRANSECTS: ", right_intersects_other_transects)
+      # message()
+      # message("Use LEFT extension intersects: ", use_left_extension)
+      # message("Use RIGHT extension intersects: ", use_right_extension)
+      # message("Use BOTH extension intersects: ", use_both_extensions)
+      # message()
+      # message("--------------------------------------------")
+      # message()
+      # # merged_trans <- geos::geos_union(left_extended_trans, right_extended_trans)
+      # # sf::st_union(sf::st_cast(sf::st_as_sf(merged_trans), "LINESTRING"))
+      # # mapview::mapview(sf::st_as_sf(merged_trans), color = "green") +
+      # #   mapview::mapview(sf::st_as_sf(left_start), col.region = "red") +
+      # #   mapview::mapview(sf::st_as_sf(left_end), col.region = "red") + 
+      # #   mapview::mapview(sf::st_as_sf(right_start), col.region = "dodgerblue") +
+      # #   mapview::mapview(sf::st_as_sf(right_end), col.region = "dodgerblue")
+      # # ---------------------------------------------------------------------------------
+      # # TODO: UNCOMMENT ABOVE ---> this was my original method 
+      # # ---------------------------------------------------------------------------------
+      # 
       # if(use_both_extensions) {
       
       # Get the start and end of both extended tranects
@@ -635,22 +761,46 @@ fema_uids
         line_crs      <- wk::wk_crs(current_trans)
         updated_trans <- make_line_from_start_and_end_pts(start, end, line_crs)
         
-      # }
+      #   touched_flines <- flines[geos::geos_type(right_intersects_fline) != "linestring", ]
+      #   mapview::mapview(touched_flines, color = "dodgerblue") + 
+      #   mapview::mapview(sf::st_as_sf(current_trans), color = "red") +
+      #     mapview::mapview(sf::st_as_sf(left_extended_trans), color = "green") +
+      #     mapview::mapview(sf::st_as_sf(right_extended_trans), color = "green") +
+      #     mapview::mapview(sf::st_as_sf(updated_trans), color = "yellow")
+      # nrow(flines)
+      # touched_flines <- flines[geos::geos_type(right_intersects_fline) != "linestring", ]
+      # flines[lengths(right_intersects_fline) == 0, ]
+      # length(right_intersects_fline)
+        # }
         
+        # ---------------------------------------------------
+        # TODO: UNCOMMENT BELOW
+        # ---------------------------------------------------
         if(use_left_extension) {
           left_extended_flag[i]  <- TRUE
         }
-        
+
         if(use_right_extension) {
           right_extended_flag[i] <- TRUE
         }
-        
+
         if(use_both_extensions) {
           both_extended_flag[i] <- TRUE
         }
         
+        if(used_half_of_left) {
+          updated_left_distances[i]  <- half_left_distance 
+        }
+        if(used_half_of_right) {
+          updated_right_distances[i] <- half_right_distance 
+        }
+        
         # new_transects[i] <- updated_trans
         transect_geoms[i] <- updated_trans
+
+        # ---------------------------------------------------
+        # TODO: UNCOMMENT ABOVE
+        # ---------------------------------------------------
         
         # start %>% class()
       
@@ -717,7 +867,7 @@ fema_uids
     # ----------------------------------------------------------------
     extended_for_map <- 
       any_extended %>% 
-      dplyr::slice(1:5000)
+      dplyr::slice(1:1000)
     
     og_transects_for_map <- 
       transects %>% 

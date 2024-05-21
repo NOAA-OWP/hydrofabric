@@ -342,8 +342,8 @@ DELETE_STAGING_GPKGS <- FALSE
 
 # FEMA_VPU_SUBFOLDERS
 
-# for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
-for (i in 1:4) {
+for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
+# for (i in 1:4) {
   vpu_dir = FEMA_VPU_SUBFOLDERS[i]
   message("Merging files in '", basename(vpu_dir), "' directory...")
   
@@ -407,15 +407,19 @@ for (i in 1:4) {
 MERGED_DIRS <- paste0(FEMA_VPU_SUBFOLDERS, "/merged")
 
 for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
+  # i = 8
+  # i
   vpu_dir = FEMA_VPU_SUBFOLDERS[i]
   
   VPU        <- basename(vpu_dir)
   
   message("Attempting to union FEMA polygons for '", VPU, "'...")
+  
   merged_dir <- paste0(vpu_dir, "/merged")
   fema_vpu_file <- list.files(merged_dir, full.names = TRUE)
   
   has_fema_vpu_file <- ifelse(length(fema_vpu_file) > 0, TRUE, FALSE)
+  # has_fema_vpu_file
   # message()
   # fema_vpu_file
 # }
@@ -430,34 +434,76 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   fema_vpu_file <- fema_vpu_file[!grepl("_union.gpkg", fema_vpu_file)]
 
   fema_vpu <- sf::read_sf(fema_vpu_file)
-
+  
+  # fema_vpu
+  
   # fema_ids <- c(695)
   # fema_vpu <-
   #   fema_vpu %>%
   #   dplyr::group_by(source) %>%
   #   dplyr::summarise()  %>%
   #   dplyr::ungroup()
+  # fema_vpu
+  
+  # fema_snapped <- sf::st_snap(fema_vpu, fema_vpu, tolerance = 10)
+  # sf::st_
+  # message("Removing holes before dissolve...")
+  fema_vpu <- nngeo::st_remove_holes(fema_vpu)
+  # 
+  # message("Making valid geometries...")
+  # fema_vpu <- sf::st_make_valid(fema_vpu) 
+  
+  # fema_vpu <- 
+  #   fema_vpu %>% 
+  #   sf::st_cast("MULTIPOLYGON")
+  
+  message("Dissolving...")
   
   # 2633 = old number of polygons
-  fema_vpu  <- rmapshaper::ms_dissolve(fema_vpu,
-                                       field = "source",
-                                       sys = TRUE,
-                                       sys_mem = 16
-                                       )
-  fema_vpu  <- rmapshaper::ms_explode(fema_vpu,     
-                                      sys = TRUE,
-                                      sys_mem = 16)
+  fema_vpu <- rmapshaper::ms_dissolve(
+                            input   = fema_vpu,
+                            field   = "source",
+                            sys     = TRUE,
+                            sys_mem = 16
+                            )
+  
+  message("Exploding...")
+  # mapview::npts(fema_vpu)
+  # mapview::npts(fema_vpu_dissolve)
+  fema_vpu <- rmapshaper::ms_explode(
+                            input   = fema_vpu,     
+                            sys     = TRUE,
+                            sys_mem = 16
+                            )
+  # mapview::npts(fema_exp)
+  message("Removing holes after explosion...")
+  fema_vpu <- nngeo::st_remove_holes(fema_vpu)
+  # mapview::npts(fema_exp_noholes)
+  
+  # slice_subset = 1:50
+  # fema_exp_noholes[slice_subset, ]
+  # mapview::mapview(  fema_vpu[1:100, ], col.regions = "dodgerblue")+ 
+  # mapview::mapview(  fema_exp[slice_subset, ], col.regions = "red") +
+  #   mapview::mapview(  fema_exp_noholes[slice_subset, ], col.regions = "green")
+  # fema_vpu <- rmapshaper::ms_dissolve(fema_vpu,
+  #                                    field = "source",
+  #                                    sys = TRUE,
+  #                                    sys_mem = 16
+  # # )
+  # fema_vpu  <- rmapshaper::ms_explode(fema_vpu,     
+  #                                     sys = TRUE,
+  #                                     sys_mem = 16)
 
   fema_vpu <-
     fema_vpu %>%
-    dplyr::group_by(source) %>%
+    # dplyr::group_by(source) %>%
     dplyr::mutate(
       state    = tolower(gsub("-100yr-flood_valid_clean.gpkg", "", source)),
       vpu      = gsub("VPU_", "", VPU),
-      fema_id  = paste0(state, "_", 1:dplyr::n())
+      fema_id  = 1:dplyr::n()
       ) %>%
     dplyr::ungroup() %>%
-    dplyr::relocate(vpu, fema_id, source, state, geom)
+    dplyr::select(vpu, fema_id, state, geom = geometry)
   
   if (OVERWRITE_FEMA_FILES) {
     union_file_path <- gsub(".gpkg", "_union.gpkg", fema_vpu_file)
