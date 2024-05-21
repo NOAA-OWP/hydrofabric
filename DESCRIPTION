@@ -13,7 +13,7 @@ Authors@R:
       person("Lynker", role = c("fnd")))
 Maintainer: Mike Johnson <jjohnson@lynker.com>
 BugReports: https://github.com/NOAA-OWP/hydrofabric
-URL: https://github.com/NOAA-OWP/hydrofabric
+URL: https://github.com/NOAA-OWP/hydrofabric  
 Depends: 
     R (>= 4.2)
 Imports: 
@@ -26,6 +26,7 @@ Imports:
     glue,
     grDevices,
     hydrofab,
+    hfsubsetR,
     jsonlite,
     ngen.hydrofab,
     nhdplusTools,
@@ -46,6 +47,7 @@ Remotes:
     mikejohnson51/hydrofab,
     mikejohnson51/zonal,
     mikejohnson51/climateR,
-    mikejohnson51/ngen.hydrofab
+    mikejohnson51/ngen.hydrofab,
+    lynker-spatial/hfsubsetR
 Config/testthat/edition: 3
 VignetteBuilder: knitr
