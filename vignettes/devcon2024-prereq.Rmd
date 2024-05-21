@@ -1,15 +1,12 @@
 ---
 title: "Prerequisite"
 description: |
-  "NOAA's Enterprise Hydrofabric System"
+  "2024 CIROH Developers Conference"
 author:
   - name: "Mike Johnson"
     url: https://github.com/mikejohnson51
     affiliation: Lynker, NOAA-Affiliate
     affiliation_url: https://lynker.com
-output: distill::distill_article
-
-author:
   - name: "Arash Modaresi Rad"
     url: https://github.com/arashmodrad 
     affiliation: Lynker, NOAA-Affiliate
@@ -19,20 +16,17 @@ output: distill::distill_article
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, out.width = "100%", message = TRUE)
 ```
-# 2023 CIROH Developers Conference
 
-Last year, we unveiled the groundbreaking concept of a [hydrofabric](https://noaa-owp.github.io/hydrofabric/articles/01-intro-deep-dive.html), representing the bedrock of NextGen operations. This foundational data structure encapsulates the intricate landscape and flow network discretizations, the essential connectivity of network features, and the pivotal reporting locations known as nexus points.
+Last year, we unveiled the concept of a [hydrofabric](https://noaa-owp.github.io/hydrofabric/articles/01-intro-deep-dive.html), representing the foundation of NextGen data structures. This data product describes the landscape and flow network discretizations, the essential connectivity of network features, and the key reporting locations known as nexus points.
 
 ## Key Highlights
-1. Introduction of a sophisticated software package designed specifically for working with hydrofabrics.
-2. Comprehensive overview of the system's intricate design, meticulously crafted to meet the demands of NextGen operations.
-3. In-depth exploration of two primary [network manipulation processes](https://noaa-owp.github.io/hydrofabric/articles/03-processing-deep-dive.html): refactoring and aggregating, essential for optimizing data utilization.
-4. Unveiling of the fundamental data model meticulously tailored for hydrofabric applications, ensuring efficiency and accuracy.
-5. Demonstrations showcasing the seamless [extraction of data subsets](https://noaa-owp.github.io/hydrofabric/articles/05-subsetting.html) to meet diverse analytical needs.
-6. Optional coverage on accessing and harnessing landscape characteristics, enriching the modeling process.
-7. Emphasis on the [NextGen Hydrofabric Data Model](https://noaa-owp.github.io/hydrofabric/articles/04-data-model-deep-dive.html), a pinnacle of precision and efficiency, catering to modeling, subsetting, cross walking, and indexing needs.
-8. Adapting the design philosophy from the esteemed OGC [HY Feature conceptual model](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) report, with bespoke modifications tailored for NextGen applications.
-9. Illumination on the current data model, featuring seven spatial and two a-spatial layers, with plans underway for an eighth layer dedicated to water bodies, affirming the robustness of the geopackage model.
+
+1. **Design Philosophy**: Adaptation of the OGC [HY Feature conceptual model](https://docs.opengeospatial.org/is/14-111r6/14-111r6.html) with custom modifications for NextGen applications that define an explict data model.
+2. **NHGF**: A core, federally consistent data product grounded in a common topology, reference fabric, and set of community POIs
+2. **Network Manipulation**: In-depth exploration of two [network manipulation](https://noaa-owp.github.io/hydrofabric/articles/03-processing-deep-dive.html) processes, refactoring and aggregating, that are crucial for optimizing data usage.
+3. **Data Model**: A fundamental data model tailored for modeling and web infrastructure applications, emphasizing efficiency and accuracy through use of modern geospatial (gpkg) and data science (arrow/parquet) formats.This included seven spatial and two a-spatial layers, and future plans for an additional layer for water bodies and cross sections
+4. **Data Subsetting**: Demonstrations on how to [extract data subsets](https://noaa-owp.github.io/hydrofabric/articles/05-subsetting.html) to meet multi-scale modleing tasks. for multi-scale modeling tasks using R and a Go-based CLI.
+5. **Landscape Characteristics**: Optional guidance on accessing and utilizing landscape characteristics to enhance the modeling process.
 
 ```{r, echo = FALSE}
 knitr::include_graphics("../man/figures/hydrofabric.png")
@@ -41,8 +35,7 @@ knitr::include_graphics("../man/figures/hydrofabric.png")
 In conclusion, the development of the NextGen Hydrofabric represents a collaborative venture between the USGS Water Mission Area, the NOAA Office of Water Prediction, and Lynker. This innovative system addresses the crucial need for a single reference system to serve diverse modeling applications. Analogous to a coordinate reference system (CRS), the reference fabric provides maximum feature set compatibility across interconnected models. Furthermore, it facilitates persistent identification (PID) for durable data integration and model interoperability, essential for effective decision-making in hydrological modeling and prediction.
 
 # Welcome to Lynker spatial: Your Hub for Hydrographic Data and Hydroinformatics  
-
-At [Lynker spatial](https://staging.lynker-spatial.com/), we are proud to offer a comprehensive platform that hosts a wealth of scientific developments and data, particularly focusing on hydrographic data. 
+Through [Lynker spatial](https://staging.lynker-spatial.com/), we are proud to offer a comprehensive platform that hosts a wealth of scientific developments and data, particularly focusing on hydrographic data. 
 
 ## Federally Consistent Reference Product
 In collaboration with esteemed partners at Lynker, NOAA, and the USGS, we are not merely introducing a new suite of federal hydroinformatics products; we are spearheading a paradigm shift in how we perceive, represent, and manage water resources at a national level. Our Federally Consistent Reference Product sets a new standard for accuracy, reliability, and comprehensiveness in hydrographic data, empowering scientists, policymakers, and stakeholders alike to make informed decisions regarding water resource management.
