@@ -172,8 +172,10 @@ grids = dap(URL = urls, AOI = div)
 
 # Summarize data
 noah_owp_data = execute_zonal(grids, div, ID = "divide_id", 
-                              fun = "mean")
-
+                              fun = "mean",
+                              join = FALSE)
+write_parquet(noah_owp_data,
+              'vignettes/tutorial/nextgen.parquet')
 # View
 plot(noah_owp_data['mean.smcwlt_soil_layers_stag.3'])
 
@@ -205,6 +207,15 @@ getNLDAS(
 plot(nldas$tmp2m)
 
 
+# Weight Grids ------------------------------------------------------------
+
+fg = terra::rast('/Users/mjohnson/Downloads/nwm.t00z.medium_range.forcing.f001.conus.nc')[[4]]
+
+w = zonal::weight_grid(fg, div, ID = "divide_id")
+
+w$grid_id = "medium_range.forcing.conus"
+
+write_parquet(w, 'vignettes/tutorial/nextgen_grid_weights.parquet')
 
 # Populate Flowpath Attributes --------------------------------------------
 # https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/
@@ -222,6 +233,10 @@ as_sqlite(nextgen_file, 'flowpath_attributes')
 
 # Future!!
 open_dataset(glue('{using_s3_example}/v2.2/reference/routelink_ls/'))
+
+
+
+
 
 
 # Make it pretty :)  ------------------------------------------------------
