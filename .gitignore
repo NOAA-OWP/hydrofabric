@@ -8,5 +8,7 @@ depriciate
 dead
 inst/doc
 vignettes/cihro-data
+vignettes/tutorial
 check
 runners/secret
+runners/data

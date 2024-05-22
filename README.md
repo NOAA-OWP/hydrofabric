@@ -1,8 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<br>
-
 ## Next Generation Water Resource Modeling Framework Hydrofabric(s)
 
 <!-- badges: start -->
@@ -11,8 +9,6 @@
 Check](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml)
 [![Dependencies](https://img.shields.io/badge/dependencies-18/102-red?style=flat)](#)
 <!-- badges: end -->
-
-<br>
 
 ``` r
 Johnson, J. M. (2022). National Hydrologic Geospatial Fabric (hydrofabric)
@@ -49,13 +45,11 @@ a wide range of modeling tasks while leveraging the best possible input
 data.
 
 NextGen artifacts are publicly available through
-Lynker(www.lynker-spatial.com) under an
-[ODbL](https://opendatacommons.org/licenses/odbl/summary/) license. If
-you use data, please ensure you (1) Attribute Lynker-Spatial, (2) Keep
-the data open, and that (3) any works produced from this data offer that
-adapted database under the ODbL.
-
-### [NextGen Data Artifacts](https://lynker-spatial.com)
+[Lynker-spatial](https://staging.lynker-spatial.com/data?path=hydrofabric%2F)
+under an [ODbL](https://opendatacommons.org/licenses/odbl/summary/)
+license. If you use data, please ensure you (1) Attribute
+Lynker-Spatial, (2) Keep the data open, and that (3) any works produced
+from this data offer that adapted database under the ODbL.
 
 <img src="man/figures/lynker-spatial.png" width="1700" style="display: block; margin: auto;" />
 
@@ -73,9 +67,9 @@ library(hydrofabric)
     ## ── Attaching packages ───────────────────────────────────────────────────────── hydrofabric 0.0.9 ──
 
     ## ✔ dplyr        1.1.4      ✔ zonal        0.0.2 
-    ## ✔ climateR     0.3.5      ✔ sf           1.0.17
-    ## ✔ nhdplusTools 1.1.0      ✔ terra        1.7.71
-    ## ✔ hydrofab     0.5.1
+    ## ✔ climateR     0.3.5      ✔ hfsubsetR    0.0.9 
+    ## ✔ nhdplusTools 1.1.0      ✔ sf           1.0.17
+    ## ✔ hydrofab     0.5.1      ✔ terra        1.7.71
 
     ## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──
     ## ✖ terra::plot() masks climateR::plot()
@@ -89,14 +83,16 @@ library(hydrofabric)
 
 `library(hydrofabric)` will load the core packages:
 
+- [climateR](https://github.com/mikejohnson51/climateR) for accessing
+  federated data stores for parameter and attributes estimation
+- [hfsubsetR](https://github.com/lynker-spatial/) for cloud-based
+  hydrofabric subsetting
+- [hydrofab](https://github.com/mikejohnson51/hydrofab) a tool set for
+  “fabricating” multiscale hydrofabrics
+- [ngen.hydrofab](https://github.com/mikejohnson51/ngen.hydrofab)
+  NextGen extensions for hydrofab
 - [nhdplusTools](https://github.com/doi-usgs/nhdplusTools/) for network
   manipulation
-- [hydrofab](https://github.com/NOAA-OWP/hydrofab) a tool set for
-  “fabricating” multiscale hydrofabrics
-- [ngen.hydrofab](https://github.com/NOAA-OWP/ngen.hydrofab) NextGen
-  extensions for hydrofab
-- [climateR](https://github.com/mikejohnson51/climateR) for accessing
-  remote data resources for parameter and attributes estimation
 - [zonal](https://github.com/mikejohnson51/zonal) for catchment
   parameter estimation
 
@@ -109,22 +105,20 @@ Additionally it will load key spatial data science libraries:
 # Hydrofabric Subsetter
 
 ``` r
-# # A hydrolocation URI
-# hl = 'Gages-04185000'
-# 
-# # The output directory
-# o = "data/gray_test.gpkg"
-# 
-# # Build subset
-# ## caching the downloaded VPU files to "data" and writing all layers to "o"
-# subset_network(hl_uri = hl, cache_dir = "data", outfile = o)
-# 
-# {
-# plot(sf::read_sf(o, "divides")$geom)
-# plot(sf::read_sf(o, "flowpaths")$geom, col = "blue", add = TRUE)
-# plot(sf::read_sf(o, "nexus")$geom, col = "red", pch = 16, add = TRUE)
-# }
+# The output directory
+o = "vignettes/tutorial/example.gpkg"
+
+# Build subset
+## caching the downloaded VPU files to "data" and writing all layers to "o"
+hfsubsetR::get_subset(comid = 101, outfile = o, overwrite = FALSE)
 ```
+
+    ## Warning in hfsubsetR::get_subset(comid = 101, outfile = o, overwrite = FALSE):
+    ## vignettes/tutorial/example.gpkg already exists and overwrite is FALSE
+
+    ## [1] "vignettes/tutorial/example.gpkg"
+
+![](man/figures/unnamed-chunk-6-1.png)<!-- -->
 
 We have *also* created cloud based community subsetter. GO binaries of
 these can be installed at the [release
@@ -189,10 +183,8 @@ interested parties to build there own networks starting with either the
 
 ## Questions:
 
-<a href = "mailto:jjohnson@lynker.com?subject=NextGen Hydrofabric Questions">
 Mike Johnson</a> (Hydrofabric Lead)
 <a href = "mailto:jjohnson@lynker.com?subject=NextGen Hydrofabric Questions">
-<br> <br>
 
 <img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
 
