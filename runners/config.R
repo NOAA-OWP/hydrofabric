@@ -1,11 +1,14 @@
 ## NextGen Hydrofabric Config File ##
 ## 
 ## This file is used to populate scripts that are part of the Makefile pipeline
+library(tidyr)
+#library(AOI)
 
 # ---- Set up software ---- #
 options(scipen = 999)
 dev_mode = TRUE
-FIX = TRUE
+FIX = FALSE
+ref_date = "04052024"
 
 if(dev_mode){
   message("DEVMODE: ON")
@@ -13,7 +16,8 @@ if(dev_mode){
   devtools::load_all()
   # Either install and update your own dev versions or set dev_mode to FALSE
   #devtools::load_all(glue::glue('{dirname(getwd())}/ngen-hydrofab'))
-  #devtools::load_all(glue::glue('{dirname(getwd())}/hydrofab'))
+  devtools::load_all(glue::glue('{dirname(getwd())}/hydrofab'))
+  devtools::load_all(glue::glue('{dirname(getwd())}/hfsubsetR'))
   # devtools::load_all(glue('{dirname(getwd())}/zonal'))
 } else {
   message("DEVMODE: OFF")
@@ -28,7 +32,17 @@ sf::sf_use_s2(FALSE)
 # 1. Runners will build and access data from a defined directory. Put that here:
 dir      <- "/Volumes/MyBook"
 # 2. Define the HF version you are creating:
-version  <- "v20.2"
+version  <- "2.2"
+
+# POI  config: 
+schema <- c("hl_id", "hl_source", "hl_reference", "hl_link", 
+            "X", "Y",
+            "hf_id", "hf_source")
+
+base_ref <- "/Volumes/MyBook/TNC/v2.2/reference"
+
+# Desired community POI types
+community_hl_types    <-  c('HUC12', 'Gages', 'TE', 'NID', "resops", "hilarri", "WBOut", "WBIn", "AR", "Term")
 
 # 3. Define your processing VPUS
 vpus <- vpu_boundaries$VPUID[1:21]
@@ -46,9 +60,6 @@ internal_nexus_prefix <- "inx-"
 catchment_prefix      <- "cat-"
 waterbody_prefix      <- "wb-"
 
-# Desired community POI types
-community_hl_types    <-  c('HUC12', 'Gages', 'TE', 'NID', "WBOut", "resops", "hilarri", "WBOut", "WBIn")
-
 # Directory for NWM data
 #  Download needed files for add_cfe_noahowp_attributes(...)
 #  From: https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/{latest_version}/parm/domain/
@@ -56,6 +67,9 @@ community_hl_types    <-  c('HUC12', 'Gages', 'TE', 'NID', "WBOut", "resops", "h
 #   wrfinput_CONUS.nc
 #   GWBUCKPARM_CONUS_FullRouting.nc
 nwm_dir       <- "/Volumes/Transcend/nwmCONUS-v216"
+# Someday this might be available here (https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/nwm.v3.0.7/parm/domain/), 
+# but for now I am not allowed to share it per OWP. So hard path it is!
+lake_path     <- glue('{nwm_dir}/LAKEPARM_CONUS.nc')
 
 # Directory Structure -----------------------------------------------------
 
@@ -96,18 +110,16 @@ nwm_dir       <- "/Volumes/Transcend/nwmCONUS-v216"
 # │   │   ├── nextgen_01.parquet
 # │   │   ├── ...
 
-base     <- glue("{dir}/conus-hydrofabric")
+base     <- glue("{dir}/conus-hydrofabric/v{version}")
 dir.create(base, recursive = TRUE, showWarnings = FALSE)
 
-base_reference_features <- glue("{base}/reference")
-dir.create(base_reference_features, showWarnings = FALSE)
-
-base_reference = glue("{base}/reference")
+base_reference <- glue("{base}/reference")
 dir.create(base_reference, showWarnings = FALSE)
 
-base_refactored = glue("{base}/refactored")
+base_refactored = glue("{base}/refactored_{ref_date}")
 dir.create(base_refactored, showWarnings = FALSE)
 
+#base_corrected = glue("{base}/corrected_refactor_{ref_date}")
 base_corrected = glue("{base}/corrected_refactor")
 dir.create(base_corrected, showWarnings = FALSE)
 
@@ -145,6 +157,14 @@ coastal_gages = glue('{base}/GAGE_SUMMARY.csv')
 # I will ask if I can disseminate this in Lynker Spatial
 fim_ahps      = glue('{base}/nws_lid.gpkg')
 
+community_hl_types    <-  c('HUC12', 'Gages', 'TE', 'NID', "resops", "hilarri", "WBOut", "WBIn", "AR")
+
+full_hl    <- glue("{base}/conus_hl.gpkg")
+
+poi_fgb     <- gsub("hl.gpkg", "poi.fgb", full_hl) 
+
+hl_parquet <- gsub(".gpkg", "", full_hl)
+
 # Converted from latest RL file 
 # Source: https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/{latest_version}/parm/domain/
 # Converted version: s3://lynker-spatial/tabular-resources/RouteLink_nwm_v2_2_3.parquet
@@ -159,10 +179,6 @@ gs_file       = 'https://code.usgs.gov/wma/nhgf/reference-hydrofabric/-/raw/04cd
 
 ms_lu         = 'https://github.com/internetofwater/ref_rivers/releases/download/v2.1/mainstem_lookup.csv'
 
-# Someday this might be available here (https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/nwm.v3.0.7/parm/domain/), 
-# but for now I am not allowed to share it per OWP. So hard path it is!
-lake_path     <- '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc'
-
 camels        <- 'https://lynker-spatial.s3.amazonaws.com/tabular-resources/camels_compiled.csv'
 
 hydroatlas    <- 's3://lynker-spatial/hydroATLAS/hydroatlas_vars.parquet'
@@ -173,9 +189,9 @@ pipeline = data.frame(
   uniform_global  = glue("{base_global_uniform}/uniform_{vpus}.gpkg"),
   nextgen         = glue('{base_gpkg}/nextgen_{vpus}.gpkg'),
   cfe             = glue("{base_cfe}/cfe_noahowp_{vpus}.parquet"),
-  atts            = glue("{base_atts}/nextgen_{vpus}.parquet"),
-  refactored_gpkg = sapply(1:length(vpus), FUN = \(x){ get_hydrofabric(vpus[x], type = "refactor",  dir = base_refactored) }),
-  reference_gpkg  = sapply(1:length(vpus), FUN = \(x){ get_hydrofabric(vpus[x], type = "reference", dir = base_reference) })
+  atts            = glue("{base_atts}/nextgen_{vpus}.parquet")#,
+  # refactored_gpkg = sapply(1:length(vpus), FUN = \(x){ get_hydrofabric(vpus[x], type = "refactor",  dir = base_refactored) }),
+  # reference_gpkg  = sapply(1:length(vpus), FUN = \(x){ get_hydrofabric(vpus[x], type = "reference", dir = base_reference) })
 )
 
 
@@ -238,8 +254,6 @@ if(!file.exists(twi_file)){
 
 # Built Datasets ----------------------------------------------------------------
 #These are files that will be built in the base directory as the workflow progresses:
-
-full_hl    <- glue("{base}/{version}/conus_hl.gpkg")
 
 conus_net  <- glue("{base}/{version}/conus_net.parquet")
 
@@ -338,7 +352,7 @@ reassign_mainstem =
   tribble(
     ~VPU,  ~id, ~mainstem,
     # https://github.com/NOAA-OWP/hydrofabric/issues/30
-    "07", 10018008, 2111164,
+    "01", 10018008, 2111164,
     #https://github.com/NOAA-OWP/hydrofabric/issues/31
     "10L", 10001228, 1135798
 )

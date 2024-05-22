@@ -50,3 +50,37 @@ data.frame(
   jsonlite::write_json("/Volumes/MyBook/conus-hydrofabric/v20.1/forcing_grids.json")
 
 
+
+library(jsonlite)
+
+w = arrow::read_parquet('/Volumes/MyBook/conus-hydrofabric/v20.1/forcing_weights.parquet')
+
+system.time({
+  oo = zonal::execute_zonal(fg, w = w, ID = "divide_id")
+})
+
+
+
+library(data.table)
+S <- split(setDT(w)[, id := cumsum(grepl("##", WORDS, fixed = TRUE))], by = "id")
+
+t = split(w, w$divide_id)
+
+tmp = list()
+
+for(i in 1:length(t)){
+  #o =  list(cell = as.list(t[[i]]$cell), coverage_fraction = as.list(t[[i]]$coverage_fraction))
+  o = list(cell = t[[i]]$cell, coverage_fraction = t[[i]]$coverage_fraction)
+  tmp[[names(t)[i]]] = toJSON(o, auto_unbox = TRUE)
+}
+
+write_json(tmp, "/Volumes/MyBook/conus-hydrofabric/v20.1/medium_range.forcing.conus.json", pretty = TRUE)
+
+
+
+w2 = select(w, divide_id, cell, coverage_fraction)
+lst1 <-  purrr::map(split(w2, w2$divide_id), jsonlite::toJSON, auto_unbox = TRUE)
+
+
+names(lst1) <- paste0('group', names(lst1))
+toJSON(lst1)

@@ -1,4 +1,7 @@
 source("runners/config.R")
+library(tidyr)
+
+lu_full = readRDS("runners/data/refactor_lu.rds")
 
 tmp = filter(pipeline, !is.na(corrected_refactor))
 
@@ -8,37 +11,49 @@ if (nrow(tmp) > 0) {
     
     gpkg = tmp$refactored_gpkg[i]
     message("Fixing: ", gpkg)
+    lu = filter(lu_full, VPU == tmp$vpus[i])
     
-# 1. Remove Flowlines --------------------------------------------------------
+# 1. Remove Flowlines X --------------------------------------------------------
     
     rm = filter(remove_fp_ids, VPU %in% tmp$vpus[i]) %>% 
-      tidyr::separate_longer_delim(id, delim = ",")
+      separate_longer_delim(id, delim = ",") 
     
+    rm$id = lu$new_id[match(rm$id, lu$id)]
+
     fps = read_sf(gpkg, "refactored_flowpaths") %>%
       filter(!ID %in% rm$id)
 
-# 3. Mainstem Update ---------------------------------------------------------
+# 3. Mainstem Update X ---------------------------------------------------------
 
-    ram = filter(reassign_mainstem, VPU %in% tmp$vpus[i])
+    ram = filter(reassign_mainstem, VPU %in% tmp$vpus[i]) 
+    ram$id = lu$new_id[match(ram$id, lu$id)]
+    
     mod = filter(fps, ID %in%  ram$id)
     
     mod$LevelPathID = ram$mainstem[match(mod$ID, ram$id)]
     
     fps = bind_rows(filter(fps, !ID %in% ram$id), mod)
     
-# 4. Redigitize --------------------------------------------------------------
-    rd =  filter(redigitize_flowpaths, VPU %in% tmp$vpus[i])
+# 4. Redigitize X --------------------------------------------------------------
+
+    rd =  filter(redigitize_flowpaths, VPU %in% tmp$vpus[i]) 
+    rd$id = lu$new_id[match(rd$id, lu$id)]
+    
     mod = filter(fps, ID %in%  rd$id)
     mod = st_reverse(mod)
     fps = bind_rows(filter(fps, !ID %in% rd$id), mod)
     
     fps$LENGTHKM = add_lengthkm(fps)
     
-# Merge Flowlines ---------------------------------------------------------
+# 5. Merge Flowlines X ---------------------------------------------------------
 
     mfps =  filter(flowlines_to_merge, VPU %in% tmp$vpus[i]) %>% 
-      tidyr::separate_longer_delim(to_merge, delim = ",")
+      separate_longer_delim(to_merge, delim = ",")
     
+    mfps$id = lu$new_id[match(mfps$id, lu$id)]
+    mfps$to_merge = lu$new_id[match(mfps$to_merge, lu$id)]
+    mfps$toid = lu$new_id[match(mfps$toid, lu$id)]
+
     u = unique(mfps$id)
     ll = list()
     
@@ -68,9 +83,12 @@ if (nrow(tmp) > 0) {
     }
     
     
-# Snap Nodes --------------------------------------------------------------
+# 6. Snap Nodes --------------------------------------------------------------
       
-  sn = filter(snap_nodes, VPU %in% tmp$vpus[i])
+  sn = filter(snap_nodes, VPU %in% tmp$vpus[i])  
+    
+  sn$end_node_of = lu$new_id[match(sn$end_node_of, lu$id)]
+  sn$start_node_of = lu$new_id[match(sn$end_node_of, lu$id)]
     
   if(nrow(sn) > 0){
     for(i in 1:nrow(sn)){
@@ -88,9 +106,12 @@ if (nrow(tmp) > 0) {
     }
   }
      
-# 2. Topo Update -------------------------------------------------------------
+# 7. Topo Update -------------------------------------------------------------
     
     ut = filter(update_topo, VPU %in% tmp$vpus[i])
+    ut$id   = lu$new_id[match(ut$id,   lu$id)]
+    ut$toid = lu$new_id[match(ut$toid, lu$id)]
+  
     mod = filter(fps, ID %in% ut$id)
     
     mod$toID = ut$toid[match(mod$ID, ut$id)]
@@ -100,9 +121,8 @@ if (nrow(tmp) > 0) {
     write_sf(fps, tmp$corrected_refactor[i], "refactored_flowpaths")
 
 
-  
 
-# 4. Merge Divides --------------------------------------------------------------
+# 8. Merge Divides --------------------------------------------------------------
         
     div = read_sf(gpkg, "refactored_divides")
     
@@ -110,7 +130,11 @@ if (nrow(tmp) > 0) {
      
       map = divides_to_merge %>% 
         filter(VPU %in% tmp$vpus[i]) %>% 
-        tidyr::separate_longer_delim(to_merge, delim = ",")
+        separate_longer_delim(to_merge, delim = ",")
+      
+      map$id = lu$new_id[match(map$id, lu$id)]
+      map$to_merge = lu$new_id[match(map$to_merge, lu$id)]
+      map$toid = lu$new_id[match(map$toid, lu$id)]
       
       u = unique(map$id)
       
@@ -134,41 +158,20 @@ if (nrow(tmp) > 0) {
       
     }
     
-# 4. Remove Divides --------------------------------------------------------------
-    
+# 9. Remove Divides --------------------------------------------------------------
     
     if(tmp$vpus[i] %in% remove_divide_ids$VPU){
       
       map = remove_divide_ids %>% 
-        filter(VPU %in% tmp$vpus[i]) %>% 
-        tidyr::separate_longer_delim(to_merge, delim = ",")
+        filter(VPU %in% tmp$vpus[i]) 
       
-      u = unique(map$id)
+      map$divide_id = lu$new_id[match(map$divide_id, lu$id)]
       
-      ll = list()
-      
-      for(j in 1:length(u)){
-        map2 = filter(map, id %in% u[j])
-        
-        mod = filter(div, ID %in% map2$to_merge) %>% 
-          mutate(ID = as.numeric(u[j]))
-        
-        ll[[j]] = union_polygons(mod, "ID") %>% 
-          mutate(member_COMID =  paste(mod$member_COMID, collapse = ","),
-                 areasqkm = add_areasqkm(.),
-                 rpu = mod$rpu[1])
-        
-      }
-      
-      div = bind_rows(rename_geometry(filter(div, !ID %in% map$to_merge), "geometry"), 
-                      rename_geometry(bind_rows(ll), "geometry"))
+      div = filter(div, !ID %in% map$divide_id )
       
     }
     
-    
     write_sf(div, tmp$corrected_refactor[i], "refactored_divides")
-    
-    
   
   }
 }

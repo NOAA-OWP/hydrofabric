@@ -1,0 +1,83 @@
+---
+title: "Accessing Cross Section Data"
+description: |
+  "Extracting Data from the CONUS datastore"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(hydrofabric)
+library(ggplot2)
+library(plotly)
+```
+
+
+```{r}
+hf_source    = 's3://lynker-spatial/hydrofabric/v20.1'
+geoconnex_ep = 'https://reference.geoconnex.us/collections/gages/items?provider_id='
+Gage_ID      = '06752260'
+
+g = read_sf(glue("{geoconnex_ep}{Gage_ID}")) 
+
+mapview(g)
+```
+
+
+```{r}
+net = open_dataset(glue("{hf_source}/conus_net.parquet")) %>% 
+  filter(hf_id %in% g$nhdpv2_comid) %>% 
+  distinct(id, vpu) %>% 
+  collect() 
+
+cs_data = open_dataset(glue('{hf_source}/3D/dem-cross-sections/nextgen_{net$vpu[1]}_cross_sections.parquet')) %>% 
+  filter(hy_id %in% net$id) %>% 
+  collect() %>% 
+  group_by(hy_id, cs_id) %>% 
+  mutate(uid = cur_group_id()) %>% 
+  ungroup() %>% 
+  filter(!uid %in% c(5,6, 12)) %>% 
+  mutate(Z = ifelse(class %in% c("channel", "bottom"), Z - 2, Z))
+
+head(cs_data)
+```
+
+```{r}
+d = st_as_sf(cs_data, coords = c("X", "Y"), crs = 5070) 
+mapview(d)
+```
+
+## Plan View
+
+```{r}
+ggplot(cs_data) + 
+  geom_line(aes(x = X, y = Z)) + 
+  geom_point(aes(x = X, y = Z, color = class), size = 2) + 
+  facet_wrap(~uid, scale = "free" ) + 
+  theme_minimal()
+```
+
+## 3D View
+
+```{r}
+ plot_ly(cs_data, x = ~X, y = ~Y, z = ~Z,  
+               split = ~as.factor(uid),
+               #color = ~as.factor(class),
+               type = 'scatter3d', mode = 'markers+lines',
+               line = list(width = 3),
+               marker = list(size = 2)) %>% 
+  layout(list(aspectmode='manual',
+              aspectratio = list(x=100, y=100, z=1)),
+         showlegend = FALSE)
+```

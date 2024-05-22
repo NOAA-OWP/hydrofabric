@@ -20,7 +20,7 @@ output: distill::distill_article
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(mapview); library(ggplot2);library(hydrofabric)
-base <- "cihro-data"
+base <- "tutorial"
 dir.create(base, showWarnings = FALSE)
 ```
 
@@ -67,7 +67,7 @@ knitr::include_graphics('../man/figures/level1.png')
 
   - Simple, valid, representations of all `flowpath` and `divide` features
   
-  - Must be derived from a *source* hydrographic dataset (e.g. NHDPLus, or TDXhydro)
+  - Must be derived from a *source* hydrographic dataset (e.g. NHDPlusV2, or Dihydro)
   
   - Currently, these are built out from the NHDPlusV2 features
   
@@ -77,13 +77,13 @@ knitr::include_graphics('../man/figures/level1.png')
 knitr::include_graphics("../man/figures/cleaning_waterbodies.gif")
 ```
 
-   - **Catchments** are simplifed, and DEM fragments are dissolved into the proper adjoining catchments.
+   - **Catchments** are simplified, and DEM fragments are dissolved into the proper adjoining catchments.
     
 ```{r, echo = FALSE}
 knitr::include_graphics("../man/figures/cleaning_catchments.gif")
 ```
     
-   - **Flowlines** are ensured to be digitized from upstream to downstream and the burn line events are substituted for the NHDFlowlines in headwater catchments
+   - **Flowpaths** are ensured to be digitized from upstream to downstream and the burn line events are substituted for the NHDFlowlines in headwater catchments
     
   - These data products can be found[here](https://www.sciencebase.gov/catalog/item/6317a72cd34e36012efa4e8a)
 
@@ -123,31 +123,16 @@ knitr::include_graphics('../man/figures/figure9.png')
   
   - These include ones like the Army Corp National Inventory of Dams and the USGS Gages III gage database
   
-```{r, echo = FALSE, eval = FALSE}
-f = list.files('/Volumes/Transcend/ngen/CONUS-hydrofabric/02_refactored', full.names = TRUE)
+```{r, echo = FALSE, eval = FALSE, warning=FALSE}
 
-count_type = function(f){
-  d = read_sf(f, "mapped_POIs")
-  
-  data.frame(
-    gages = sum(!is.na(d$Type_Gages)),
-    HUC12 = sum(!is.na(d$Type_HUC12)),
-    TE = sum(!is.na(d$Type_TE)),
-    NID = sum(!is.na(d$Type_NID)),
-    WBIn = sum(!is.na(d$Type_WBIn)),
-    WBOut = sum(!is.na(d$Type_WBOut))
-  )
-}
-
-dd = lapply(f, count_type) %>% 
-  bind_rows()
-
-df = colSums(dd) %>% 
-  data.frame() %>% 
- dplyr::add_rownames()
-
-names(df) = c("Type", "Count")
-
+df = open_dataset('s3://lynker-spatial/v20.1/conus_net.parquet') |> 
+  select('hl_uri') |>
+  distinct() |> 
+  collect() |>
+  na.omit() |>
+  tidyr::separate(col = "hl_uri", sep = "-", into = c("Type", "id")) |>
+  group_by(Type) |>
+  tally(name = "Count")
 
 ggplot(df) + 
   geom_col(aes(x = Type, y = Count, fill = Type), position = "dodge") + 
@@ -158,8 +143,9 @@ ggplot(df) +
 
 ggsave(filename = "../man/figures/poi_dist.png")
 ```
+
 ```{r, echo = FALSE}
-knitr::include_graphics("../man/figures/poi_dist.png")
+knitr::include_graphics('../man/figures/poi_dist.png')
 ```
 
   - POIs become `hydrolocations` at the _outflow_ of the linked `flowpath` through a robust hydrologic indexing scheme.
@@ -205,7 +191,9 @@ gage = st_join(gage, st_transform(vpu_boundaries, st_crs(gage)))
 
 (gage$VPUID)
 
-reference_gpkg = get_hydrofabric(VPU = gage$VPUID, type = "reference",dir = "cihro-data")
+reference_gpkg = get_fabric(VPU = gage$VPUID, 
+                            base_s3 = 's3://lynker-spatial/v20.1/',
+                            cache_dir = "tutorial")
 ```
 
 If the requested file already exists, the file path will be returned. 
@@ -224,7 +212,7 @@ pacman::p_load(sf, DBI, RSQLite, dplyr)
 
 ### 1. GDAL/geopackage
 st_layers(reference_gpkg)
-nex = read_sf(reference_gpkg, "POIs_10L")
+nex = read_sf(reference_gpkg, "hydrolocations")
 head(nex)
 ```
 
@@ -234,7 +222,7 @@ The second is as a SQLite database (in R, I am doing this with RSQLite/DBI/dplyr
 ### 2. SQLite/Database
 db <- dbConnect(SQLite(), reference_gpkg)
 dbListTables(db)
-mpoi = collect(tbl(db, "POIs_10L"))
+mpoi = collect(tbl(db, "hydrolocations"))
 
 head(mpoi)
 

@@ -1,75 +1,77 @@
 devtools::load_all('.')
-library(httr)
 library(RNetCDF)
 library(dataRetrieval)
 library(data.table)
 
+source("runners/config.R")
+
+#BROKEN~ hl_uri = 
+# hl_reference --> WBIn
+# hl_link --> 120049871
+
+# Hydrolocations ----------------------------------------------------------
+
 # Purpose --> This code constructs a conus_hl (conus hydrolocation) file from a set of inputs,
 # https://github.com/NOAA-OWP/hydrofabric/issues/40
 
-map_poi = function(df){
-  df %>% 
-    sf::st_as_sf(coords = c("X", "Y"), crs = 4326) %>% 
-    mapview::mapview()
-}
-
-# Hydrolocations ----------------------------------------------------------
 # Hydrolocations have the following schema
 # > hl_id: Unique Identifier to aggregate same physical POIs
 # > hl_source: Source of hl
 # > hl_reference: Type of Hydrolocation
-# > hl_link: Identifier from soure dataset
+# > hl_link: Identifier from source dataset
+# 
 # > X: Longitude
-# > Y: Latiture
+# > Y: Latitude
+#
 # > hf_id: ID from reference hydrofabric
 # > hf_source: Source of reference hydrofabric
 
-# Target Schema
-schema <- c("hl_id", "hl_source", "hl_reference", "hl_link", "X", "Y",
-            "hf_id", "hf_source")
-
 # Reference Fabric --------------------------------------------------------
-ref_base <- "/Volumes/MyBook/Reference Features - targets/"
-ref_net  <- read_parquet(glue('{ref_base}reference_features.parquet'))
+# fl = as_sqlite(ref_gpkg, 'reference_flowline') %>%
+#   select(comid, tocomid, poi_id, levelpathi, vpuid, hydroseq,  geom) %>%
+#   collect() %>%
+#   st_as_sf()
+# 
+# g = nhdplusTools::get_node(fl, position = "end") %>%
+#   mutate(outlet_X = st_coordinates(.)[,1],
+#          outlet_Y = st_coordinates(.)[,2])
+# 
+# ref = bind_cols(st_drop_geometry(fl), st_drop_geometry(g))
+# 
+# write_parquet(ref, '/Volumes/MyBook/TNC/v2.2/reference/conus_network.parquet')
 
-# GFv20 -------------------------------------------------------------------
+ref_net  <- arrow::open_dataset('/Volumes/MyBook/TNC/v2.2/reference/conus_network') %>% 
+  collect()
 
-sb_base <- "https://www.sciencebase.gov/catalog/file/get/60be0e53d34e86b93891012b?f=__disk__"
+ref_gpkg = '/Volumes/MyBook/TNC/v2.2/reference/reference_CONUS.gpkg'
 
-GFv20_POIs_type <- glue('{sb_base}88/be/47/88be47f9e53f44eda6fdb8f1e4e0c79f85e33d06')
-GFv20_POIs      <- glue('{sb_base}9b/05/b0/9b05b0e75e91d1692adcb1c2398e75e751865023')
-gfv20_type      <- glue("{base}/hydrolocations/GFv20_POIs_type.csv")
-gfv20_geo       <- glue("{base}/hydrolocations/GFv20_POIs.geojson")
+# GFv20 Reference -------------------------------------------------------------------
+sf::read_sf(ref_gpkg, 'event_data')
 
-try( GET(url = GFv20_POIs_type, 
-         write_disk(gfv20_type, overwrite = TRUE)), 
-     silent = TRUE )
 
-try( GET(url = GFv20_POIs, 
-         write_disk(gfv20_geo, overwrite = TRUE)), 
-     silent = TRUE )
+meta = sf::read_sf(ref_gpkg, 'poi_data') %>% 
+  filter(hl_reference %in% paste0('Type_', community_hl_types)) %>% 
+  select(hf_id = hy_id, 
+         hl_id = poi_id, 
+         hl_link, 
+         hl_reference)  %>% 
+  mutate(hf_source = "reference_features", 
+         hl_source = "GFv20", 
+         hl_reference = gsub("Type_", "", hl_reference))
 
-meta = fread(gfv20_type) %>% 
-  mutate(Type_Gages = stringi::stri_pad_left(Type_Gages, 8, "0"),
-         Type_HUC12 = stringi::stri_pad_left(Type_HUC12, 12, "0")) %>%  
-  select(hf_id = nhdpv2_COMID, 
-         hl_id = provider_id,  
-         any_of(paste0("Type_", community_hl_types)), Y, X) |>
-  mutate_at(vars(matches("Type_")), as.character) |>
-  pivot_longer(-c(hl_id, hf_id, X, Y), names_to = "hl_reference", values_to = "hl_link") |>
-  filter(!is.na(hl_link)) |>
-  distinct() %>% 
-  mutate(hf_source = "reference_features", hl_source = "GFv20", hl_reference = gsub("Type_", "", hl_reference))
 
-community_pois =  select(read_sf(gfv20_geo), hl_id = provider_id) %>% 
+community_pois = select(sf::read_sf(ref_gpkg, 'poi_geometry'),  
+                        hf_id = hy_id, 
+                        hl_id = poi_id, ) %>% 
   mutate(X = st_coordinates(.)[ ,1],
          Y = st_coordinates(.)[ ,2]) %>% 
   st_drop_geometry() %>% 
-  right_join(meta, by = "hl_id") %>% 
+  right_join(meta, by = c('hf_id', 'hl_id'), relationship = "many-to-many") %>% 
   # TMP for now
   mutate(hl_id = NA) %>% 
-  #left_join(select(ref_net, hf_id = comid, hf_hydroseq = hydroseq), by = 'hf_id') %>% 
   relocate(all_of(schema)) 
+
+filter(meta, hl_reference == 'WBIn', hl_link == 120049871)
 
 # RouteLink ---------------------------------------------------------------
 
@@ -84,7 +86,7 @@ rl_pois <- lapply(1:length(var), FUN = function(x){
   bind_cols(.name_repair = "unique_quiet") |>
   setNames(c("comid", "NHDWaterbodyComID")) |>
   filter(NHDWaterbodyComID > 0) |>
-  left_join(get_vaa("hydroseq", updated_network = TRUE), by = "comid") |>
+  left_join(select(ref_net, comid, hydroseq), by = "comid") |>
   filter(!is.na(hydroseq)) |> 
   tidyr::drop_na() |> 
   group_by(NHDWaterbodyComID) |>
@@ -97,7 +99,7 @@ rl_pois <- lapply(1:length(var), FUN = function(x){
   pivot_longer(-hl_link, values_to = "hf_id", names_to = "hl_reference") |> 
   tidyr::drop_na() |> 
   mutate(hl_id = NA,  hf_source = "reference_features", hl_source = "nwm_v3.0.7_routelink") |> 
-  left_join(select(ref_net, hf_id = comid, X, Y), by = 'hf_id') %>%
+  left_join(select(ref_net, hf_id = comid, X = outlet_X, Y = outlet_Y), by = 'hf_id') %>%
   distinct() |>
   relocate(all_of(schema))
 
@@ -105,21 +107,22 @@ rl_pois <- lapply(1:length(var), FUN = function(x){
 
 nc  <- open.nc(lake_path)
 
-var <- c("lake_id", "lat", "lon")
+var <- c("lake_id")
 
 lk <- lapply(1:length(var), FUN = function(x){
   var.get.nc(nc, var[x])}) %>% 
   bind_cols(.name_repair = "unique_quiet") |>
-  setNames(c("hl_link", "Y", "X")) |> 
+  setNames(c("hl_link")) |> 
   mutate(hl_reference = "nwmlake",
          hl_id = NA, 
          hf_source = "reference_features",
          hl_source = "nwm_v2.1.6_LAKEPARAM")
 
-nwmlake_pois <- distinct(select(rl, hl_link, hf_id, hl_reference))  %>% 
+nwmlake_pois <- distinct(select(rl_pois, hl_link, hf_id, hl_reference, X, Y))  %>% 
   filter(hl_reference == 'WBOut_rl') |>
   select(-hl_reference) |>
-  right_join(lk, by = "hl_link") |>
+  right_join(lk, by = "hl_link") %>% 
+  tidyr::drop_na(X) %>% 
   relocate(all_of(schema))
 
 # NWM Reservoirs  --------------------------------------------------------------
@@ -189,12 +192,15 @@ nwm_res <- relocate(bind_rows(res), all_of(schema))
 # Calibration Gages -------------------------------------------------------
 
 cal <- read.csv(glue('{base}/hydrolocations/gage_list.txt')) %>% 
-  mutate(site_no = stringi::stri_pad_left(site_no, 8, "0") )
+  mutate(site_no = paste0("0", site_no))
 
 tmp <- filter(community_pois, hl_reference == "Gages") %>% 
   filter(hl_link %in% cal$site_no)
 
 stopifnot(nrow(tmp) == nrow(cal))
+# bad = filter(cal,! site_no %in% tmp$hl_link)
+# dataRetrieval::readNWISsite(bad$site_no)
+
 
 calib_poi <- tmp |>
   mutate(hl_id = NA,
@@ -212,7 +218,7 @@ coastal_network <- read.csv(glue('{base}/hydrolocations/GAGE_SUMMARY.csv')) |>
          hl_source = "coastal",
          hl_reference = "coastal_gage",
          hf_source = "reference_features") |>
-  select(starts_with(c("hl_", "hf_")), Y = LAT_NHD, X = LON_NHD)  
+  select(starts_with(c("hl_", "hf_")), Y = LAT_NHD, X = LON_NHD) 
 
 for(i in 1:nrow(coastal_network)){
   coastal_network$hf_id[i] <- as.numeric(
@@ -221,8 +227,13 @@ for(i in 1:nrow(coastal_network)){
   )
 }
 
-
-coastal_gage_poi <- relocate(coastal_network, all_of(schema))
+coastal_gage_poi <- coastal_network %>% 
+  st_as_sf(coords = c("X", "Y"), crs = 4326) %>% 
+  st_transform(5070) %>% 
+  mutate(X = st_coordinates(.)[,1], 
+         Y =  st_coordinates(.)[,2]) %>% 
+  st_drop_geometry() %>% 
+  relocate(all_of(schema))
 
 # Coastal Domain ----------------------------------------------------------
 
@@ -232,29 +243,33 @@ coastal_domain <- read_sf(glue('{base}/hydrolocations/coastal_domain.gpkg')) |>
 
 m <-  st_intersects(st_transform(vpu_boundaries[1:21,], 5070), coastal_domain)
 
-df <-  data.frame(gpkgs = list.files(ref_base, pattern = ".gpkg", full.names = TRUE)) |>
-  mutate(vpu = sapply(strsplit(basename(gpkgs), "_"), `[[`, 1)) |> 
-  filter(vpu %in% vpu_boundaries[1:21,]$VPUID[lengths(m) > 0])
+v = vpu_boundaries[1:21,]$VPUID[lengths(m) > 0]
 
 domain_pois <- list()
 
-for(i in 1:nrow(df)){
+for(i in 1:length(v)){
   
-  fl_tmp <- read_sf(df$gpkgs[i], "flowlines")
-  
+  fl_tmp <-  open_dataset(ref_fl) %>% 
+    dplyr::filter(vpuid == !!v[i]) %>% 
+    sfarrow::read_sf_dataset() %>% 
+    st_set_crs(5070)
+
   d <- st_intersection(coastal_domain, AOI::bbox_get(fl_tmp))
   
   touches <- st_intersects(fl_tmp, d)
   
   fl_map <- fl_tmp[lengths(touches) > 0, ]
   
-  domain_pois[[i]] <- st_intersection(coastal_domain, fl_map) |>
-    select(hf_id = COMID, domain_id) |>
+  domain_pois[[i]] 
+  
+  x <- st_intersection(coastal_domain, fl_map) |>
+    select(hf_id = comid, domain_id) |>
     st_collection_extract("POINT") |>
     st_cast("POINT") |>
     distinct() |>
-    group_by(domain_id) |>
-    mutate(hl_link = paste(domain_id, df$vpu[i], 1:n(), sep = "-")) |>
+    group_by(hf_id) |>
+    mutate(hl_link = paste(domain_id[1], hf_id, sep = "-")) |>
+    slice(1) %>% 
     ungroup() |>
     mutate(
       hl_id = NA,
@@ -262,15 +277,16 @@ for(i in 1:nrow(df)){
       hl_reference = domain_id,
       hf_source = "reference_features",
       domain_id = NULL,
-    ) |> 
-    st_transform(4326) |>
+    ) %>% 
     mutate(X = st_coordinates(.)[,1],
            Y = st_coordinates(.)[,2]) |> 
     st_drop_geometry()
   
+  message("VPU", v[i], " (", i, "/", length(v), ")")
 }
 
-coastal_domain_pois <-  relocate(bind_rows(domain_pois), all_of(schema))
+coastal_domain_pois <- bind_rows(domain_pois) %>% 
+  relocate(all_of(schema))
 
 # AHPS --------------------------------------------------------------------
 
@@ -283,8 +299,7 @@ ahps <- read_sf(glue('{base}/hydrolocations/nws_lid.gpkg')) |>
     hl_id = NA,
     hl_source = "fim",
     hf_source = "reference_features",
-  ) |> 
-  st_transform(4326) |>
+  )  %>%  
   mutate(X = st_coordinates(.)[,1],
          Y = st_coordinates(.)[,2]) |> 
   st_drop_geometry() |>
@@ -292,40 +307,34 @@ ahps <- read_sf(glue('{base}/hydrolocations/nws_lid.gpkg')) |>
 
 # Final  ------------------------------------------------------------------
 
-hl = rbindlist(list(community_pois,
-                    rl_pois,
+hl = rbindlist(list(rl_pois,
                     nwmlake_pois,
                     nwm_res,
                     calib_poi,
                     coastal_gage_poi,
                     coastal_domain_pois,
                     ahps
-)) |>
+)) %>% 
+  select(-X, -Y) %>% 
+  left_join(select(ref_net, X = outlet_X, Y = outlet_Y, hf_id = comid), by = "hf_id") %>% 
+  bind_rows(community_pois) %>% 
   group_by(X, Y) |> 
   mutate(poi_id = cur_group_id(),
          count = n(),
          hl_id = NULL) %>% 
-  ungroup() 
+  ungroup() %>% 
+  left_join(select(ref_net, hf_id = comid, levelpathi, vpuid), by = "hf_id")
 
-unlink(full_hl)
 
-# Write Table
-write_sf(select(hl, -count), full_hl, "properties")
+# Write Hydrolocation Table
+hl %>% 
+  st_as_sf(coords = c("X", "Y"), remove = FALSE, crs = 5070) %>% 
+  group_by(vpuid) %>% 
+  sfarrow::write_sf_dataset(hl_parquet)
 
-# Write spatial location: POIs
-select(hl, poi_id, X, Y, count) |> 
-  distinct() |> 
-  st_as_sf(coords = c("X", "Y"), 
-           remove = FALSE,  
-           crs = 4326) |>
-  write_sf(full_hl, "pois")
+# Write POIs
+  distinct(select(hl, poi_id, X, Y, count, vpuid)) |> 
+    st_as_sf(coords = c("X", "Y"), remove = FALSE, crs = 5070) |>
+    write_sf(poi_fgb)
 
-# Write spatial location: HL's
-st_as_sf(
-  select(hl, -count),
-  coords = c("X", "Y"),
-  remove = FALSE,
-  crs = 4326) |>
-  write_sf(full_hl, "hydrolocations")
 
-table(hl$hl_reference)

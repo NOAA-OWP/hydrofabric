@@ -40,21 +40,17 @@ This aim of this section is that each of us can build a subset network for a hyd
 - To easy data discoverabilty, cross-walking, and indexing, the network layers of each VPU are joined into a single Parquet file (~80MB in size)
  
 ```{r}
-(fs::file_size("../data/conus_net.parquet"))
-
-net = arrow::read_parquet("../data/conus_net.parquet")
-
-glimpse(net)
+net = read_parquet("s3://lynker-spatial/v20.1/conus_net.parquet")
 ```
 
 In the above table you'll see that every relationship between the features in the current hydrofabric, the source hydrofabric, and all hydrolocations, have been exploded into a "many-to-many" table. 
 
-For example, we can look at the flowpath `wb-1002` and find that it is defined by the aggregation of NHDPlusV2 COMID 2239831 and 2239831.
+For example, we can look at the flowpath `wb-1002` and find that it is defined by the aggregation of NHDPlusV2 COMID 1712220, 1712230, and 1712238.
 
 ```{r}
 glimpse(filter(net, id == "wb-1002"))
 ```
-Or, that the terminal outflow of 'HUC12-010100100101' occurs at `tnx-1000000019` which is fed by an aggregate flowpath made up of three source flowpaths (`COMID={816563, 816417, 816415}`)
+Or, that the terminal outflow of 'HUC12-010100100101' occurs at `tnx-1000000569` which is fed by an aggregate flowpath made up of three source flowpaths (`COMID={816563, 816417, 816415}`)
 
 ```{r}
 glimpse(filter(net, hl_uri == 'HUC12-010100100101'))
@@ -65,11 +61,11 @@ glimpse(filter(net, hl_uri == 'HUC12-010100100101'))
 
 ```{r, eval = FALSE}
 system.time({
-  net = read_parquet('s3://www.lynker-spatial.com/pre-release/conus_net.parquet')
-c})
+  net = read_parquet('s3://lynker-spatial/v20.1/conus_net.parquet')
+})
 
-#    user  system elapsed 
-#  2.180   2.123  41.288 
+#  user  system elapsed 
+#  1.403   0.550   5.710 
 ```
 
 #### Defered Evaluation
@@ -77,14 +73,9 @@ c})
 The times you would want to open the entire network are limited, often, we are interested in small bits of data that  
 
 ```{r, eval = FALSE}
-system.time({
-  net = open_dataset('s3://nextgen-hydrofabric/pre-release/conus_net.parquet') %>% 
+open_dataset('s3://lynker-spatial/v20.1/conus_net.parquet') %>% 
     filter(id == "wb-1002") %>% 
     collect()
-})
-
-#   user  system elapsed 
-#  2.294   2.588  24.261
 ```
 
 ### 2. Feature Identification
@@ -175,12 +166,12 @@ system.time({
    slice_max(hydroseq, with_ties = FALSE)
 
  wbd_net = filter(net, vpu == wbd$vpu) %>% 
-  select(id, toid, divide_id) %>% 
+    select(id, toid, divide_id) %>% 
     distinct() %>% 
     get_sorted(outlets = wbd$toid)
 })
 
-(ids = na.omit(unique(unlist(wbd_net))))
+(ids = unique(unlist(wbd_net)))
 ```
 
 ### 4. Easy integration with SQL
@@ -189,13 +180,16 @@ Once you have a set of IDs, the SQL backing of GPKG allows for quickly extractin
 
 ```{r}
 ## USE GET HYDROFABRIC HERE
-(gpkg = get_fabric(VPU = wbd$vpu,  cache_dir = "cihro-data"))
+(gpkg = get_fabric(VPU = wbd$vpu))
   
 db <- dbConnect(SQLite(), gpkg)
 
 t = tbl(db, "divides") %>%
-      filter(if_any(any_of(c('divide_id', 'id', 'ds_id')), ~ . %in% ids)) %>%
-      collect()
+      filter(if_any(any_of(c('divide_id', 'id', 'ds_id')), ~ . %in% !!ids)) %>%
+      collect() 
+
+
+t2 = filter(t, id %in% c(na.omit(wbd_net$toid), na.omit(wbd_net$id)))
 
 st_as_sf(t, crs = 5070) %>%  
   mapview()
@@ -212,7 +206,7 @@ In these cases, we provide a subset_network function that works o n
 system.time({
   xx = subset_network(id = wbd$toid, 
                       lyrs = c("divides", "nexus", "flowpaths", "lakes", "flowpath_attributes"),
-                      cache_dir = "cihro-data")
+                      cache_dir = "tutorial")
 })
 ```
 

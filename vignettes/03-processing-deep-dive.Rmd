@@ -19,8 +19,8 @@ knitr::opts_chunk$set(  collapse = TRUE,
   out.width = "100%",
   warning = FALSE, message = FALSE)
 library(hydrofabric)
-library(mapview)
 library(ggplot2)
+using_local_example = "/Volumes/MyBook/conus-hydrofabric"
 ```
 
 # Network Manipulation: Geoprocessing
@@ -41,16 +41,25 @@ All reference and (precomputed) refactored data products live on ScienceBase. Th
 
 ```{r, eval = FALSE}
 library(hydrofabric)
+using_local_example = "/Volumes/MyBook/conus-hydrofabric"
 
 # Define starting feature by source and ID
-(nldi_feature = list(featureSource = "nwis", featureID = "06752260"))
+(gage = list(featureSource = "nwis", featureID = "06752260"))
 
-# Use this feature to build a reference subset
-  # This function uses the NLDI to identify an upstream tributary
-  # and SQL to extract a subset GPKG
-subset_reference(nldi_feature = nldi_feature, 
-                 gpkg = get_hydrofabric(VPU = "10L",  type = "reference", dir = "cihro-data"),
-                 export_gpkg = "cihro-data/reference.gpkg")
+# Use subset_network to build a reference subset
+hf = hfsubsetR::get_subset(nldi_feature = gage, 
+                           source  = using_local_example, 
+                           outfile = "tutorial/poudre.gpkg",
+                           overwrite = FALSE)
+```
+
+```{r}
+d = read_hydrofabric("tutorial/poudre.gpkg")
+
+pois = open_dataset(glue("{using_local_example}/v2.2/conus_hl")) %>% 
+  filter(hf_id %in% d$flowpaths$id, hl_source == 'GFv20') %>% 
+  collect() %>% 
+  st_as_sf(coords = c("X", "Y"), crs = 5070)
 ```
 
 # 1) Running the Process: Refactoring
@@ -62,7 +71,7 @@ subset_reference(nldi_feature = nldi_feature,
    1. Split large or long catchments into a more uniform catchment size distribution and
    2. collapse catchment topology to eliminate small catchments
    
-- The fundamental key is that no network resolution is lost! That means the total path length of the network going in, is what comes out.
+- The key is that no network resolution is lost! That means the total path length of the network going in, is what comes out.
 
 - The workflow is can be parameterized using three primary values:
 
@@ -92,13 +101,14 @@ You might also have areas where you want to avoid, or, enforce a splitting event
 ## Example
 
 ```{r, eval = FALSE}
-refactor = refactor(gpkg = "cihro-data/reference.gpkg",
+refactored = refactor(hf,
                     split_flines_meters = 10000, 
                     collapse_flines_meters = 1000, 
                     collapse_flines_main_meters = 1000,
+                    pois = pois,
                     fac = '/vsis3/nextgen-hydrofabric/gridded-resources/fac.vrt',
                     fdr = '/vsis3/nextgen-hydrofabric/gridded-resources/fdr.vrt',
-                    outfile = "cihro-data/refactor.gpkg")
+                    outfile = "tutorial/refactor.gpkg")
 ```
 
 ## Outputs 
@@ -106,8 +116,8 @@ refactor = refactor(gpkg = "cihro-data/reference.gpkg",
 To get a high level understanding of what happened with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
-reference = read_hydrofabric("cihro-data/reference.gpkg")
-refactor  = read_hydrofabric("cihro-data/refactor.gpkg")
+reference = read_hydrofabric("tutorial/reference.gpkg")
+refactor  = read_hydrofabric("tutorial/refactor.gpkg")
 
 refactor$flowpaths$LENGTHKM = add_lengthkm(refactor$flowpaths)
 refactor$catchments$areasqkm = add_areasqkm(refactor$catchments)
@@ -193,7 +203,7 @@ knitr::include_graphics('../man/figures/level3.png')
 
 | Parameter        | Purpose           | Elected Value  | 
 | ------------- |:-------------:| -----:| 
-| ideal_size_sqkm      | the maximum length flowpath desired in the output. | 10 |
+| ideal_size_sqkm    | the maximum length flowpath desired in the output. | 10 |
 | min_length_km      | the minimum length of inter-confluence flowpath desired in the output. | 1 |
 | min_area_sqkm      | the minimum length of between-confluence flowpaths. | 3 |
 
@@ -203,12 +213,19 @@ Here, a `hydrolocation` POINT layer can be passed to help direct the aggregation
 ## Example
 
 ```{r, eval = FALSE}
-aggregate_to_distribution(gpkg = "cihro-data/refactor.gpkg",
+
+hydrolocations = read_sf("tutorial/refactor.gpkg", 'lookup_table') %>% 
+  inner_join(pois, by = c("NHDPlusV2_COMID" = "hf_id")) %>% 
+  select(poi_id, NHDPlusV2_COMID, id = reconciled_ID) %>% 
+  distinct()
+
+aggregate_to_distribution(gpkg = "tutorial/refactor.gpkg",
+                          hydrolocations = mutate(pois, id = hf_id),
                           ideal_size_sqkm = 10, 
                           min_length_km = 1, 
                           min_area_sqkm = 3, 
-                          outfile = "cihro-data/aggregate.gpkg")
-
+                          outfile = "tutorial/aggregate.gpkg", 
+                          overwrite = TRUE)
 ```
 
 ## Outputs 
@@ -216,10 +233,10 @@ aggregate_to_distribution(gpkg = "cihro-data/refactor.gpkg",
 To get a high level understanding of what happens with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
-agg = read_hydrofabric("cihro-data/aggregate.gpkg")
+agg = read_hydrofabric("tutorial/aggregate.gpkg")
 
 ggplot() + 
-  geom_density(data = refactor$flowpaths, aes(x = LENGTHKM), color = "blue", lwd = 3) + 
+  geom_density(data = refactor$flowpaths,  aes(x = LENGTHKM), color = "blue", lwd = 3) + 
   geom_density(data = reference$flowpaths, aes(x = LENGTHKM), color = "red", lwd = 3) + 
   geom_density(data = agg$flowpaths, aes(x = lengthkm), color = "green", lwd = 3) + 
   xlim(0,10) +
@@ -269,7 +286,7 @@ ggplot() +
 - In the right-hand figure, we can see the blue flowlines (from reference and refactor) that were prunned in the aggregation process.
 
 
-```{r, echo=FALSE,out.width="49%",fig.show='hold',fig.align='center'}
+```{r, echo=FALSE,out.width="45%",fig.show='hold',fig.align='center'}
 knitr::include_graphics(c('../man/figures/catchment-dissolving.png', '../man/figures/river-pruning.png'))
 ```
 
@@ -291,192 +308,22 @@ ggplot(aes(x=class, y=num, fill=type)) +
   scale_fill_manual(values=c('green', 'blue','red'))
 ```
 
-The refactored output is shared under the Refactored Parent item of the above ScienceBase resource (available [here](https://www.sciencebase.gov/catalog/item/61fbfdced34e622189cb1b0a)). It is also avaliable in the Lynker s3 account here
-
-# 3) NextGen
-
-Once we have a network aggregated to a scale matching the desired hydrologic processes we need to turn it into something NextGen can use (modeling task)
-
-```{r, echo=FALSE}
-knitr::include_graphics('../man/figures/roadmap.png')
-```
-
-## Divergent Topology 
-
-Nextgen operates on a `[flowpath --> nexus]` vs `[flowpath --> flowpath]` topology
-
-This is due to the HY Features conceptula catchment that has 1 inflow draining to one outflow.
-
-And example of this can be seen below:
-
-```{r, echo=FALSE,out.width="49%",fig.cap="caption",fig.show='hold',fig.align='center'}
-knitr::include_graphics(c('../man/figures/topology.png', '../man/figures/topology2.png'))
-```
-
-## Character based indentification
-
-Nextgen requires integer based identification, like described in the data model, prefixed with a character string defining what the feature is
-
-Right now, the following prefixs are used to distiguish between type of model features.
-
-| Parameter        | Purpose           | Elected Value  | 
-| ------------- |:-------------:| -----:| 
-| nexus_prefix      | the maximum length flowpath desired in the output. | "nex-" |
-| terminal_nexus_prefix      | the minimum length of inter-confluence flowpath desired in the output. | "tnx-" |
-| coastal_nexus_prefix      | the minimum length of between-confluence flowpaths. | "cnx-" |
-| internal_nexus_prefix      | the maximum length flowpath desired in the output. | "inx-" |
-| catchment_prefix      | the minimum length of inter-confluence flowpath desired in the output. | "cat-" |
-| waterbody_prefix      | the minimum length of between-confluence flowpaths. | "wb-" |
-
-
-The following function (1) identifies nexus locations, (2) moves them when needed and (3) applies the above schema to the features.
-
-```{r, eval = FALSE}
-apply_nexus_topology(gpkg = "cihro-data/aggregate.gpkg", export_gpkg = "cihro-data/nextgen.gpkg")
-```
-
-We can see the results of this by opening the hydrofabric and adding it to a map!
 
 ```{r}
-nexus = read_sf("cihro-data/nextgen.gpkg", "nexus") 
-
-read_hydrofabric("cihro-data/nextgen.gpkg") %>% 
-  mapview() + 
-  nexus
+r = read_hydrofabric("tutorial/aggregate.gpkg")
+mapview::mapview(r) + pois
 ```
-
-## Extending NWM attributes
-
-The core utilities provide a series of flowpath, divide, and nexuses.
-
-```{r}
-sf::st_layers("cihro-data/nextgen.gpkg")
-```
-However, other information is needed to run some/all NextGen formulations. These include the following:
-
-### Lake Attributes
-
-- WBOut Hydrolocations are mapped to the NHDPlusWaterBody COMIDs used in the NWM.
-
-## Flowpath Attributes
-
-- Flowpath attributes are extracted from the a Routelink file
-- The values are length averaged by the portion of length each makes up in the refactored/aggregated network 
-
-For example, if a 75m flowline has a roughness of 0.05 and a 25m flowline with a roughness of 0.2
-
-```{r}
-(n = (.75 * .05) + (.25 * .2))
-```
-
-
-Flowpaths attributes and lake parameters can be added by pointing to a set of NWM domain files like those found [here](https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/nwm.v2.2.3/parm/domain/)
-
-```{r, eval = FALSE}
-add_flowpath_attributes("cihro-data/nextgen.gpkg", 
-                        rl_path = "/Volumes/MyBook/nextgen/RouteLink_nwm_v2_2_3.fst") %>%
-   add_lake_attributes(lake_path = '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc')
-```
-
-
-## CFE/NOAH-OWP attributes
-
-Catchment attribute data is needed to run some formulations like CFE and NOAH-OWP. These can be computed using the following logic. 
-
-```{r, eval = FALSE}
- add_cfe_noahowp_attributes(gpkg        = 'cihro-data/nextgen.gpkg"',
-                            nwm_dir     = "/Volumes/Transcend/nwmCONUS-v216/",
-                            outfile     = 'cihro-data/cfe_noahowp.parquet')
-```
-
-By default, this code take the gridded data supplied by the `soilproperties_CONUS_FullRouting.nc`, `wrfinput_CONUS`, and `GWBUCKPARM_CONUS_FullRouting.nc` and computes the following summaries:
-
-
-| Tables        | Description           | Layer(s)  | Summary Function | Source | 
-| ------------- |:-------------:| -----:| -----:| -----:|
-| bexp      | Beta Parameter| 4 | mode | soilproperties_CONUS_FullRouting.nc |
-| IVGTYP      | Dominant category    | 1   | mode | wrfinput_CONUS.nc |
-| ISLTYP | Dominant category      |  1   | mode | wrfinput_CONUS.nc |
-| dksat      | Saturated Soil Connectivity | 4  | geometric mean | soilproperties_CONUS_FullRouting.nc |
-| psisat      | Saturated soil matric potential      | 4   | geometric mean | soilproperties_CONUS_FullRouting.nc |
-| slope | Slope Index      |   1 | mean | soilproperties_CONUS_FullRouting.nc |
-| smcmax      | Saturated value of soil moisture [volumetric] | 4 | mean | soilproperties_CONUS_FullRouting.nc |
-| smcwlt      | Wilting point soil moisture [volumetric]     |  4  | mean | soilproperties_CONUS_FullRouting.nc |
-| refkdt | Parameter in the surface runoff parameterization      |  1  | mean | soilproperties_CONUS_FullRouting.nc |
-| cwpvt      | Empirical canopy wind parameter | 1 | mean | soilproperties_CONUS_FullRouting.nc |
-| vcmx25      | Maximum rate of carboxylation at 25 C [ umol CO2/m2/s]      | 1  | mean | soilproperties_CONUS_FullRouting.nc |
-| mp | Slope of Conductance to photosynthesis relationship      | 1   | mean | soilproperties_CONUS_FullRouting.nc |
-| mfsno      | Snowmelt m parameter | 1 | mean | soilproperties_CONUS_FullRouting.nc |
-| Coef      | Coefficient | 1 | mean | GWBUCKPARM_CONUS_FullRouting.nc |
-| Zmax      | Zmax | 1 | mean | GWBUCKPARM_CONUS_FullRouting.nc |
-| Expon      | Exponent | 1 | mode | GWBUCKPARM_CONUS_FullRouting.nc |
-| Quartz      | Soil Quartz | 4 | mean | soilproperties_CONUS_FullRouting.nc |
- 
-
-### Themeing
-
-As an option, QGIS QML theming files can be added to a gpkg. Some default themeing files come with hydrofabric and can be specified/added with the `append_styles` utility on the desired `layer_names`
-
-```{r, eval = FALSE}
-append_style("cihro-data/nextgen.gpkg", layer_names = c("nexus", "hydrolocations", "flowpaths", "divides", "lakes"))
-```
-
-In [QGIS](https://qgis.org/en/site/forusers/download.html), double clicking the gpkg file will allow you to select which layers to load.
-
-
-```{r, echo = FALSE}
-knitr::include_graphics("../man/figures/hydrofabric.png")
-```
-
 
 # Full Run-through
 
 ```{r, eval = FALSE}
-
-reference_gpkg = get_hydrofabric(VPU = "10L",  type = "reference", dir = "cihro-data")
-
-# Define starting feature by source and ID
-list(featureSource = "nwis", featureID = "06752260") %>% 
-  # Subset Reference
-  subset_reference(gpkg = reference_gpkg,
-                   export_gpkg = "cihro-data/reference.gpkg")
-
-
-  refactor(gpkg = "cihro-data/reference.gpkg",
-           split_flines_meters = 10000, 
-           collapse_flines_meters = 1000, 
-           collapse_flines_main_meters = 1000,
-           fac = '/vsis3/nextgen-hydrofabric/gridded-resources/fac.vrt',
-           fdr = '/vsis3/nextgen-hydrofabric/gridded-resources/fdr.vrt',
-           outfile = "cihro-data/refactor.gpkg") %>% 
-  aggregate_to_distribution(ideal_size_sqkm = 10, 
-                          min_length_km = 1, 
-                          min_area_sqkm = 3, 
-                          outfile = "cihro-data/aggregate.gpkg") %>% 
-  apply_nexus_topology(export_gpkg = "cihro-data/nextgen.gpkg") %>% 
-  add_flowpath_attributes(rl_path = "/Volumes/MyBook/nextgen/RouteLink_nwm_v2_2_3.fst") %>%
-  add_lake_attributes(lake_path = '/Volumes/Transcend/nwmCONUS-v216/LAKEPARM_CONUS.nc') %>%
-  append_style(layer_names = c("nexus", "hydrolocations", "flowpaths", "divides", "lakes"))
-
-add_cfe_noahowp_attributes(gpkg        = 'cihro-data/nextgen.gpkg"',
-                           nwm_dir     = "nwm-data",
-                           outfile     = 'cihro-data/cfe_noahowp.parquet')
+hf = get_subset(nldi_feature = list(featureSource = "nwis", featureID = "06752260"), 
+                source = "/Volumes/MyBook/conus-hydrofabric",
+                outfile = "tutorial/poudre.gpkg") |>
+     refactor(fac = '/vsis3/nextgen-hydrofabric/gridded-resources/fac.vrt',
+              fdr = '/vsis3/nextgen-hydrofabric/gridded-resources/fdr.vrt',
+              outfile = "tutorial/refactor.gpkg") |>
+     aggregate_to_distribution(outfile = "tutorial/aggregate.gpkg")
 ```
 
 
-## nhdplusTools:
-
-With all network manipulations, fundamental network traits change. This requires the utilities to rapidly and efficiently recopute key network metric. The nhdplusTools package provides the option to regenerate all or some of these on the fly using graph algroithms and logic. 
-
-We will return to the `get_sorted()` utility in the subsetting section
-
-```{r, eval = FALSE}
-nhdplusTools::add_plus_network_attributes()
-nhdplusTools::get_streamorder()
-nhdplusTools::calculate_total_drainage_area()
-nhdplusTools::get_sorted()
-```
-
-```{r, echo = FALSE}
-knitr::include_graphics('../man/figures/figure7.png')
-```

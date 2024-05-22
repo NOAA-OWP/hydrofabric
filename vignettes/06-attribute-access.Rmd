@@ -39,7 +39,7 @@ Here, we can see how to extract information for CFE for our Poudre subset.
 library(arrow)
 
 # read network
-x = read_sf("cihro-data/poudre.gpkg", "network")
+x = read_sf("tutorial/poudre.gpkg", "network")
 
 # define variable set
 attr = 'cfe_noahowp'

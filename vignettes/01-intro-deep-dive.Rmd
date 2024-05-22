@@ -131,20 +131,20 @@ It includes the following:
 
 | Repo        | Purpose           | 
 | ------------- |:-------------:| 
+| dplyr      | Provides a consistent set of tools for data manipulation | 
 | USGS-R/nhdplusTools      | Tools for for network manipulation | 
+| terra      | Methods for spatial data analysis with vector (points, lines, polygons) and raster (grid) data | 
 | NOAA-OWP/hydrofab      | Tools for working with the reference fabric, along with network refactoring and aggregation | 
 | NOAA-OWP/ngen.hydrofab      | Extensions for building NextGen ready data products | 
-| mikejohnson51/climateR      | Tools for for accessing remote data resources for parameter and attributes estimation | 
 | mikejohnson51/zonal      | Tools for rapid areal summarization |
-| dplyr      | Provides a consistent set of tools for data manipulation | 
-| sf      | Provides simple features access for R | 
-| terra      | Methods for spatial data analysis with vector (points, lines, polygons) and raster (grid) data | 
-| arrow      | Exposes an interface to the Arrow C++ library | 
+| mikejohnson51/climateR      | Tools for for accessing remote data resources for parameter and attributes estimation | 
 | glue      | Provides interpreted string literals that are small, fast, and dependency-free | 
+| sf      | Provides simple features access for R | 
+| arrow      | Exposes an interface to the Arrow C++ library | 
 
 # Today's Context
 
-Everyone should consider a USGS Gage ID in mind. For my example, we will use NWIS `gage=06752260` that sits on the Cache La Poudre River in Fort Collins, Colorado. 
+Everyone should have a USGS Gage ID in mind. For my example, we will use NWIS `gage=06752260` that sits on the Cache La Poudre River in Fort Collins, Colorado. 
 
   - The associated gpkg can be found [here](https://lynker-spatial.s3.amazonaws.com/tutorial/poudre.gpkg)
   
@@ -158,9 +158,8 @@ knitr::include_graphics("../man/figures/hydrofabric.png")
 
 For those cases where we need to download data, we are also setting up a directory in our main working directory.
 
-
 ```{r}
-dir.create("cihro-data", showWarnings = FALSE)
+dir.create("tutorial", showWarnings = FALSE)
 ```
   
 

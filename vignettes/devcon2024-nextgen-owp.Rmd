@@ -1,0 +1,32 @@
+---
+title: "Prerequisite"
+description: |
+  "NOAA's Enterprise Hydrofabric System"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+
+author:
+  - name: "Arash Modaresi Rad"
+    url: https://github.com/arashmodrad 
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "100%", message = TRUE)
+```
+
+# Hydrofabric Subset (hfsubset)
+
+
+# Map in QGIS
+
+
+# Identify outlet
+
+
+# Pull cross section data

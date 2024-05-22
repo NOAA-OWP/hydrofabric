@@ -1,0 +1,56 @@
+---
+title: "Prerequisite"
+description: |
+  "NOAA's Enterprise Hydrofabric System"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+  - name: "Arash Modaresi Rad"
+    url: https://github.com/arashmodrad 
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+  - name: "James Coll"
+    url: https://github.com/james.coll
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width = "100%", message = TRUE)
+```
+
+# Getting up to speed 
+
+# Prerequisties 
+
+You better have done this already
+
+# Hydrolocation Viewer
+
+Pick a POI ID
+
+# Install and load Hydrofabric Repo
+
+# Build a subset for POI
+
+# Collect Hydrolocations
+
+# Refactor
+
+# Aggregate
+
+# Nextgenify
+
+# Build some parameters
+
+# Build some flowpath attributes
+
+# Write out to file!
+
+# Done
+
+
+
+
