@@ -63,7 +63,7 @@ library(hydrofabric)
     ## ✔ dplyr        1.1.4      ✔ zonal        0.0.2 
     ## ✔ climateR     0.3.5      ✔ hfsubsetR    0.0.9 
     ## ✔ nhdplusTools 1.1.0      ✔ sf           1.0.17
-    ## ✔ hydrofab     0.5.1      ✔ terra        1.7.71
+    ## ✔ hydrofab     0.5.2      ✔ terra        1.7.71
 
     ## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──
     ## ✖ terra::plot() masks climateR::plot()

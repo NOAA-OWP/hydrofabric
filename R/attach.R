@@ -1,5 +1,5 @@
 core <- c("dplyr", "climateR", 
-          "nhdplusTools",  "hydrofab", "zonal", "hfsubsetR",
+          "nhdplusTools",  "hydrofab", "zonal", "hfsubsetR", 'ngen.hydrofab',
           "sf", "terra")
 
 core_unloaded <- function() {

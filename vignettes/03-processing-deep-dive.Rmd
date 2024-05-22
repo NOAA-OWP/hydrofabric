@@ -106,8 +106,8 @@ refactored = refactor(hf,
                     collapse_flines_meters = 1000, 
                     collapse_flines_main_meters = 1000,
                     pois = pois,
-                    fac = '/vsis3/nextgen-hydrofabric/gridded-resources/fac.vrt',
-                    fdr = '/vsis3/nextgen-hydrofabric/gridded-resources/fdr.vrt',
+                    fac = '/vsis3/lynker-spatial/gridded-resources/fac.vrt',
+                    fdr = '/vsis3/lynker-spatial/gridded-resources/fdr.vrt',
                     outfile = "tutorial/refactor.gpkg")
 ```
 

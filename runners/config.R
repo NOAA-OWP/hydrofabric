@@ -15,7 +15,7 @@ if(dev_mode){
   message("FIX ONLY: ", ifelse(FIX, "ON", "OFF"))
   devtools::load_all()
   # Either install and update your own dev versions or set dev_mode to FALSE
-  #devtools::load_all(glue::glue('{dirname(getwd())}/ngen-hydrofab'))
+  devtools::load_all(glue::glue('{dirname(getwd())}/ngen-hydrofab'))
   devtools::load_all(glue::glue('{dirname(getwd())}/hydrofab'))
   devtools::load_all(glue::glue('{dirname(getwd())}/hfsubsetR'))
   # devtools::load_all(glue('{dirname(getwd())}/zonal'))
