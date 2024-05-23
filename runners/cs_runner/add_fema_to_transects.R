@@ -9,8 +9,6 @@ transects_prefix <- paste0(s3_bucket, version_prefix, "/3d/transects/")
 
 # paths to nextgen datasets and model attribute parquet files
 nextgen_files   <- list.files(nextgen_dir, full.names = FALSE)
-# fema_files      <- list.files(fema_fgb_path, full.names = FALSE)
-# fema_bb_files   <- list.files(fema_fgb_bb_path, full.names = FALSE)
 transects_files <- list.files(transects_dir, full.names = FALSE)
 transects_files <- transects_files[!grepl("updated", transects_files)]
 
@@ -29,7 +27,7 @@ path_df
 # loop over each vpu and generate cross sections, then save locally and upload to s3 bucket
 # for(i in 1:nrow(path_df)) {
   
-  i = 8
+  # i = 8
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
@@ -72,7 +70,6 @@ path_df
                                                fema,
                                                flines,
                                                3000)
-  # 
   })
    # library(nngeo)
   # fema %>% 
@@ -91,7 +88,6 @@ path_df
   #       mapview::mapview(sf::st_buffer(fema_sub[2, ], 500), col.regions = "green")
   # fema_no_holes <- nngeo::st_remove_holes(fema)
   # fema_no_holes_union <- sf::st_union(fema_no_holes)
-  # 
   # touching_list = sf::st_touches(fema_no_holes)
   # mapview::npts(fema)
   # mapview::npts(fema_no_holes)
@@ -101,15 +97,10 @@ path_df
   #   dplyr::group_by(new_fema_id)
   # fema_no_holes_union
   # fema$fema_id %>% unique() %>% length()
-  
   # # union then explode FEMA polygons 
   # fema <- 
   #   fema %>%
   #   sf::st_union()
-  # 
-  # fema <- rmapshaper::ms_explode(fema)
-  # # fema %>% mapview::npts()
-  # 
   # # reassign IDs and change geometry column name
   # fema <- 
   #   fema %>% 
@@ -195,14 +186,12 @@ path_df
                                                            max_extension_distance) {
     
     ###    ###    ###    ###    ###    ###    ###
-    ###    ###    ###    ###    ###    ###    ###
     # transect_lines <- transects
     # polygons <- fema
     # # # flines <- flines
     # # max_extension_distance <- 3000
   # max_extension_distance = 3500
     # ###    ###    ###    ###    ###    ###    ###
-    ###    ###    ###    ###    ###    ###    ###
     
     # keep 10% of the original points for speed
     polygons <- rmapshaper::ms_simplify(polygons, keep_shapes = F, keep = 0.10)
@@ -255,11 +244,6 @@ path_df
     
     # make each transect line have way more segments so we can take a left and right half of each transect line
     segmented_trans <- sf::st_segmentize(intersect_transects, min_segmentation)
-    
-    # unlist(segmented_trans$geom)
-    # unique(lengths(segmented_trans$geom))
-    # length(lengths(segmented_trans$geom))
-    # lengths(segmented_trans$geom)  
     
     # mapview::mapview(left_trans, col.regions = "dodgerblue") +
       # mapview::mapview(intersect_transects, color = "red") +
