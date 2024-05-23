@@ -200,7 +200,7 @@ path_df
     # polygons <- fema
     # # # flines <- flines
     # # max_extension_distance <- 3000
-    # max_extension_distance = 3500
+  # max_extension_distance = 3500
     # ###    ###    ###    ###    ###    ###    ###
     ###    ###    ###    ###    ###    ###    ###
     
@@ -243,7 +243,6 @@ path_df
     
     # mapview::npts(sf::st_as_sf(intersect_lines))
 
-    
  #    intersect_polygons %>% 
  #      geos::geos_make_valid() %>% 
  #      geos::geos_is_valid() %>% all()
