@@ -7,6 +7,10 @@ author:
     url: https://github.com/mikejohnson51
     affiliation: Lynker, NOAA-Affiliate
     affiliation_url: https://lynker.com
+  - name: "Angus Watters"
+    url: https://github.com/anguswg-ucsb
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
   - name: "Arash Modaresi Rad"
     url: https://github.com/arashmodrad 
     affiliation: Lynker, NOAA-Affiliate
@@ -31,15 +35,9 @@ Welcome to this tutorial on leveraging the robust subsetting features in R to ex
 First, let's ensure that we have the necessary libraries loaded:
 
 ```{r}
-library(tidyverse)
-library(arrow)
-library(scales)
-library(rgl)
-library(sf)
-library(dplyr)
-library(glue)
 library(hydrofabric)
-library(hfsubsetR)
+library(ggplot2)
+library(plotly)
 ```
 
 Now, let's extract the geospatial fabric for `comid = 101`:
@@ -53,36 +51,40 @@ geosptial_output <- get_subset(comid = 101,
 
 That's easy!
 
-## Accessing routlink files
+## Accessing routelink files
 
 ## 3D Channel Geometry
 
-One of our key projects at Lynker Spatial is the 3D River initiative, supported by NOAA. Our main goal is to boost innovation in river morphology research. We're committed to improving hydrological modeling by integrating additional tools and fostering interdisciplinary studies in river ecosystems.
+One of our key projects of NOAA is the 3D River initiative. Our main goal is to boost innovation in river morphology research. We're committed to improving hydrological modeling by integrating additional tools and fostering interdisciplinary studies in river ecosystems.
 
 - **3D River Channel Cross Sections**: Our platform offers a comprehensive 3D representation of channel geometry and cross sections for the CONUS. This dataset, constructed from a 10-meter Digital Elevation Model (DEM), incorporates meticulous details crucial for delineating river floodplains, rectifying DEM inaccuracies, preserving the consistent decrease in elevation along the river's path from upstream to downstream, and more. Detailed information regarding our cross-sectional data model can be accessed [here](https://noaa-owp.github.io/hydrofabric/articles/cs_dm.html). Additionally, we employ machine learning methodologies to address gaps in bathymetric data [see this article](https://noaa-owp.github.io/hydrofabric/articles/07-channel-geometry.html).
 
 - **Features**: Our platform dynamically generates cross sections updated with survey data whenever available. Offering over 10 cross sections per flowline, each with elevation points spaced at 1-meter intervals, it spans approximately 2.7 million reaches, providing indispensable data for comprehensive analysis of river morphology. Leveraging a 10-meter DEM integrated with bathymetric data derived from machine learning algorithms, this feature facilitates the derivation of river topobathy information through the Reference Fabric, enabling exhaustive watershed-level inquiries. This advancement enhances routing accuracy within hydrological models such as the National Water Model T-route, augments bathymetric representation in Flood Inundation Mapping (FIM), and enables a myriad of comprehensive scientific analyses through the 3D River project.
 
-We several paper underway base on this project including:
+We have several papers underway base on this project including:
 Johnson JM, Afshari S, Rad AM. AHGestimation: An R package for computing robust, mass preserving hydraulic geometries and rating curves. Journal of Open Source Software. 2024 Apr 18;9(96):6145.[link](https://joss.theoj.org/papers/10.21105/joss.06145.pdf)
 
 Arash Modaresi Rad, J. Michael Johnson, Zahra Ghahremani, James Coll, Nels Frazier. Enhancing River Channel Dimension Estimation: A Machine Learning Approach Leveraging the National Water Model, Hydrographic Networks, and Landscape Characteristics[link]() 
 
-To access the 3D data we can use the subset derived earlier by narrowing down our search, we extract the target VPU and HF IDs:
+To access the 3D data we can use the subset derived earlier by narrowing down our search, we extract the target VPU and finding the most upstream watershed:
 
 ```{r}
 # Retrive vpu ID
 vpu <- unique(geosptial_output$network$vpuid)
 hf_ids <- unique(geosptial_output$network$id)
+
+max_seq = which.max(geosptial_output$network$hydroseq)
+watershed_id<- geosptial_output$network$id[max_seq]
 ```
 
 Since the 3D channel data is developed for the next-generation fabric, we need to cross-walk from the reference fabric to the next generation:
 
 ```{r}
 conus_net <- arrow::open_dataset('s3://lynker-spatial/hydrofabric/v20.1/conus_net.parquet') %>% 
-            filter(hf_id %in% hf_ids, vpu == vpu) %>% 
-            select(id, hf_id) %>% 
-            collect()
+              filter(hf_id %in% hf_ids, vpu == vpu) %>% 
+              select(id, hf_id) %>% 
+              collect()
+
 # now extract the identifiers
 ids <- unique(conus_net$id)
 ```
@@ -101,9 +103,14 @@ cs = arrow::open_dataset(hook) %>%
 
 We can then select a single cross-section for a next-gen ID and plot it:
 
-```{r}
+```{r, echo = FALSE}
 # lets look at a signle cross section 
-target_id <- 'wb-2430835'
+
+target_id <-  unique(arrow::open_dataset('s3://lynker-spatial/hydrofabric/v20.1/conus_net.parquet') %>% 
+              filter(hf_id == watershed_id, vpu == vpu) %>% 
+              select(id) %>% 
+              collect())$id
+
 target_cs_id <- 1
 cs_sub <- cs %>% filter(hy_id == target_id & cs_id == target_cs_id)
 
@@ -120,7 +127,6 @@ ggplot(cs_sub, aes(x = pt_id, y = Z, color = point_type)) +
        y = 'Z',
        color = 'Point Type') +
   theme_minimal()
-
 ```
 
 We can also have a 3D representation of our flow lines and cross-sections. First, we filter our cross-walk file and flowlines to the target area:
@@ -138,51 +144,56 @@ flowlines <- geosptial_output$flowpaths %>%
 
 The 3D plot:
 
-```{r}
+```{r, echo = FALSE}
 grouped_data <- cs_sub %>%
   group_by(cs_id) %>%
   summarize(avg_Z = mean(Z)) %>%
-  arrange(avg_Z) 
+  arrange(avg_Z)
 
-# Define color palette from blue to red
-color_palette <- colorRampPalette(c("blue", "red"))
-# Calculate colors based on average Z value within each group
-group_colors <- color_palette(length(grouped_data$avg_Z))[rank(grouped_data$avg_Z)]
-
-# Open a new 3D plotting 
-open3d()
-for (i in 1:nrow(grouped_data)) {
-  group_data <- cs_sub %>% filter(cs_id == grouped_data$cs_id[i])
-  
-  # Add lines to the 3D plot, color by the group's average Z value
-  lines3d(group_data$X, group_data$Y, group_data$Z, col = group_colors[i], lwd = 4)
-}
-
+# Initialize plotly object
+p <- plot_ly()
+p <- add_trace(p, x = ~X, y = ~Y, z = ~Z, type = "scatter3d", mode = "markers",
+               marker = list(size = 5),
+               data = group_data)
+# Add flowlines
 for (i in 1:nrow(flowlines)) {
-  # Extract geometry from the current row
   flowline_geom <- st_geometry(flowlines[i,])
   linestrings_df <- as.data.frame(st_coordinates(flowline_geom))
   colnames(linestrings_df) <- c("X", "Y", "Z")
-  # Calculate average Z value from cs_sub for each flowline
-  avg_Z <- mean(cs_sub$Z)
-  # Create Z column with constant value equal to the average of cs_sub Z values
-  linestrings_df$Z <- avg_Z
   
-  for (j in 1:(nrow(linestrings_df) - 1)) {
-    lines3d(c(linestrings_df$X[j], linestrings_df$X[j+1], NA),
-            c(linestrings_df$Y[j], linestrings_df$Y[j+1], NA),
-            c(linestrings_df$Z[j], linestrings_df$Z[j+1], NA),
-            col = "black", lwd = 2)
-  }
+  avg_Z <- min(cs_sub$Z)
+  linestrings_df$Z <- avg_Z -0.5
+  
+  p <- p %>%
+    add_trace(
+      x = linestrings_df$X,
+      y = linestrings_df$Y,
+      z = linestrings_df$Z,
+      type = 'scatter3d',
+      mode = 'lines',
+      line = list(color = 'black', width = 2),
+      showlegend = FALSE
+    )
 }
 
-title3d(main = "3D plot of cross sections with flowline", xlab = "X", ylab = "Y", zlab = "Z (m)")
+# Customize layout
+p <- p %>%
+  layout(
+    title = '3D plot of cross sections with flowline',
+    scene = list(
+      xaxis = list(title = 'X'),
+      yaxis = list(title = 'Y'),
+      zaxis = list(title = 'Z (m)')
+    ),
+    legend = list(title = list(text = 'Average Z'))
+  )
 
-# Add axes
-axes3d(edges = "bbox")
-
-# Add legend with small and rounded numbers
-legend3d("bottomright", legend = round(grouped_data$avg_Z, 2), col = rev(group_colors), pch = 16, title = "Average Z", cex = 0.8)
+p <- layout(p, scene = list(
+  aspectmode = "manual",
+  aspectratio = list(x = 3, y = 1.5, z = 0.17)
+))
+# Render the plot
+p
 ```
 
 
