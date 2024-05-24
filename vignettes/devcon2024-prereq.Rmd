@@ -99,9 +99,9 @@ open RStudio.dmg
 
 
 ## Windows
-In order to get the most out of this ecosystem, it is recommended that you use R through it's Integraded Development Environment (IDE) called RStudio.  While you can use R without this, the synergies between the two make using it a joy and not a pain.  Just make a mental note that, just like Python, R is the langeage, and the tool you use to run that (Notebooks, VSCode, or RStudio) are tools that make interactions and development tasks far more seamless than a single termial.
+In order to get the most out of this ecosystem, it is recommended that you use R through it's Integrated Development Environment (IDE) called RStudio.  While you can use R without this, the synergies between the two make using it a joy and not a pain.  Just make a mental note that, just like Python, R is the language, and the tool you use to run that (Notebooks, VSCode, or RStudio) are tools that make interactions and development tasks far more seamless than the single line console access.
 
-To install this, simply navigate to the [RStudio dextop website](https://posit.co/download/rstudio-desktop/), and 
+To install this, simply navigate to the [RStudio desktop website](https://posit.co/download/rstudio-desktop/), and 
 1. click the "DOWNLOAD AND INSTALL R" button, and then follow the prompts on screen
 2. Click the "DOWNLOAD RSTUDIO DESKTOP FOR WINDOWS" button and follow the prompts on screen.
 
@@ -109,7 +109,7 @@ To install this, simply navigate to the [RStudio dextop website](https://posit.c
 knitr::include_graphics('../man/figures/_a41c5a9b63199bf43b896e811729899f.png')
 ```
 
-3. The first time you open RStudio, it will ask you where R is installed.  You can leave the default radio button selected and it will automatically conenct to your installed version of R.
+3. The first time you open RStudio, it will ask you where R is installed.  You can leave the default radio button selected and it will automatically connect to your installed version of R.
 
 ```{r, echo = FALSE}
 knitr::include_graphics('../man/figures/_2c541fad5bf3e3333c3944601f252add.png')
