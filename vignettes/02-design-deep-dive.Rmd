@@ -19,7 +19,7 @@ output: distill::distill_article
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(mapview); library(ggplot2);library(hydrofabric)
+library(ggplot2);library(hydrofabric)
 base <- "tutorial"
 dir.create(base, showWarnings = FALSE)
 ```
@@ -39,7 +39,7 @@ dir.create(base, showWarnings = FALSE)
     
 # The USGS-NOAA Reference Fabric
 
-- For a single system to serve many - often distinct - modeling applications, there needs to be a set reference system. (analogous to a coordinate reference system (CRS))
+- For a single system to serve many - often distinct - modeling applications, there needs to be a set reference (analogous to a coordinate reference system (CRS))
 
 - This reference system must provide the maximum (e.g. smallest discretization) set of features "allowable" for all interrelated model applications.
 
@@ -55,7 +55,7 @@ dir.create(base, showWarnings = FALSE)
 knitr::include_graphics('../man/figures/logos.png')
 ```
 
-More on this has been documented [here](https://waterdata.usgs.gov/blog/hydrofabric/) and the core data is available [here](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b)
+More on this has been documented [here](https://waterdata.usgs.gov/blog/hydrofabric/) 
 
 ## The 3 pillars of a Reference Fabric
 
@@ -63,7 +63,7 @@ More on this has been documented [here](https://waterdata.usgs.gov/blog/hydrofab
 knitr::include_graphics('../man/figures/level1.png')
 ```
 
-### 1. Reference Features
+### 1. Reference Fabric
 
   - Simple, valid, representations of all `flowpath` and `divide` features
   
@@ -90,7 +90,7 @@ knitr::include_graphics("../man/figures/cleaning_catchments.gif")
   
 ### 2. Reference Topology
 
-  - Since its first release, the NHDPlus topology and value added attributes have been stable
+  - Since its release, the NHDPlus topology and value added attributes have been stable
   
   - Local groups and agencies have made modifications to this but these have never made it back into the primary source
   
@@ -117,35 +117,28 @@ knitr::include_graphics('../man/figures/figure9.png')
 ```
 
 
-### 3. Reference Points of Interest (POI)
+### 3. Community Points of Interest (POI)
 
-  - Points of Interest for hydrologic modelling are collected from a variety of of published data sources 
-  
-  - These include ones like the Army Corp National Inventory of Dams and the USGS Gages III gage database
+Points of Interest (POIs) for hydrologic modeling are collected from a variety of of published data sources. These include ones like the Army Corp National Inventory of Dams and the USGS Gages III gage database
   
 ```{r, echo = FALSE, eval = FALSE, warning=FALSE}
 
-df = open_dataset('s3://lynker-spatial/v20.1/conus_net.parquet') |> 
-  select('hl_uri') |>
+df = open_dataset('s3://lynker-spatial/hydrofabric/v2.2/conus_hl') |> 
+  select("hl_source", 'hl_reference', "hl_link") |>
   distinct() |> 
   collect() |>
-  na.omit() |>
-  tidyr::separate(col = "hl_uri", sep = "-", into = c("Type", "id")) |>
-  group_by(Type) |>
+  group_by(hl_reference) |>
   tally(name = "Count")
 
 ggplot(df) + 
-  geom_col(aes(x = Type, y = Count, fill = Type), position = "dodge") + 
-  geom_text(aes(label = scales::number(Count, big.mark = ","), x = Type,  y = Count + 1000), 
-          position = position_dodge(0.9), vjust = 0) + 
+  geom_col(aes(y = hl_reference, x = Count), position = "dodge") + 
+  geom_text(aes(label = scales::number(Count, big.mark = ","), 
+                y = hl_reference,  
+                x = Count + 4000)) + 
   theme_light() + 
-  labs(title = "POI Type Counts", y = "Count", x = "POI TYPE")
+  labs(title = "POI Type Counts", y = "", x = "Number")
 
 ggsave(filename = "../man/figures/poi_dist.png")
-```
-
-```{r, echo = FALSE}
-knitr::include_graphics('../man/figures/poi_dist.png')
 ```
 
   - POIs become `hydrolocations` at the _outflow_ of the linked `flowpath` through a robust hydrologic indexing scheme.
@@ -174,9 +167,9 @@ knitr::include_graphics(c('../man/figures/merit-hydro.png', '../man/figures/basi
 
 # Getting the reference fabric
 
-All reference products live on ScienceBase and the Lynker s3 account. 
+All reference products live on Lynker Spatial s3 account. 
 
-They can be accessed with the web interface or can be downloaded programatically. 
+They can be accessed with the web interface, downloaded, or interfaced with arrow. 
 
 The `hydrofab::get_hydrofabric()` utility will download the most current geofabric for a Vector Processing Unit (VPU). 
 
@@ -185,15 +178,13 @@ As an example, lets use the Geonconnex reference features to identify the locati
 This location can be joined to the set of VPU boundaries severed with `nhdplusTools` to find the correct VPU.
 
 ```{r}
-gage = read_sf('https://reference.geoconnex.us/collections/gages/items?provider_id=06752260')
-
-gage = st_join(gage, st_transform(vpu_boundaries, st_crs(gage)))
-
-(gage$VPUID)
-
-reference_gpkg = get_fabric(VPU = gage$VPUID, 
-                            base_s3 = 's3://lynker-spatial/v20.1/',
-                            cache_dir = "tutorial")
+gage = open_dataset('s3://lynker-spatial/hydrofabric/v2.2/conus_hl') |> 
+  select("vpuid", 'hl_reference', "hl_link") %>% 
+  filter(hl_link == '06752260') %>% 
+  collect()
+  
+reference_gpkg = get_vpu_fabric(vpu = gage$vpuid[1],
+                                outfile = glue("tutorial/vpu_{gage$vpuid[1]}.gpkg"))
 ```
 
 If the requested file already exists, the file path will be returned. 
