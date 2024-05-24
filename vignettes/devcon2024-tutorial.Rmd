@@ -33,9 +33,9 @@ hls = arrow::open_dataset(glue::glue("/Users/mjohnson/hydrofabric/v2.2/conus_hl"
 
 # High level
 
-The hydrofabric team is focused on delivering a consistent, interoporable, flexible, cloud native solution to those interested in hydrologic modeling. 
+The HydroFabric team is dedicated to delivering a consistent, interoperable, flexible, cloud-native solution for hydrologic modeling.
 
-It provides foundational features, topology and attributes needed for mapping, geospatial analysis, machine learning, evaulation, data assimilation, NextGen (and AWI data stream, NGIAB, etc) applications, and other modleing needs (e.g. NHM, US Water Census) etc.
+This solution provides foundational features, topology, and attributes necessary for a variety of applications, including mapping, geospatial analysis, machine learning, evaluation, data assimilation, NextGen, AWI data stream, NGIAB, and other modeling needs such as the National Hydrologic Model (NHM) and the U.S. Water Census
 
 ```{r, fig.align='center', echo = FALSE, fig.cap="Enterprise Hydrofabric System"}
 knitr::include_graphics("../man/figures/roadmap2.png")
@@ -57,7 +57,7 @@ Heavy use of
   - s3 (aws)
   - defered evaluation 
 
-Today's tutorial makes a concentrated effort to highlight to highlight these using a real world example. 
+Today's tutorial makes a concentrated effort to highlight these features using a real-world example.
 
 While we provide a national 
 For this example, we will use NWIS `06752260` that sits on the Cache La Poudre River in Fort Collins, Colorado. You can use any USGS gage you desire, or any of the `r hls` found via [lynker-spatial](https://lynker-spatial.s3-us-west-2.amazonaws.com/hydrofabric/v2.2/hydrolocations.html).
@@ -67,7 +67,7 @@ For this example, we will use NWIS `06752260` that sits on the Cache La Poudre R
 knitr::include_graphics("../man/figures/hydrofabric.png")
 ```
 
-If you successfully complete this tutorial you will create the data products (and skills!) needed to run the AWI datastream and NGIAB.
+Successfully completing this tutorial will equip you with the data products (and skills!) needed to run the AWI datastream and NGIAB.
 
 # Setup 
   
@@ -366,8 +366,10 @@ oh BTW area was been calculated in Rl_ls
 
 # Extacting Cross Sections 
 
-hyperlink to bew 3D-vignette
-link to JOSS paper
+We introduce the 3D Cross Sections Project, which provides transects along the entire river network in the CONUS (Contiguous United States). This product is developed using and indexed to the National Hydrologic Geospatial Fabric Reference [link](https://www.sciencebase.gov/catalog/item/60be0e53d34e86b93891012b) and is currently available in an optimized cloud-native format at [link](s3://lynker-spatial/hydrofabric/v20.1/3D/cross-sections/). The product is built on a 10m DEM from the 3D Elevation Program ([3DEP](https://www.usgs.gov/3d-elevation-program)) and is supplemented by machine learning models to account for missing bathymetry, covering all 2.7 million reaches in the CONUS.
+
+In this context, we demonstrate how to use a subset of the NextGen file to locate the outlet, retrieve the ID, and pull machine-learned bathymetry information while automatically handling the crosswalk between different geospatial fabrics. We also illustrate the use of the [AHGestimation package](https://github.com/mikejohnson51/AHGestimation) to generate the missing bathymetric information. This package offers numerous functionalities, including the computation of mass-preserving hydraulic geometries, rating curves, generating cross sections from at-a-station hydraulic geometry (AHG) principles, and more.
+
 
 ```{r}
 crosswalk <- as_sqlite(nextgen_file, "network") |>
@@ -380,9 +382,9 @@ cs <- open_dataset("s3://lynker-spatial/hydrofabric/v2.2/reference/routelink_ls/
     select(hf_id, TopWdthCC, owp_dingman_r, owp_y_bf) |>
     inner_join(mutate(crosswalk, hf_id = as.integer64(hf_id)), by = "hf_id") |>
     collect() %>% 
-    summarise(TW = mean(TopWdthCC),
-              r = mean(owp_dingman_r),
-              Y = mean(owp_y_bf),
+    summarise(TW = mean(ml_tw_nchan(m)),
+              r = mean(ml_r),
+              Y = mean(ml_y_inchan(m)),
               poi_id = poi_id[1])
 
 bathy = AHGestimation::cross_section(r = cs$r, TW = cs$TW, Ymax = cs$Y) 
@@ -393,6 +395,7 @@ plot(bathy$x, bathy$Y, type = "l",
      main = glue("Average XS at POI: {cs$poi_id}"))
 ```
 
+For more details regarding the AHGestimation toolbox, please refer to our [JOSS publication](https://joss.theoj.org/papers/10.21105/joss.06145). For information on the machine learning methods, see our under review [publication](https://lynker-spatial.s3.us-west-2.amazonaws.com/documents/ml_manuscript.pdf). For further demonstrations, visit our [page](https://noaa-owp.github.io/hydrofabric/).
 
 # Populate Flowpath Attributes 
 
