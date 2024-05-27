@@ -5,11 +5,10 @@ author:
     url: https://github.com/mikejohnson51
     affiliation: Lynker, NOAA-Affiliate
     affiliation_url: https://lynker.com
-output: distill::distill_article
-vignette: >
-  %\VignetteIndexEntry{Cloud Native Data}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r, include = FALSE}
@@ -21,45 +20,65 @@ knitr::opts_chunk$set(
 ```
 
 ```{r, echo = F, message = FALSE, warning=FALSE}
-source("../runners/config.R")
+#source("../runners/config.R")
 
 library(leaflet)
-
+library(glue)
 library(DT)
+library(dplyr)
 ```
 
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
-current_version = 'v20.1'
 
-gpkgs = '/Volumes/MyBook/conus-hydrofabric/{current_version}/gpkg'
+current_version = 'v2.1.1'
+source = "/Users/mjohnson/hydrofabric/"
 
-meta = data.frame(path = list.files(glue('/Volumes/MyBook/conus-hydrofabric/{current_version}/gpkg'),
-                                    full.name = TRUE, pattern = "gpkg$")) %>% 
-  mutate(file = basename(path),
-         v = gsub(".gpkg", "", gsub("nextgen_", "", file)),
-         gpkg_link = glue::glue('https://lynker-spatial.s3.amazonaws.com/{current_version}/gpkg/nextgen_{v}.gpkg'),
-         vpu = paste0("<a href='",gpkg_link,"'>",v,"</a>")) 
+hook = glue('{source}/{current_version}/nextgen')
 
-conus_net = arrow::open_dataset('/Volumes/MyBook/conus-hydrofabric/v20.1/conus_net.parquet')
-
-pl = select(conus_net, vpu, id, lengthkm, areasqkm) %>% 
+conus_net = arrow::open_dataset(glue('{hook}/conus_network')) %>% 
+  select(vpuid, id, lengthkm, areasqkm) %>% 
   distinct() %>% 
-  collect() %>% 
-  group_by(vpu) %>% 
+  collect()
+
+
+tmp = conus_net %>% 
+  group_by(vpuid) %>% 
   summarise(total_miles = units::set_units(units::set_units(sum(lengthkm, na.rm = T), "km"), "miles"),
             total_area_miles2  = units::set_units(units::set_units(sum(lengthkm, na.rm = T), "km2"), "miles2")) %>% 
-  ungroup()
+  ungroup() %>% 
+  filter(!is.na(vpuid))
 
-meta = left_join(meta, pl, by = c("v" ="vpu")) 
 
-for(i in 1:nrow(meta)){
-  t = sf::st_layers(meta$path[i])
-  meta$flowpaths[i] = t$features[which(t$name == "flowpaths")]
-  meta$divides[i]   = t$features[which(t$name == "divides")]
-  meta$nexus[i]     = t$features[which(t$name == "nexus")]
-  meta$hydrolocations[i]     = t$features[which(t$name == "hydrolocations")]
-  meta$size[i]      = paste0(round(file.size(meta$path[i]) / 1e6, 2), " Mb")
-}
+fl = arrow::open_dataset(glue('{hook}/conus_flowlines')) %>% 
+  select(vpuid, id) %>% 
+  distinct() %>% 
+  group_by(vpuid) %>% 
+  tally(name = 'flowpaths') %>% 
+  collect()
+
+div = arrow::open_dataset(glue('{hook}/conus_divides')) %>% 
+  select(vpuid, id) %>% 
+  distinct() %>% 
+  group_by(vpuid) %>% 
+  tally(name = "divides") %>% 
+  collect()
+
+nex = arrow::open_dataset(glue('{hook}/conus_nexus')) %>% 
+  select(vpuid, id) %>% 
+  distinct() %>% 
+  group_by(vpuid) %>% 
+  tally(name = "nexus") %>% 
+  collect()
+
+hl = arrow::open_dataset(glue('{hook}/conus_hydrolocations')) %>% 
+  select(vpuid, id) %>% 
+  distinct() %>% 
+  group_by(vpuid) %>% 
+  tally(name = "hydrolocations") %>% 
+  collect()
+
+meta = powerjoin::power_full_join(list(tmp, fl, div, nex, hl)) %>% 
+  filter(!is.na(vpuid))
 
 pop <- paste(
       paste0('<strong>GPKG: </strong>', meta$vpu ),
@@ -69,13 +88,12 @@ pop <- paste(
       paste("<strong>Hydrolocations:</strong>", meta$hydrolocations),
       paste("<strong>Total Flow Length (mile):</strong>", round(meta$total_miles)),
       paste("<strong>Total Divide Area (mile2):</strong>", round(meta$total_area_miles2)),
-      paste("<strong>Size:</strong>", meta$size),
       sep = "<br/>"
     )
 
 
 vpus = nhdplusTools::get_boundaries() %>%
-  filter(VPUID %in% meta$v) %>% 
+  filter(VPUID %in% meta$vpuid) %>% 
   sf::st_transform('+proj=longlat +datum=WGS84')
 
 labels = paste("VPU", vpus$VPUID)
@@ -84,60 +102,55 @@ bbox = as.numeric(sf::st_bbox(vpus))
 
 ```
 
-Cloud Native NextGen hydrofabric artifacts are distributed by (1) CONUS (2) _NHDPlusV2_ **V**ector **P**rocessing **U**nits and (3) [CAMELs](https://ral.ucar.edu/solutions/products/camels) cutouts (with area average [HydroAtlas variables](https://www.hydrosheds.org/hydroatlas)). They are publicly available (and egress free!) through `lynker-spatial`. Please note the [data license](https://lynker-spatial.s3.amazonaws.com/copyright.html) of these artifacts.
+Cloud Native NextGen hydrofabric are distributed as _NHDPlusV2_ **V**ector **P**rocessing **U**nits hive partitioned (geo)parquet datasets. They are publicly available  through `lynker-spatial`. Please note the [data license](https://lynker-spatial.s3.amazonaws.com/copyright.html) of these artifacts.
 
-All data can be programatically accessed using the respective URL patterns:
+Cloud-native hydrofabric artifacts are publicly available (and egress free!) through [lynker-spatial](https://www.lynker-spatial.com/) under an [ODbL](https://opendatacommons.org/licenses/odbl/summary/) license. If you use data, please ensure you (1) Attribute Lynker-Spatial, (2) keep the data open, and that (3) any works produced from this data offer that adapted database under the ODbL. 
 
-## End points
+All data are distributed as hive partitioned (geo)parquet datasets and access follows the general pattern of: 
 
-All files can be accessed by s3 or https protocols. Once you make your choice, the following become your `data_source`:
-
-```r
-s3 = 's3://lynker-spatial'
-
-https = 'https://lynker-spatial.s3.amazonaws.com'
+```{r pathing, eval = FALSE}
+"{source}/{version}/{type}/{domain}_{layer}"
 ```
 
-## Versions 
+Where:
 
-The current version of this data is 2.0.1 (v20.1)
+* `source` is the local or s3 location
+* `version` is the release number (e.g. v2.2)
+* `type` is the type of fabric (e.g. reference, nextgen, etc)
+* `domain` is the region of interest (e.g. conus, hawaii, alaska)
+* `layer` is the layer of the hydrofabric (e.g. divides, flowlines, network, model-attributes, routelink, etc.)
 
-### CONUS files
+> The current version of this data is 2.1.1 (v2.1.1)
+
+### Examples
 
 ```r
 # CONUS Network Parquet
-{data_source}/{version}/gpkg/conus_net.parquet
+s3://lynker-spatial/hydrofabric/{version}/{type}/{domain}_network
 
-# CONUS GPKG
-{data_source}/{version}/conus.gpkg
 
 # Model Attributes
-{data_source}/{version}/model_attributes.parquet
+s3://lynker-spatial/hydrofabric/{version}/{type}/{domain}s_model-attributes/
 ```
 
-### VPUs
+### Syncing to Local
 
-```r
-# GPKG
-{data_source}/{version}/gpkg/nextgen_{VPU}.gpkg
+AWS CLI tools can be used to sync a remote s3 directory with a local archive ensuring that you local data is up to date with the remote, assuming you want to work locally.
 
-# Model Attributes
-{data_source}/{version}/model_attributes/nextgen_{VPU}.gpkg
+* The current `v2.2/reference` directory is about 3.0 GB
+* The current `v2.1.1/nextgen` directory is about 8.0 GB
 
-# Cross sections
-{data_source}/{version}/3D/transects/nextgen_{VPU}_transects.gpkg
-{data_source}/{version}/3D/dem-cross-sections/nextgen_{VPU}_dem_cs.gpkg
+```{r sync}
+local   <- "/Users/mjohnson/hydrofabric"
+s3      <- "s3://lynker-spatial/hydrofabric"
+version <-  'v2.1.1'
+type    <- "nextgen"
+domain  <- "conus"
+
+(sys <- glue::glue("aws s3 sync {s3}/{version}/{type} {local}/{version}/{type}"))
 ```
 
-### CAMEL cutouts
-
-```r
-# GPKG
-{data_source}/{version}/camels/Gage_{nwis_id}.gpkg
-```
-
-## Interactive Viewer
-
+## Interactive Viewer (v2.1.1/nextgen)
 
 ```{r, echo = FALSE}
 #pal <- colorNumeric("BuPu", domain  = AOI$count, n = 10)
@@ -165,32 +178,26 @@ getTotal <- function(index, data){
     return("")
   }  
   
-  col <- data[,index]
+  col = tryCatch({
+     col <- as.numeric(as.vector(data[,index])[[1]])
+  }, error = function(e){
+    NULL
+  })
+ 
   
-  if(grepl('Mb', col[1])){
-    flag = T
+  if(is.null(col)){
+    return("")
   } else {
-    flag = F
-  }
-  
-  col <- suppressWarnings(as.numeric(gsub("[Mb]","",col)))
-  
-  if(all(is.na(col))){
-    return("Totals")
-  } else {
-    if(flag){
-       return(paste0(round(sum(col) * 0.001, 2), " GB"))
-    } else {
-       return(sum(col))
-    }
+      return(sum(col))
   }
 }
 
-m = meta %>% 
-  select(-file, -path, -gpkg_link, -v)  
 
-m = rbind(mutate(m, across(names(m), as.character)),
-          sapply(1:ncol(m), function(x){ as.character(getTotal(x, m)) }))
+
+
+
+m = rbind(mutate(meta, across(names(meta), as.character)),
+          sapply(1:ncol(meta), function(x){ as.character(getTotal(x, meta)) }))
 
 DT = DT::datatable(m, escape = FALSE, width="100%",  filter = "none", 
                   rownames = T,
@@ -211,17 +218,3 @@ DT = DT::datatable(m, escape = FALSE, width="100%",  filter = "none",
 DT
 ```
 
-# Data Store End Points
-
-## EPA Streamcat
-
-```r
-# Parquet DIRECTORY!
-{base}/streamcats/
-```
-
-## HydroAtlas
-
-```r
-{base}/hydroATLAS/hydroatlas_vars.parquet
-```

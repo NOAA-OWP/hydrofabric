@@ -178,46 +178,15 @@ As an example, lets use the Geonconnex reference features to identify the locati
 This location can be joined to the set of VPU boundaries severed with `nhdplusTools` to find the correct VPU.
 
 ```{r}
-gage = open_dataset('s3://lynker-spatial/hydrofabric/v2.2/conus_hl') |> 
+(gage = open_dataset('s3://lynker-spatial/hydrofabric/v2.2/conus_hl') |> 
   select("vpuid", 'hl_reference', "hl_link") %>% 
   filter(hl_link == '06752260') %>% 
-  collect()
+  collect())
   
 reference_gpkg = get_vpu_fabric(vpu = gage$vpuid[1],
                                 outfile = glue("tutorial/vpu_{gage$vpuid[1]}.gpkg"))
 ```
 
 If the requested file already exists, the file path will be returned. 
-
-# Working with the Geopackages
-
-The geopackage is a critical file format for sharing this type of data because it is (1) self containing (2) compact and (3) language agnostic.  
-
-There are two broad paths to accessing the data. 
-
-The first is a GDAL based approach (in R this is using sf, but in python Fiona or geopandas works well). 
-
-```{r}
-# Read Options
-pacman::p_load(sf, DBI, RSQLite, dplyr)
-
-### 1. GDAL/geopackage
-st_layers(reference_gpkg)
-nex = read_sf(reference_gpkg, "hydrolocations")
-head(nex)
-```
-
-The second is as a SQLite database (in R, I am doing this with RSQLite/DBI/dplyr):
-
-```{r}
-### 2. SQLite/Database
-db <- dbConnect(SQLite(), reference_gpkg)
-dbListTables(db)
-mpoi = collect(tbl(db, "hydrolocations"))
-
-head(mpoi)
-
-dbDisconnect(db)
-```
 
 Ok! With that, we have an idea of what the reference fabric is, how it was made, and how we can get it! The next stage is to learn how to manipulate this reference fabric for unique model applications. 

@@ -1,0 +1,120 @@
+---
+title: "Applying NextGen Structure"
+description: |
+  "Nexus Assignement and Reorganization"
+author:
+  - name: "Mike Johnson"
+    url: https://github.com/mikejohnson51
+    affiliation: Lynker, NOAA-Affiliate
+    affiliation_url: https://lynker.com
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(  collapse = TRUE,
+  comment = "#>",
+  out.width = "100%",
+  warning = FALSE, message = FALSE)
+library(hydrofabric)
+```
+
+
+# NextGen
+
+Once we have a network aggregated to a scale matching the desired hydrologic processes we need to turn it into something NextGen can use (modeling task)
+
+```{r, echo=FALSE}
+knitr::include_graphics('../man/figures/roadmap2.png')
+```
+
+## Divergent Topology 
+
+NextGen operates on a `[flowpath --> nexus]` vs `[flowpath --> flowpath]` topology
+
+This is due to the HY Features conceptual catchment that has 1 inflow draining to 1 outflow.
+
+And example of this can be seen below:
+
+```{r, echo=FALSE,out.width="49%", fig.show='hold',fig.align='center'}
+knitr::include_graphics(c('../man/figures/topology.png', '../man/figures/topology2.png'))
+```
+
+## Character based indentification
+
+NextGen requires integer based identification, like described in the data model, prefixed with a character string defining what the feature is
+
+Right now, the following prefixs are used to distinguish between types of model features.
+
+| Parameter        | Purpose           | Elected Value  | 
+| ------------- |:-------------:| -----:| 
+| nexus_prefix      | the maximum length flowpath desired in the output. | "nex-" |
+| terminal_nexus_prefix      | the minimum length of inter-confluence flowpath desired in the output. | "tnx-" |
+| coastal_nexus_prefix      | the minimum length of between-confluence flowpaths. | "cnx-" |
+| internal_nexus_prefix      | the maximum length flowpath desired in the output. | "inx-" |
+| catchment_prefix      | the minimum length of inter-confluence flowpath desired in the output. | "cat-" |
+| waterbody_prefix      | the minimum length of between-confluence flowpaths. | "wb-" |
+
+
+The following function (1) identifies nexus locations, (2) moves them when needed and (3) applies the above schema to the features.
+
+```{r, eval = TRUE}
+ngen = 'tutorial/nextgen.gpkg'
+
+unlink(ngen)
+
+ngen <- apply_nexus_topology("tutorial/aggregated.gpkg", export_gpkg = 'tutorial/nextgen.gpkg')
+```
+
+We can see the results of this by opening the hydrofabric and adding it to a map!
+
+```{r}
+mapview::mapview(read_hydrofabric(ngen)) + read_sf(ngen, "nexus")
+```
+
+## Extending NWM attributes
+
+The core utilities provide a series of flowpath, divide, and nexuses.
+
+```{r}
+sf::st_layers(ngen)
+```
+However, other information is needed to run some/all NextGen formulations. These include the following:
+
+### Lake Attributes
+
+- WBOut Hydrolocations are mapped to the NHDPlusWaterBody COMIDs used in the NWM.
+
+## Flowpath Attributes
+
+- Flowpath attributes are extracted from the a Routelink file
+- The values are length averaged by the portion of length each makes up in the refactored/aggregated network 
+
+For example, if a 75m flowline has a roughness of 0.05 and a 25m flowline with a roughness of 0.2
+
+```{r}
+(n = (.75 * .05) + (.25 * .2))
+```
+
+Flowpaths attributes and lake parameters can be added by pointing to a set of NWM domain files like those found [here](https://www.nco.ncep.noaa.gov/pmb/codes/nwprod/nwm.v2.2.3/parm/domain/)
+
+```{r, eval = TRUE}
+add_flowpath_attributes(ngen, source = "/Users/mjohnson/hydrofabric")
+```
+
+```{r}
+read_sf(ngen, "flowpath_attributes")
+```
+
+### Themeing
+
+As an option, QGIS QML theming files can be added to a gpkg. Some default themeing files come with hydrofabric and can be specified/added with the `append_styles` utility on the desired `layer_names`
+
+```{r, eval = FALSE}
+append_style(ngen,layer_names = c("nexus", "hydrolocations", "flowpaths", "divides", "lakes"))
+```
+
+In [QGIS](https://qgis.org/en/site/forusers/download.html), double clicking the gpkg file will allow you to select which layers to load.
+
+```{r, echo = FALSE}
+knitr::include_graphics("../man/figures/hydrofabric.png")
+```

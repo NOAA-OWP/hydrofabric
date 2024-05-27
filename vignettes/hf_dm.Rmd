@@ -1,5 +1,6 @@
 ---
-title: "Hydrofabric Data Model"
+title: "Current Hydrofabric Data Model"
+date: "`r Sys.Date()`"
 author:
   - name: "Mike Johnson"
     url: https://github.com/mikejohnson51
@@ -12,14 +13,11 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, 
-                      message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 library(dm)
 library(hydrofabric)
 ```
 
-## Proposed Data Model 
-### (`r Sys.Date()`)
 #### `red`:  hydrofabric data
 #### `blue`: nextgen specific data
 #### `gray`: unresolved data

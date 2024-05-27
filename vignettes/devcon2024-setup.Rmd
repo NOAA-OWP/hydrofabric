@@ -1,0 +1,88 @@
+---
+title: "Getting Started"
+description: |
+  "Software, data, and background"
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE}
+knitr::include_graphics('../man/figures/DevCon_PPTBackground.jpg')
+```
+
+Welcome to **DevCon2024**! In the _Hydrofabric Workshop_ we will use R and RStudio. Ideally, you will be able to follow along on your own laptop and it is preferable to have the software on your system before the session.
+
+The document will help get R & RStudio on your own computer, along with several other useful tools or packages. If you have problems, you can contact <a href = "mailto:jjohnson@lynker.com?subject=DevCon 2024 Install help"> Mike Johnson </a>
+
+## Do you already have R installed?
+
+If you have an older versions of R/RStudio installed, we recommend updating. You can check what version of R you are running by typing version in the console of RStudio.
+
+```{r}
+version$version.string
+```
+
+To check your RStudio version in Windows, click the About RStudio menu option in the Help menu. To check on a Mac, click the About RStudio menu option in the RStudio menu. 
+
+If you don’t have at least R 4.4.XXX and RStudio 2023.6.0.XXXX. We suggest upgrading.
+
+# 1. R and RStudio
+
+If you find yourself needing to upgrade. Please follow the directions found [here](https://posit.co/download/rstudio-desktop/#download)
+
+# 2. Install `NOAA-OWP/hydrofabric`
+
+```{r, eval = FALSE}
+# install.packages("remotes") 
+remotes::install_github("NOAA-OWP/hydrofabric")
+
+install.packages('bit64')
+install.packages('powerjoin')
+```
+
+```{r}
+library(hydrofabric)
+```
+
+
+
+# 3. Visit Lynker Spatial
+
+[Lynker spatial]() provides open **data** and software **services** aimed at improving user experience with hydrofabric allowing for rapid access, subsetting, and integration with other cloud native resources.
+
+* Lynker-spatial Data offerings for hydrofabric can be found [here](https://www.lynker-spatial.com/data?path=hydrofabric%2F)
+
+* Lynker-spatial Services are typically provided on Github [here](https://github.com/lynker-spatial).
+
+If its suggested to install the latest version of `hfsubsetCLI` from the [release page](https://github.com/lynker-spatial/hfsubsetCLI/releases/) for your specific operation system.
+
+# 4. (Optional) Install QGIS
+
+QGIS is a free and open-source geographic information system (GIS) software that allows users to visualize, analyze, and manage spatial data. Here's how to install QGIS on Linux, macOS, and Windows.
+
+You can install the binaries for your system directly from their [website](https://qgis.org/en/site/forusers/download.html). Or using the following package managers.
+
+### MacOS
+
+```bash
+brew install qgis
+```
+ 
+### Ubuntu/Debian
+
+```bash
+sudo apt update
+sudo apt install qgis
+```
+
+
+
+
+
+

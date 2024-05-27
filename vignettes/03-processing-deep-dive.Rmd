@@ -10,7 +10,10 @@ author:
   - name: "David Blodgett"
     url: https://github.com/dblogett
     affiliation: USGS WMA
-output: distill::distill_article
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +23,8 @@ knitr::opts_chunk$set(  collapse = TRUE,
   warning = FALSE, message = FALSE)
 library(hydrofabric)
 library(ggplot2)
-using_local_example = "/Volumes/MyBook/conus-hydrofabric"
+using_local_example = "/Users/mjohnson/hydrofabric"
+hf <- "tutorial/poudre.gpkg"
 ```
 
 # Network Manipulation: Geoprocessing
@@ -41,7 +45,7 @@ All reference and (precomputed) refactored data products live on ScienceBase. Th
 
 ```{r, eval = FALSE}
 library(hydrofabric)
-using_local_example = "/Volumes/MyBook/conus-hydrofabric"
+using_local_example = "/Users/mjohnson/hydrofabric"
 
 # Define starting feature by source and ID
 (gage = list(featureSource = "nwis", featureID = "06752260"))
@@ -102,13 +106,13 @@ You might also have areas where you want to avoid, or, enforce a splitting event
 
 ```{r, eval = FALSE}
 refactored = refactor(hf,
-                    split_flines_meters = 10000, 
-                    collapse_flines_meters = 1000, 
-                    collapse_flines_main_meters = 1000,
-                    pois = pois,
-                    fac = '/vsis3/lynker-spatial/gridded-resources/fac.vrt',
-                    fdr = '/vsis3/lynker-spatial/gridded-resources/fdr.vrt',
-                    outfile = "tutorial/refactor.gpkg")
+                      split_flines_meters = 10000, 
+                      collapse_flines_meters = 1000, 
+                      collapse_flines_main_meters = 1000,
+                      pois = pois,
+                      fac = '/vsis3/lynker-spatial/gridded-resources/fac.vrt',
+                      fdr = '/vsis3/lynker-spatial/gridded-resources/fdr.vrt',
+                      outfile = "tutorial/refactor.gpkg")
 ```
 
 ## Outputs 
@@ -116,8 +120,8 @@ refactored = refactor(hf,
 To get a high level understanding of what happened with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
-reference = read_hydrofabric("tutorial/reference.gpkg")
-refactor  = read_hydrofabric("tutorial/refactor.gpkg")
+reference = read_hydrofabric("tutorial/poudre.gpkg")
+refactor  = read_hydrofabric("tutorial/refactored.gpkg")
 
 refactor$flowpaths$LENGTHKM = add_lengthkm(refactor$flowpaths)
 refactor$catchments$areasqkm = add_areasqkm(refactor$catchments)
@@ -214,17 +218,17 @@ Here, a `hydrolocation` POINT layer can be passed to help direct the aggregation
 
 ```{r, eval = FALSE}
 
-hydrolocations = read_sf("tutorial/refactor.gpkg", 'lookup_table') %>% 
+hydrolocations = read_sf("tutorial/refactored.gpkg", 'lookup_table') %>% 
   inner_join(pois, by = c("NHDPlusV2_COMID" = "hf_id")) %>% 
   select(poi_id, NHDPlusV2_COMID, id = reconciled_ID) %>% 
   distinct()
 
-aggregate_to_distribution(gpkg = "tutorial/refactor.gpkg",
+aggregate_to_distribution(gpkg = "tutorial/refactored.gpkg",
                           hydrolocations = mutate(pois, id = hf_id),
                           ideal_size_sqkm = 10, 
                           min_length_km = 1, 
                           min_area_sqkm = 3, 
-                          outfile = "tutorial/aggregate.gpkg", 
+                          outfile = "tutorial/aggregated.gpkg", 
                           overwrite = TRUE)
 ```
 
@@ -233,7 +237,7 @@ aggregate_to_distribution(gpkg = "tutorial/refactor.gpkg",
 To get a high level understanding of what happens with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
-agg = read_hydrofabric("tutorial/aggregate.gpkg")
+agg = read_hydrofabric("tutorial/aggregated.gpkg")
 
 ggplot() + 
   geom_density(data = refactor$flowpaths,  aes(x = LENGTHKM), color = "blue", lwd = 3) + 
@@ -258,7 +262,7 @@ And the area distributions:
 ```{r, echo = FALSE}
 ggplot() + 
   geom_density(data = refactor$catchments, aes(x = areasqkm), color = "blue", lwd = 3) + 
-  geom_density(data = reference$catchments, aes(x = AREASQKM), color = "red", lwd = 3) + 
+  geom_density(data = reference$catchments, aes(x = areasqkm), color = "red", lwd = 3) + 
   geom_density(data = agg$catchments, aes(x = areasqkm), color = "green", lwd = 3) + 
   xlim(0,25) +
   ylim(0,.6) +
@@ -296,10 +300,10 @@ Lastly, we can look at the cumulative network traits of each fabric:
 ```{r, echo=FALSE}
 data.frame(class=rep(c("Flowpath Length", "Divide Area"), each=3),
                   type=rep(c("Reference", "Refactored", 'Aggregated'),2),
-                  num = c(sum(reference$flowpaths$LENGTHKM),
+                  num = c(sum(reference$flowpaths$lengthkm),
 sum(refactor$flowpaths$LENGTHKM),
 sum(agg$flowpaths$lengthkm),
-sum(reference$catchments$AREASQKM),
+sum(reference$catchments$areasqkm),
 sum(refactor$catchments$areasqkm),
 sum(agg$catchments$areasqkm))) %>% 
 ggplot(aes(x=class, y=num, fill=type)) +
@@ -308,9 +312,8 @@ ggplot(aes(x=class, y=num, fill=type)) +
   scale_fill_manual(values=c('green', 'blue','red'))
 ```
 
-
 ```{r}
-r = read_hydrofabric("tutorial/aggregate.gpkg")
+r = read_hydrofabric("tutorial/aggregated.gpkg")
 mapview::mapview(r) + pois
 ```
 
@@ -318,12 +321,26 @@ mapview::mapview(r) + pois
 
 ```{r, eval = FALSE}
 hf = get_subset(nldi_feature = list(featureSource = "nwis", featureID = "06752260"), 
-                source = "/Volumes/MyBook/conus-hydrofabric",
+                source = "/Users/mjohnson/hydrofabric",
                 outfile = "tutorial/poudre.gpkg") |>
-     refactor(fac = '/vsis3/nextgen-hydrofabric/gridded-resources/fac.vrt',
-              fdr = '/vsis3/nextgen-hydrofabric/gridded-resources/fdr.vrt',
+     refactor(fac = '/vsis3/lynker-spatial/gridded-resources/fac.vrt',
+              fdr = '/vsis3/lynker-spatial/gridded-resources/fdr.vrt',
               outfile = "tutorial/refactor.gpkg") |>
      aggregate_to_distribution(outfile = "tutorial/aggregate.gpkg")
 ```
 
 
+With all network manipulations, fundamental network traits change. This requires the utilities to rapidly and efficiently recompute key network metric. The nhdplusTools package provides the option to regenerate all or some of these on the fly using graph algorithms and logic (see [Blodget et al (2023)](https://www.sciencedirect.com/science/article/pii/S1364815223001123))
+
+We will return to the `get_sorted()` utility in the subsetting section
+
+```{r, eval = FALSE}
+nhdplusTools::add_plus_network_attributes()
+nhdplusTools::get_streamorder()
+nhdplusTools::calculate_total_drainage_area()
+nhdplusTools::get_sorted()
+```
+
+```{r, echo = FALSE}
+knitr::include_graphics('../man/figures/figure7.png')
+```
