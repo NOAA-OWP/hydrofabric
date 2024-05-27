@@ -140,8 +140,6 @@ hf = read_hydrofabric(nextgen_file)
 
 mapview::mapview(hf$catchments) + hf$flowpaths + read_sf(nextgen_file, "nexus")
 
-
-
 # Populate some data for NOAHOWP / CFE------------------------------------------
 
 div = read_sf(nextgen_file, "divides")

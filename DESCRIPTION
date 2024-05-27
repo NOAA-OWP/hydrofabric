@@ -2,7 +2,7 @@ Package: hydrofabric
 Type: Package
 Title: Easily Install and Load 'hydrofabric' tools
 Description: The 'hydrofabric' meta package loads a set of packages that work in harmony to complete hydroscience tasks. 
-Version: 0.0.9
+Version: 0.1.0
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",

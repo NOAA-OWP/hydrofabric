@@ -9,6 +9,7 @@ df$vpus = gsub(".gpkg", "", gsub("nextgen_", "", basename(df$f)))
 df$outfile = glue('/Volumes/MyBook/conus-hydrofabric/v20.1/forcing_weights/forcing_weights_{df$vpus}.parquet')
 
 fg = terra::rast('/Users/mjohnson/Downloads/nwm.t00z.medium_range.forcing.f001.conus.nc')[[4]]
+plot(fg)
 
 for(i in 1:nrow(df)){
   message(i)

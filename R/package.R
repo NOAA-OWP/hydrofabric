@@ -10,9 +10,7 @@ NULL
 
 #' @importFrom DBI dbConnect dbDisconnect dbListTables
 #' @importFrom RSQLite SQLite
-#' @importFrom arrow read_parquet write_parquet open_dataset ParquetFileReader Table write_dataset
-#' @importFrom glue glue
-#' @importFrom jsonlite fromJSON toJSON
+#' @importFrom arrow read_parquet write_parquet open_dataset
 
 #' @rawNamespace import(climateR, except = c(plot))
 #' @rawNamespace import(dplyr, except = c(intersect, union))
