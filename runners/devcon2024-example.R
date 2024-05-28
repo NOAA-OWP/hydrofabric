@@ -1,8 +1,28 @@
+## ---------------------------
+## Script name: DevCon 2024: Hydrofabric
+##
+## Purpose of script: Walk users through the process of finding, 
+## manipualting and enriching a hydrofabrci network 
+## for use in NextGen Applications
 
-# Load Needed Libaries ----------------------------------------------------
+## Date Created: 2024-05-28
+## Email: jjohnson@lynker.com
+## ---------------------------
+## Notes:
+## 
+## Check Run Time
+## 05-28-2024
+## user  system elapsed 
+## 38.780  15.364  59.934 
+##
+## ---------------------------
+
+# Load Needed Libraries ----------------------------------------------------
 
 library(hydrofabric)
 library(powerjoin)
+library(plotly)
+library(mapview)
 
 # Helper Function ---------------------------------------------------------
 
@@ -12,25 +32,27 @@ make_map = function(file, pois) {
 }
 
 ### ---- Sample out files and source for today ---- ###
-fs::dir_create("tutorial")
+dir = "do-it-live"
+fs::dir_create(dir)
 
 # Setup Needed File Structure ---------------------------------------------
 
 source    <- '/Users/mjohnson/hydrofabric/'
+vsi <- "/vsis3/lynker-spatial/gridded-resources"
 
-reference_file  <- "tutorial/poudre.gpkg"
-refactored_file <- "tutorial/refactored.gpkg"
-aggregated_file <- "tutorial/aggregated.gpkg"
+reference_file  <- glue("{dir}/poudre.gpkg")
+refactored_file <- glue("{dir}/refactored.gpkg")
+aggregated_file <- glue("{dir}/aggregated.gpkg")
 
-nextgen_file       <- "tutorial/poudre_ng.gpkg"
-model_atts_file    <- "tutorial/poudre_ng_attributes.parquet"
-model_weights_file <- "tutorial/poudre_ng_weights.parquet"
+nextgen_file       <- glue("{dir}/poudre_ng.gpkg")
+model_atts_file    <- glue("{dir}/poudre_ng_attributes.parquet")
+model_weights_file <- glue("{dir}/poudre_ng_weights.parquet")
 
 # Extract Subset of Reference Fabric --------------------------------------
 
 get_subset(
   hl_uri = "Gages-06752260",
-  source  = using_local_example,
+  source  = source,
   type = "reference",
   hf_version = "2.2",
   lyrs = c("divides", "flowlines", "network"),
@@ -60,13 +82,12 @@ refactored = refactor(
   collapse_flines_meters = 1000,
   collapse_flines_main_meters = 1000,
   pois = pois,
-  fac = '/vsis3/lynker-spatial/gridded-resources/fac.vrt',
-  fdr = '/vsis3/lynker-spatial/gridded-resources/fdr.vrt',
+  fac = glue('{vsi}/fac.vrt'),
+  fdr = glue('{vsi}/fdr.vrt'),
   outfile = refactored_file
 )
 
 make_map(refactored_file, pois)
-
 
 # Remap Hydrolocations ----------------------------------------------------
 
@@ -100,9 +121,6 @@ make_map(nextgen_file, read_sf(nextgen_file, "nexus"))
 # Enriching the Network
 
 # Enrich your new network --------------------------------------------------
-
-# LS Hooks for gridded data
-vsi <- "/vsis3/lynker-spatial/gridded-resources"
 
 # Divides for NextGen Fabric
 div <- read_sf(nextgen_file, "divides")
@@ -140,6 +158,7 @@ m = execute_zonal(r[[4:5]],
 
 # Merge all tables into one
 d1 <- power_full_join(list(modes, gm, m), by = "divide_id")
+head(d1)
 
 # GWBUCKET Rescale Data  (Polygon --> Polygon) --------------------------------
 
@@ -163,8 +182,7 @@ d2 <- open_dataset(glue("{source}/v2.2/reference/conus_routelink")) |>
     )
 
 # Downscaleing Variables
-# 
-# 
+
 d3 <- st_centroid(div) |>
   st_transform(4326) |>
   st_coordinates() |>
@@ -199,12 +217,9 @@ w = weight_grid(rast(glue('{vsi}/{type}.tif')), div, ID = "divide_id") |>
 write_parquet(w, model_weights_file)
 write_parquet(model_attributes, model_atts_file)
 
-
-
-
+fs::dir_tree(dir)
 
 # Enhance the flow network ------------------------------------------------
-
 
 crosswalk <- as_sqlite(nextgen_file, "network") |>
     select(hf_id, id, divide_id, hydroseq, poi_id) |>
@@ -231,7 +246,8 @@ plot(bathy$x, bathy$Y, type = "l",
      xlab = "Depth (m)", 
      main = glue("Average XS at POI: {cs$poi_id}"))
 
-library(plotly)
+
+# Uses this data to walk to a prior version of the NextGen Fabric!
 
 crosswalk <- as_sqlite(nextgen_file, "network") |>
     select(hf_id, id, toid, divide_id, hydroseq, poi_id) |>
@@ -242,7 +258,7 @@ cw = open_dataset(glue('{source}/v2.1.1/nextgen/conus_network')) %>%
   semi_join(crosswalk, by = "hf_id") %>% 
   collect() 
 
-message(sum(cw$lengthkm), " kilometers of river")
+message(round(sum(cw$lengthkm),2), " kilometers of river")
 
 open_dataset(glue('{source}/v2.1.1/nextgen/conus_xs')) %>% 
   filter(vpuid %in% unique(cw$vpuid), hf_id %in% unique(cw$id)) %>% 
@@ -256,17 +272,14 @@ open_dataset(glue('{source}/v2.1.1/nextgen/conus_xs')) %>%
               aspectratio = list(x=100, y=100, z=1)),
               showlegend = FALSE)
 
-add_flowpath_attributes(nextgen_file, source = source)
+add_flowpath_attributes(nextgen_file, 
+                        source = source)
 
 as_sqlite(nextgen_file, 'flowpath_attributes') %>% 
   collect() %>% 
   head()
 
-
-
 # Add some symbology ------------------------------------------------------
-
-
 
 append_style(nextgen_file, layer_names = c("divides", "flowpaths", "nexus"))
 
