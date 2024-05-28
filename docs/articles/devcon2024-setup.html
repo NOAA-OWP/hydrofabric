@@ -102,21 +102,136 @@ menu option in the RStudio menu.</p>
 suggest upgrading.</p>
 </div>
 <div class="section level2">
-<h2 id="r-and-rstudio">1. R and RStudio<a class="anchor" aria-label="anchor" href="#r-and-rstudio"></a>
+<h2 id="getting-r-and-rstudio">1. Getting R and RStudio<a class="anchor" aria-label="anchor" href="#getting-r-and-rstudio"></a>
 </h2>
-<p>If you find yourself needing to upgrade. Please follow the directions
-found <a href="https://posit.co/download/rstudio-desktop/#download" class="external-link">here</a></p>
+<p>R is a programming language and free software environment for
+statistical computing and graphics supported by the R Foundation for
+Statistical Computing. The R language is widely used for developing
+statistical software and data analysis. R also provides unparalleled
+opportunities for analyzing spatial data for spatial modeling.</p>
+<p>RStudio is an integrated development environment (IDE) for R.
+Combined the R language and RStudio IDE provide the open-source, free,
+toolset for this course.</p>
+<div class="section level4">
+<h4 id="macos-install">MacOS Install
+<svg viewbox="0 0 384 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"></path></svg><a class="anchor" aria-label="anchor" href="#macos-install"></a>
+</h4>
+<div class="section level5">
+<h5 id="install-r">Install R<a class="anchor" aria-label="anchor" href="#install-r"></a>
+</h5>
+<ul>
+<li><p><a href="https://cran.r-project.org/bin/macosx/" class="external-link">Download</a> the
+latest release (“R-version.pkg”) of R and save the .pkg file.
+Double-click it to open, and follow the installation instructions. Note
+that there are different version in you have an Intel chip
+(e.g. R-4.1.0.pkg) or an Apple M1 chip (e.g. R-4.1.0-arm64.pkg)</p></li>
+<li><p>Now that R is installed, you can download and install
+RStudio.</p></li>
+</ul>
+</div>
+<div class="section level5">
+<h5 id="install-rstudio">Install RStudio<a class="anchor" aria-label="anchor" href="#install-rstudio"></a>
+</h5>
+<ul>
+<li>
+<a href="https://rstudio.com/products/rstudio/download/#download" class="external-link">Download</a>
+RStudio for Mac. After downloading, double-click the file to open it,
+and make sure it ends up in your applications folder.</li>
+</ul>
+<hr>
+</div>
+</div>
+<div class="section level4">
+<h4 id="windows-install">Windows Install
+<svg viewbox="0 0 448 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"><path d="M0 93.7l183.6-25.3v177.4H0V93.7zm0 324.6l183.6 25.3V268.4H0v149.9zm203.8 28L448 480V268.4H203.8v177.9zm0-380.6v180.1H448V32L203.8 65.7z"></path></svg><a class="anchor" aria-label="anchor" href="#windows-install"></a>
+</h4>
+<div class="section level5">
+<h5 id="install-r-1">Install R<a class="anchor" aria-label="anchor" href="#install-r-1"></a>
+</h5>
+<ul>
+<li><p><a href="https://cran.r-project.org/bin/windows/base/" class="external-link">Download</a> the
+latest R installer (.exe) for Windows. Install the downloaded file as
+any other windows app. Now that R is installed, you can download and
+install RStudio.</p></li>
+<li><p>Now that R is installed, you can download and install
+RStudio.</p></li>
+</ul>
+</div>
+<div class="section level5">
+<h5 id="install-rstudio-1">Install RStudio<a class="anchor" aria-label="anchor" href="#install-rstudio-1"></a>
+</h5>
+<ul>
+<li>
+<a href="https://rstudio.com/products/rstudio/download/#download" class="external-link">Download</a>
+the RStudio version for Windows. Run the installer (.exe file) and
+follow the instructions.</li>
+</ul>
+</div>
+</div>
 </div>
 <div class="section level2">
-<h2 id="install-noaa-owphydrofabric">2. Install <code>NOAA-OWP/hydrofabric</code><a class="anchor" aria-label="anchor" href="#install-noaa-owphydrofabric"></a>
+<h2 id="launch-rstudio">2. Launch RStudio<a class="anchor" aria-label="anchor" href="#launch-rstudio"></a>
 </h2>
+<p>Once both R and RStudio are installed, you can find and click on the
+RStudio icon to open the program. The RStudio icon looks like this:</p>
+<p><img src="../reference/figures/rstudio-logo.png" width="10%"></p>
+<p>Opening RStudio will launch a workplace. If something like the below
+image appears for you, then you are all set!</p>
+<p><img src="../reference/figures/rstudio-panels.png" width="1280"></p>
+<p>We will spend the session working in this IDE so the layout and
+features will become clear as we go. A few things to note now are:</p>
+<ul>
+<li>Your session is linked to a project (<span style="     color: pink !important;">pink</span> box).<br>
+</li>
+<li>In the <span style="     color: blue !important;">blue</span> box,
+you have:
+<ul>
+<li>An <em>Environment</em> tab that shows all the active objects in
+your session</li>
+<li>A <em>files</em> tab that shows all the files and folders in your
+default (project) workplace</li>
+<li>A <em>plots</em> tab that will show all your graphs once we start
+visualizing data.</li>
+</ul>
+</li>
+<li>In the <span style="     color: red !important;">red</span> window
+you will write code and open new/existing scripts and markdown
+files.</li>
+<li>All output will be printed to your console (<span style="     color: gold !important;">yellow</span> box). Code and
+prompts can be directly entered in the console but will not be saved
+after executing.</li>
+</ul>
+<p>Your layout and theme may not look like the above (all the elements
+are the same but arranged differently). If you want to change your theme
+and layout got to RStudio –&gt; Preferences.</p>
+<p>Here you can adjust the “Appearance” and “Pane Layout”. If you want
+your to look like mine, see below:</p>
+<p><img src="../reference/figures/rstudio-appearance.png" width="647"></p>
+</div>
+<div class="section level2">
+<h2 id="install-noaa-owphydrofabric">3. Install <code>NOAA-OWP/hydrofabric</code><a class="anchor" aria-label="anchor" href="#install-noaa-owphydrofabric"></a>
+</h2>
+<p>R comes loaded with many base packages and tools. There are also many
+additional tools that will make your life easier. Throughout this
+session, we’ll use packages that exist in the aggregate
+<code>hydrofabric</code> package.</p>
+<p>The <code>hydrofabric</code> contains a collection of very useful
+packages that play nicely together for data exploration, manipulation,
+wrangling and visualization (among other things). Packages can be
+installed from CRAN (Comprehensive R Archive Network) using the
+following pattern which should be typed in the console (<span style="     color: gold !important;">yellow</span> box):</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("remotes") </span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"NOAA-OWP/hydrofabric"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'bit64'</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'powerjoin'</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">'powerjoin'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span> </span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"NOAA-OWP/hydrofabric"</span><span class="op">)</span></span></code></pre></div>
+<p>In development package (yay DevCon!) can be installed from Github
+using the <code>remotes</code> package (installed above):</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"NOAA-OWP/hydrofabric"</span><span class="op">)</span></span></code></pre></div>
+<p>Once it’s installed, you can ensure that everything worked by
+loading/attaching the <code>hydrofabric</code> libray using the
+<code>library</code> call:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/NOAA-OWP/hydrofabric" class="external-link">hydrofabric</a></span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ── <span style="font-weight: bold;">Attaching packages</span> ───────────────────────────────────── hydrofabric 0.1.0 ──</span></span></code></pre>
 <pre><code><span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">dplyr        </span> 1.1.4      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">hfsubsetR    </span> 0.0.9 </span></span>
@@ -125,30 +240,42 @@ found <a href="https://posit.co/download/rstudio-desktop/#download" class="exter
 <span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">hydrofab     </span> 0.5.2      <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">terra        </span> 1.7.78</span></span>
 <span><span class="co">## <span style="color: #00BB00;">✔</span> <span style="color: #0000BB;">zonal        </span> 0.0.3</span></span></code></pre>
 <pre><code><span><span class="co">## ── <span style="font-weight: bold;">Conflicts</span> ──────────────────────────────────────── hydrofabric_conflicts() ──</span></span>
-<span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">terra</span>::<span style="color: #00BB00;">plot()</span> masks <span style="color: #0000BB;">climateR</span>::plot()</span></span></code></pre>
+<span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">dplyr</span>::<span style="color: #00BB00;">group_rows()</span> masks <span style="color: #0000BB;">kableExtra</span>::group_rows()</span></span>
+<span><span class="co">## <span style="color: #BB0000;">✖</span> <span style="color: #0000BB;">terra</span>::<span style="color: #00BB00;">plot()</span>       masks <span style="color: #0000BB;">climateR</span>::plot()</span></span></code></pre>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Attaching package: 'hydrofabric'</span></span></code></pre>
 <pre><code><span><span class="co">## The following objects are masked _by_ 'package:hydrofab':</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">##     append_style, hf_dm</span></span></code></pre>
+<p>If you got something similar to the above you’ve successfully
+installed <strong>R</strong>, <strong>RStudio</strong>, and the
+<strong>hydrofabric</strong> package!</p>
+<p>If you really want to make sure you are ready, ensure you get all
+<code>TRUE</code> below:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hydrofabric_packages.html">hydrofabric_packages</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/installed.packages.html" class="external-link">installed.packages</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div>
+<pre><code><span><span class="co">##  [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE</span></span>
+<span><span class="co">## [16] TRUE TRUE</span></span></code></pre>
 </div>
 <div class="section level2">
-<h2 id="visit-lynker-spatial">3. Visit Lynker Spatial<a class="anchor" aria-label="anchor" href="#visit-lynker-spatial"></a>
+<h2 id="visit-lynker-spatial">4. Visit Lynker Spatial<a class="anchor" aria-label="anchor" href="#visit-lynker-spatial"></a>
 </h2>
-<p><a href="">Lynker spatial</a> provides open <strong>data</strong> and
-software <strong>services</strong> aimed at improving user experience
-with hydrofabric allowing for rapid access, subsetting, and integration
-with other cloud native resources.</p>
+<p><a href="https://www.lynker-spatial.com/" class="external-link">Lynker spatial</a> provides
+open <strong>data</strong> and software <strong>services</strong> aimed
+at improving user experience with hydrofabric allowing for rapid access,
+subsetting, and integration with other cloud native resources.</p>
 <ul>
 <li><p>Lynker-spatial Data offerings for hydrofabric can be found <a href="https://www.lynker-spatial.com/data?path=hydrofabric%2F" class="external-link">here</a></p></li>
 <li><p>Lynker-spatial Services are typically provided on Github <a href="https://github.com/lynker-spatial" class="external-link">here</a>.</p></li>
 </ul>
-<p>If its suggested to install the latest version of
+<blockquote>
+<p>It’s suggested to install the latest version of
 <code>hfsubsetCLI</code> from the <a href="https://github.com/lynker-spatial/hfsubsetCLI/releases/" class="external-link">release
 page</a> for your specific operation system.</p>
+</blockquote>
 </div>
 <div class="section level2">
-<h2 id="optional-install-qgis">4. (Optional) Install QGIS<a class="anchor" aria-label="anchor" href="#optional-install-qgis"></a>
+<h2 id="optional-install-qgis">5. (Optional) Install QGIS<a class="anchor" aria-label="anchor" href="#optional-install-qgis"></a>
 </h2>
 <p>QGIS is a free and open-source geographic information system (GIS)
 software that allows users to visualize, analyze, and manage spatial
@@ -158,13 +285,13 @@ using the following package managers.</p>
 <div class="section level4">
 <h4 id="macos">MacOS<a class="anchor" aria-label="anchor" href="#macos"></a>
 </h4>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="ex">brew</span> install qgis</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">brew</span> install qgis</span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="ubuntudebian">Ubuntu/Debian<a class="anchor" aria-label="anchor" href="#ubuntudebian"></a>
 </h4>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">sudo</span> apt install qgis</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">sudo</span> apt install qgis</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

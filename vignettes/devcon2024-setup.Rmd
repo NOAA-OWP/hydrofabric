@@ -10,6 +10,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(icons)
+library(kableExtra)
 ```
 
 ```{r, echo = FALSE}
@@ -32,37 +34,117 @@ To check your RStudio version in Windows, click the About RStudio menu option in
 
 If you don’t have at least R 4.4.XXX and RStudio 2023.6.0.XXXX. We suggest upgrading.
 
-# 1. R and RStudio
+# 1. Getting R and RStudio
 
-If you find yourself needing to upgrade. Please follow the directions found [here](https://posit.co/download/rstudio-desktop/#download)
+R is a programming language and free software environment for statistical computing and graphics supported by the R Foundation for Statistical Computing. The R language is widely used for developing statistical software and data analysis. R also provides unparalleled opportunities for analyzing spatial data for spatial modeling.
 
-# 2. Install `NOAA-OWP/hydrofabric`
+RStudio is an integrated development environment (IDE) for R.  Combined the R language and RStudio IDE provide the open-source, free, toolset for this course.
+
+### MacOS Install `r fontawesome$brands$apple`
+
+#### Install R
+
+- [Download](https://cran.r-project.org/bin/macosx/) the latest release (“R-version.pkg”) of R and save the .pkg file. Double-click it to open, and follow the installation instructions. Note that there are different version in you have an Intel chip (e.g. R-4.1.0.pkg) or an Apple M1 chip (e.g. R-4.1.0-arm64.pkg)
+
+- Now that R is installed, you can download and install RStudio.
+
+#### Install RStudio
+
+- [Download](https://rstudio.com/products/rstudio/download/#download) RStudio for Mac. After downloading, double-click the file to open it, and make sure it ends up in your applications folder.
+
+***
+
+### Windows Install `r fontawesome$brands$windows`
+
+#### Install R
+
+- [Download](https://cran.r-project.org/bin/windows/base/) the latest R installer (.exe) for Windows. Install the downloaded file as any other windows app. Now that R is installed, you can download and install RStudio.
+
+- Now that R is installed, you can download and install RStudio.
+
+#### Install RStudio
+
+- [Download](https://rstudio.com/products/rstudio/download/#download) the RStudio version for Windows. Run the installer (.exe file) and follow the instructions.
+
+# 2. Launch RStudio
+
+Once both R and RStudio are installed, you can find and click on the RStudio icon to open the program. The RStudio icon looks like this:
+
+```{r, echo = FALSE, out.width="10%"}
+knitr::include_graphics('../man/figures/rstudio-logo.png')
+```
+
+Opening RStudio will launch a workplace. If something like the below image appears for you, then you are all set! 
+
+```{r, echo = FALSE}
+knitr::include_graphics('../man/figures/rstudio-panels.png')
+```
+
+
+We will spend the session working in this IDE so the layout and features will become clear as we go. A few things to note now are:
+
+ - Your session is linked to a project (`r text_spec('pink', color = "pink")` box).  
+ - In the `r text_spec('blue', color = "blue")` box, you have:
+    - An *Environment* tab that shows all the active objects in your session
+    - A *files* tab that shows all the files and folders in your default (project) workplace
+    - A *plots* tab that will show all your graphs once we start visualizing data. 
+  - In the `r text_spec('red', color = "red")` window you will write code and open new/existing scripts and markdown files.
+  - All output will be printed to your console (`r text_spec('yellow', color = "gold")` box). Code and prompts can be directly entered in the console but will not be saved after executing. 
+  
+Your layout and theme may not look like the above (all the elements are the same but arranged differently). If you want to change your theme and layout got to RStudio --> Preferences.
+
+Here you can adjust the "Appearance" and "Pane Layout". If you want your to look like mine, see below:
+
+
+```{r, echo = FALSE}
+knitr::include_graphics('../man/figures/rstudio-appearance.png')
+```
+
+
+# 3. Install `NOAA-OWP/hydrofabric`
+
+R comes loaded with many base packages and tools. There are also many additional tools that will make your life easier. Throughout this session, we’ll use packages that exist in the aggregate `hydrofabric` package.
+
+The `hydrofabric` contains a collection of very useful packages that play nicely together for data exploration, manipulation, wrangling and visualization (among other things). Packages can be installed from CRAN (Comprehensive R Archive Network) using the following pattern which should be typed in the console (`r text_spec('yellow', color = "gold")` box):
 
 ```{r, eval = FALSE}
-# install.packages("remotes") 
-remotes::install_github("NOAA-OWP/hydrofabric")
-
-install.packages('bit64')
 install.packages('powerjoin')
+install.packages("remotes") 
+remotes::install_github("NOAA-OWP/hydrofabric")
 ```
+
+In development package (yay DevCon!) can be installed from Github using the `remotes` package (installed above):
+
+```{r, eval = FALSE}
+remotes::install_github("NOAA-OWP/hydrofabric")
+```
+
+Once it’s installed, you can ensure that everything worked by loading/attaching the `hydrofabric` libray using the `library` call:
 
 ```{r}
 library(hydrofabric)
 ```
 
+If you got something similar to the above you’ve successfully installed **R**, **RStudio**, and the **hydrofabric** package!
 
 
-# 3. Visit Lynker Spatial
+If you really want to make sure you are ready, ensure you get all `TRUE` below: 
 
-[Lynker spatial]() provides open **data** and software **services** aimed at improving user experience with hydrofabric allowing for rapid access, subsetting, and integration with other cloud native resources.
+```{r}
+hydrofabric_packages() %in% rownames(installed.packages()) 
+```
+
+# 4. Visit Lynker Spatial
+
+[Lynker spatial](https://www.lynker-spatial.com/) provides open **data** and software **services** aimed at improving user experience with hydrofabric allowing for rapid access, subsetting, and integration with other cloud native resources.
 
 * Lynker-spatial Data offerings for hydrofabric can be found [here](https://www.lynker-spatial.com/data?path=hydrofabric%2F)
 
 * Lynker-spatial Services are typically provided on Github [here](https://github.com/lynker-spatial).
 
-If its suggested to install the latest version of `hfsubsetCLI` from the [release page](https://github.com/lynker-spatial/hfsubsetCLI/releases/) for your specific operation system.
+> It's suggested to install the latest version of `hfsubsetCLI` from the [release page](https://github.com/lynker-spatial/hfsubsetCLI/releases/) for your specific operation system.
 
-# 4. (Optional) Install QGIS
+# 5. (Optional) Install QGIS
 
 QGIS is a free and open-source geographic information system (GIS) software that allows users to visualize, analyze, and manage spatial data. Here's how to install QGIS on Linux, macOS, and Windows.
 
