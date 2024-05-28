@@ -11,6 +11,7 @@ NULL
 #' @importFrom DBI dbConnect dbDisconnect dbListTables
 #' @importFrom RSQLite SQLite
 #' @importFrom arrow read_parquet write_parquet open_dataset
+#' @importFrom glue  glue
 
 #' @rawNamespace import(climateR, except = c(plot))
 #' @rawNamespace import(dplyr, except = c(intersect, union))

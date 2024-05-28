@@ -9,7 +9,7 @@ development:
   mode: auto
 authors:
    Mike Johnson:
-     href: https://github.com/mikejohnson51
+     href: https://mikejohnson51.github.io/
    NOAA: 
      html: "<img src='man/figures/noaa-logo.png' width='36' alt='NOAA OWP'/>"
      href: "https://water.noaa.gov/about/nwm"
@@ -27,9 +27,6 @@ articles:
 - title: Data
   contents:
   - data
-- title: Data Models
-  desc: In Development Data Models
-  contents:
   - hf_dm
   - cs_dm
 
