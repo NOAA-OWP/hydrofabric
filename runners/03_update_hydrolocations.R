@@ -75,6 +75,10 @@ gfv20 = open_dataset(glue("{source}/v2.2/reference/conus_hydrolocations")) %>%
   relocate(all_of(schema)) %>% 
   distinct() 
 
+filter(gfv20, hl_reference == "Gages", hl_link == "06752260") %>% 
+  st_as_sf(coords = c("X", "Y"), crs = 5070) %>% 
+  mapview::mapview()
+
 # RouteLink ---------------------------------------------------------------
 
 rl_file = glue('/Users/mjohnson/hydrofabric/RouteLink_CONUS_309.nc')
@@ -321,7 +325,7 @@ lid <- read_sf(glue('{source}/nws_lid.gpkg')) |>
 
 # Final  ------------------------------------------------------------------
 
-hl = rbindlist(list(rl_pois,
+hl_fin = rbindlist(list(rl_pois,
                     nwmlake_pois,
                     nwm_res,
                     calib_poi,
@@ -341,16 +345,25 @@ hl = rbindlist(list(rl_pois,
   left_join(distinct(select(ref_net, hf_id, mainstemlp, vpuid)), 
             by = "hf_id",
             relationship = "many-to-many") %>% 
-  distinct()
+  distinct() %>% 
+  mutate(hl_uri = paste0(hl_reference, "-", hl_link))
+
+filter(hl_fin, hl_reference == "Gages", hl_link == "06752260") %>% 
+  st_as_sf(coords = c("X", "Y"), crs = 5070) %>% 
+  mapview::mapview()
+
+filter(hl_fin, hl_uri == 'Gages-06752260')
 
 # Write Hydrolocation Table
-hl %>% 
+hl_fin %>% 
   group_by(vpuid) %>% 
   arrow::write_dataset(glue("{source}/conus_hl"), version = 2.6)
 
 "aws s3 sync /Users/mjohnson/hydrofabric/conus_hl s3://lynker-spatial/hydrofabric/conus_hl" %>% 
   system()
 
-open_dataset(glue("{source}/conus_hl")) %>% collect()
+open_dataset(glue("{source}/conus_hl")) %>% 
+  filter(hl_uri == 'Gages-06752260') %>% 
+  collect()
 
 

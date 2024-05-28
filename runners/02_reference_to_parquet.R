@@ -17,7 +17,7 @@ ref_hl_out     <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_hydrolo
 fl = as_sqlite(ref_gpkg, 'reference_flowline') %>% 
   select(id = comid, 
          toid = tocomid, 
-         poi_id = POI_ID, 
+         #poi_id = POI_ID, 
          terminalpa, 
          mainstemlp = levelpathi, 
          vpuid, 
@@ -66,13 +66,16 @@ hl = as_sqlite(ref_gpkg, 'poi_data') %>%
 filter(hl, hl_reference == "Gages", hl_link == "06752260") %>% 
   st_as_sf(coords = c("X", "Y"), crs = 5070) %>% 
   mapview::mapview()
+
+filter(net, hl_uri == "Gages-06752260")
+filter(hl,  hl_uri == "Gages-06752260")
   
 net = st_drop_geometry(div) %>% 
   mutate(id = divide_id, vpuid = NULL) %>% 
   full_join(st_drop_geometry(select(fl, -areasqkm)), by = "id") %>% 
   mutate(hf_id = id,  topo = "fl-fl") %>% 
   left_join(select(hl, -vpuid, -X, -Y),
-            by = "poi_id",
+            by = "id",
             relationship = "many-to-many")
 
 mutate(div,
