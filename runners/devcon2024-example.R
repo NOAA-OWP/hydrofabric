@@ -283,3 +283,9 @@ as_sqlite(nextgen_file, 'flowpath_attributes') %>%
 
 append_style(nextgen_file, layer_names = c("divides", "flowpaths", "nexus"))
 
+
+
+
+
+
+fs::dir_delete(dir)
