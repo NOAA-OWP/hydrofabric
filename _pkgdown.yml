@@ -1,7 +1,7 @@
 url: ~
 
 home:
-  title: Collection of R packages designed for hydroscience.
+  title: NOAA's Enterprise Hydrofabric Solution
 template:
   bootstrap: 5
   bootswatch: litera
@@ -18,7 +18,7 @@ authors:
      href: "https://www.usgs.gov/mission-areas/water-resources"
    Lynker: 
      html: "<img src='man/figures/lynker-logo.png' width='100' alt='Lynker'/>"
-     href: "https://lynker-intel.com/"
+     href: "https://lynker-spatial.com/"
    footer:
     roles: [cre]
    citation:
@@ -39,8 +39,12 @@ articles:
   - 01-intro-deep-dive
   - 02-design-deep-dive
   - 03-processing-deep-dive
-  - 04-data-model-deep-dive
+  - 04-applying-nextgen-model
   - 05-subsetting
-  - 06-attribute-access
-  - 07-channel-geometry
-  - 08-nextgen-views
+  
+- title: 2024 CIROH DevCon
+  contents:
+  - devcon2024-setup
+  - devcon2024-background
+  - devcon2024-tutorial
+
