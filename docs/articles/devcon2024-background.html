@@ -141,7 +141,7 @@ Since then, the R version and underlying data stores have been
 overhauled, the CLI implementation has transitioned to a (beta) <a href="https://www.lynker-spatial.com/hydrofabric/hfsubset/__docs__/" class="external-link">REST
 API</a>, and a Python implementation is forthcoming.</p></li>
 <li><p><strong>Enriching a hydrofabric</strong>: While the core
-hydrofabric respect the above data model we demontrated hoe it could be
+hydrofabric respects the above data model we demontrated hoe it could be
 enhance through te addtioon of catchment attributes (both precomputed
 and custom), flowpath attributes, and forcing weights. Since then,
 through a partnership with ESIP we extended the climateR catalog to host
@@ -289,11 +289,11 @@ track, and offer parity between local and remote access:</p>
 <div class="section level4">
 <h4 id="gpkg">GPKG<a class="anchor" aria-label="anchor" href="#gpkg"></a>
 </h4>
-<p>[Geopackages]((<a href="https://www.geopackage.org)/%5BSQLITE%5D(https://sqlite.org/index.html" class="external-link uri">https://www.geopackage.org)/[SQLITE](https://sqlite.org/index.html</a>)
-is an open, standards-based, platform-independent, and data format for
-spatial . It is designed to be a universal format for geospatial data
-storage, enabling the sharing and exchange of spatial data across
-different systems and software.</p>
+<p><a href="https://www.geopackage.org" class="external-link">Geopackages</a>/<a href="https://sqlite.org/index.html" class="external-link">SQLITE</a> is an open,
+standards-based, platform-independent, and data format for spatial . It
+is designed to be a universal format for geospatial data storage,
+enabling the sharing and exchange of spatial data across different
+systems and software.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gpkg</span> <span class="op">&lt;-</span> <span class="st">"tutorial/poudre.gpkg"</span></span>
 <span></span>
@@ -347,9 +347,12 @@ particularly suited for big data and analytics applications.</p>
 (geo)parquet stores. These can be accessed from lynker-spatial, or,
 synced (see above) to a local directory. Hive partitioning is a
 partitioning strategy that is used to split a table into multiple files
-based on partition keys. The files are organized into folders. The
-complete <code>v2.2/reference/</code> directory is ~3.0GB while the
-<code>v2.1.1/nextgen</code> dirctory is ~</p>
+based on partition keys. The files are organized into folders.</p>
+<blockquote>
+<p>The complete <code>v2.2/reference/</code> directory is ~3.0GB while
+the <code>v2.1.1/nextgen</code> dirctory is ~ 9.0GB (including xs,
+flowpath/model attributes, forcing weights and routelink)</p>
+</blockquote>
 <div class="section level5">
 <h5 id="parquet-store">Parquet store<a class="anchor" aria-label="anchor" href="#parquet-store"></a>
 </h5>
@@ -357,12 +360,13 @@ complete <code>v2.2/reference/</code> directory is ~3.0GB while the
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{local_source}/{version}/{type}/{domain}_network"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## /Users/mjohnson/hydrofabric/v2.2/reference/conus_network</span></span></code></pre>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## FileSystemDataset with 22 Parquet files</span></span>
 <span><span class="co">## divide_id: double</span></span>
 <span><span class="co">## areasqkm: double</span></span>
 <span><span class="co">## id: double</span></span>
 <span><span class="co">## toid: double</span></span>
+<span><span class="co">## poi_id: double</span></span>
 <span><span class="co">## terminalpa: double</span></span>
 <span><span class="co">## mainstemlp: double</span></span>
 <span><span class="co">## reachcode: string</span></span>
@@ -379,20 +383,46 @@ complete <code>v2.2/reference/</code> directory is ~3.0GB while the
 <span><span class="co">## topo: string</span></span>
 <span><span class="co">## hl_link: string</span></span>
 <span><span class="co">## hl_reference: string</span></span>
-<span><span class="co">## poi_id: int32</span></span>
 <span><span class="co">## hl_uri: string</span></span>
 <span><span class="co">## vpuid: string</span></span></code></pre>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">glimpse</span><span class="op">(</span><span class="va">x2</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## FileSystemDataset with 22 Parquet files</span></span>
+<span><span class="co">## 2,675,894 rows x 23 columns</span></span>
+<span><span class="co">## $ divide_id    <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 869, 881, 885, 897, 899, 903, 905, 907, 911, 923, 925, 9…</span></span>
+<span><span class="co">## $ areasqkm     <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 9.8500444, 2.3957955, 3.7908014, 0.8784026, 3.7737083, 1…</span></span>
+<span><span class="co">## $ id           <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 869, 881, 885, 897, 899, 903, 905, 907, 911, 923, 925, 9…</span></span>
+<span><span class="co">## $ toid         <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 1277, 1383, 1281, 1415, 1371, 901, 909, 1403, 929, 933, …</span></span>
+<span><span class="co">## $ poi_id       <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</span></span>
+<span><span class="co">## $ terminalpa   <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 1815586, 1815586, 1815586, 1815586, 1815586, 1815586, 18…</span></span>
+<span><span class="co">## $ mainstemlp   <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 1819868, 1820217, 1819864, 1820207, 1820178, 1819352, 18…</span></span>
+<span><span class="co">## $ reachcode    <span style="color: #949494; font-style: italic;">&lt;string&gt;</span> "01020003000346", "01020003000574", "01020003000149", "0…</span></span>
+<span><span class="co">## $ frommeas     <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 0.00000, 0.00000, 0.00000, 0.00000, 2.07552, 0.00000, 0.…</span></span>
+<span><span class="co">## $ tomeas       <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 100.00000, 100.00000, 100.00000, 100.00000, 100.00000, 5…</span></span>
+<span><span class="co">## $ lengthkm     <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 6.2446074, 1.9348602, 4.5941482, 1.1105714, 2.1912820, 1…</span></span>
+<span><span class="co">## $ streamorde   <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 1, 1, 2, 2, 1, 3, 1, 3, 3, 1, 1, 2, 1, 1, 1, 3, 1, 3, 1,…</span></span>
+<span><span class="co">## $ totdasqkm    <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 9.8379, 5.5125, 32.8410, 4.7736, 3.7440, 46.1160, 4.8789…</span></span>
+<span><span class="co">## $ hydroseq     <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 1819868, 1820218, 1819864, 1820208, 1820179, 1820188, 18…</span></span>
+<span><span class="co">## $ dnhydroseq   <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 1819867, 1820217, 1819863, 1820207, 1820178, 1820185, 18…</span></span>
+<span><span class="co">## $ outlet_X     <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 2122874, 2106010, 2123427, 2101033, 2107853, 2105622, 21…</span></span>
+<span><span class="co">## $ outlet_Y     <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 2890039, 2884833, 2889282, 2881567, 2885469, 2882792, 28…</span></span>
+<span><span class="co">## $ hf_id        <span style="color: #949494; font-style: italic;">&lt;double&gt;</span> 869, 881, 885, 897, 899, 903, 905, 907, 911, 923, 925, 9…</span></span>
+<span><span class="co">## $ topo         <span style="color: #949494; font-style: italic;">&lt;string&gt;</span> "fl-fl", "fl-fl", "fl-fl", "fl-fl", "fl-fl", "fl-fl", "f…</span></span>
+<span><span class="co">## $ hl_link      <span style="color: #949494; font-style: italic;">&lt;string&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</span></span>
+<span><span class="co">## $ hl_reference <span style="color: #949494; font-style: italic;">&lt;string&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</span></span>
+<span><span class="co">## $ hl_uri       <span style="color: #949494; font-style: italic;">&lt;string&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</span></span>
+<span><span class="co">## $ vpuid        <span style="color: #949494; font-style: italic;">&lt;string&gt;</span> "01", "01", "01", "01", "01", "01", "01", "01", "01", "0…</span></span></code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># &gt; Remote parity &gt;</span></span>
 <span><span class="co"># open_dataset(glue('{s3_source}/{version}/{type}/{domain}_network/'))</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="geoparquet-store">Geoparquet store<a class="anchor" aria-label="anchor" href="#geoparquet-store"></a>
 </h5>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">(</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{local_source}/{version}/{type}/{domain}_divides"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## /Users/mjohnson/hydrofabric/v2.2/reference/conus_divides</span></span></code></pre>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## FileSystemDataset with 21 Parquet files</span></span>
 <span><span class="co">## divide_id: double</span></span>
@@ -403,7 +433,7 @@ complete <code>v2.2/reference/</code> directory is ~3.0GB while the
 <span><span class="co">## vpuid: string</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## See $metadata for additional Schema metadata</span></span></code></pre>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># &gt; Renote parity &gt;</span></span>
 <span><span class="co"># arrow::open_dataset(glue::glue('{s3_source}/{version}/{type}/conus_divides'))</span></span></code></pre></div>
 </div>
@@ -413,7 +443,7 @@ complete <code>v2.2/reference/</code> directory is ~3.0GB while the
 </h4>
 <p>The <a href="https://github.com/manojkarthick/pqrs" class="external-link">pqrs</a> library
 offers a command line tool of inspecting Parquet files</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="ex">pqrs</span> schema /Users/mjohnson/hydrofabric/v2.2/reference/conus_flowlines/vpuid=01/part-0.parquet</span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="ex">pqrs</span> schema /Users/mjohnson/hydrofabric/v2.2/reference/conus_flowlines/vpuid=01/part-0.parquet</span></code></pre></div>
 <p><img src="../reference/figures/pqrs_nice_formating.png" width="622"></p>
 </div>
 <div class="section level4">
@@ -422,7 +452,7 @@ offers a command line tool of inspecting Parquet files</p>
 <p>The amount of gridded data needed for the suite of our supported
 applications (let alone) - <a href="https://www.google.com/url?sa=t&amp;rct=j&amp;q=&amp;esrc=s&amp;source=web&amp;cd=&amp;cad=rja&amp;uact=8&amp;ved=2ahUKEwil-fWKx_D-AhWCIzQIHXIHDD4QwqsBegQIAxAE&amp;url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DauK_gPR-e7M&amp;usg=AOvVaw2ITVtXkwdDj5PCzIfSQwbW" class="external-link">GDAL
 VSI</a></p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="st">"/vsis3/lynker-spatial/gridded-resources/medium_range.forcing.tif"</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu">dap</span><span class="op">(</span>AOI <span class="op">=</span> <span class="va">divides</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -439,7 +469,7 @@ local or remote locations.</p>
 <div class="section level4">
 <h4 id="local-gpkg">Local GPKG<a class="anchor" aria-label="anchor" href="#local-gpkg"></a>
 </h4>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/as_sqlite.html">as_sqlite</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">divide_id</span> <span class="op">==</span> <span class="fl">2896607</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># Source:   SQL [1 x 7]</span></span></span>
@@ -447,7 +477,7 @@ local or remote locations.</p>
 <span><span class="co">##     fid          geom divide_id areasqkm has_flowline      id vpuid</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;blob&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">1</span>     1 <span style="color: #949494;">&lt;raw </span>2.21 kB<span style="color: #949494;">&gt;</span>   2<span style="text-decoration: underline;">896</span>607     10.2            1 2<span style="text-decoration: underline;">896</span>607 10L</span></span></code></pre>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/as_sqlite.html">as_sqlite</a></span><span class="op">(</span><span class="va">gpkg</span>, <span class="st">"divides"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">divide_id</span> <span class="op">==</span> <span class="fl">2896607</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>    <span class="fu"><a href="../reference/read_sf_dataset_sqlite.html">read_sf_dataset_sqlite</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -464,7 +494,7 @@ local or remote locations.</p>
 <div class="section level4">
 <h4 id="localremote-parquet-store">Local/Remote Parquet Store<a class="anchor" aria-label="anchor" href="#localremote-parquet-store"></a>
 </h4>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://arrow.apache.org/docs/r/reference/open_dataset.html" class="external-link">open_dataset</a></span><span class="op">(</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{local_source}/{version}/{type}/conus_network/"</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">id</span> <span class="op">==</span> <span class="fl">101</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
 <span>    <span class="fu">select</span><span class="op">(</span><span class="va">id</span>, <span class="va">toid</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
@@ -473,7 +503,7 @@ local or remote locations.</p>
 <span><span class="co">##      id    toid</span></span>
 <span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">1</span>   101 1<span style="text-decoration: underline;">078</span>719</span></span></code></pre>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># &gt;</span></span>
 <span><span class="co"># arrow::open_dataset(glue::glue('{s3_source}/{version}/{type}/conus_network/'))</span></span>
 <span><span class="co"># %&gt;% &gt; dplyr::filter(id == 101) %&gt;% &gt; dplyr::select(id,</span></span>
@@ -488,7 +518,7 @@ local or remote locations.</p>
 level gpkgs. While we no longer distribute these files, there is a
 utility function <code><a href="https://rdrr.io/pkg/hfsubsetR/man/get_vpu_fabric.html" class="external-link">hfsubsetR::get_vpu_fabric</a></code> that will
 extract a VPU level GPKG to a outfile of choice.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">get_vpu_fabric</span><span class="op">(</span><span class="st">"01"</span>, type <span class="op">=</span> <span class="st">"reference"</span>, hf_version <span class="op">=</span> <span class="st">"2.2"</span>,</span>
 <span>    outfile <span class="op">=</span> <span class="st">"/Users/mjohnson/Downloads/01_ref_2.2.gpkg"</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "/Users/mjohnson/Downloads/01_ref_2.2.gpkg"</span></span></code></pre>

@@ -13,22 +13,23 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Hydrofabric for Next Generation Water Resource Modeling
+## Hydrofabric
 
 <!-- badges: start -->
 [![R CMD Check](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml)
 [![Dependencies](https://img.shields.io/badge/dependencies-18/102-red?style=flat)](#)
 <!-- badges: end -->
 
-This development repository serves a few main purposes.
+This repository serves a few main purposes.
 
-1. Hydrofabric processes are intentionally modular. This package provides a collection of R package that are designed for hydroscience. (e.g. tidyverse for hydrofabric development)
 
-2. Contains utilites needed for manipulating and enhancing hydrographic networks.
+1. **Modular Hydrofabric Processes**: This package offers a collection of R packages specifically designed for hydroscience applications, akin to the tidyverse suite for hydrofabric development. It manages dependencies, resolves conflicts, and streamlines the installation process for quick setup.
 
-3. It provides the utilities to subset the national dataset for regions upstream of a location (XY), hydrofabric ID, indexed hydrolocation (e.g. NWIS gage, HUC12 or NID) or NHDPlus COMID.
+2. **Hydrographic Network Utilities / Geoscience**: The repository includes tools for obtaining, manipulating, and enhancing hydrographic networks.
 
-4. It provides a wide range of documentation including the hydrofabric and cross section data model, the origins and development of the product that can be found on the [landing page](https://noaa-owp.github.io/hydrofabric/) under [articles](https://noaa-owp.github.io/hydrofabric/articles/index.html).
+3. **Subsetting National Datasets**: It provides utilities to subset the national dataset for areas upstream of a specified location (XY coordinates), hydrofabric ID, indexed hydrolocation (e.g., NWIS gage, HUC12, or NID), NHDPlus COMID, or NLDI feature.
+
+4. **Comprehensive Documentation**: The repository offers extensive documentation, including details on the hydrofabric and cross-section data model, as well as the origins and development of the product. This information can be found on the [landing page](https://noaa-owp.github.io/hydrofabric/) under [articles](https://noaa-owp.github.io/hydrofabric/articles/index.html)..
 
 ## Cloud Native Data Archives
 

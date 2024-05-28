@@ -44,7 +44,7 @@ knitr::include_graphics("../man/figures/roadmap2.png")
 
 5. **Data Subsetting**: We demonstrated methods to [extract data subsets](https://noaa-owp.github.io/hydrofabric/articles/05-subsetting.html) for multi-scale modeling tasks using R and a [Go-based CLI](https://github.com/lynker-spatial/hfsubsetCLI). Since then, the R version and underlying data stores have been overhauled, the CLI implementation has transitioned to a (beta) [REST API](https://www.lynker-spatial.com/hydrofabric/hfsubset/__docs__/), and a Python implementation is forthcoming.
 
-5. **Enriching a hydrofabric**: While the core hydrofabric respect the above data model we demontrated hoe it could be enhance through te addtioon of catchment attributes (both precomputed and custom), flowpath attributes, and forcing weights. Since then, through a partnership with ESIP we extended the climateR catalog to host access endpoints to over 100,000 unique data resources, developed a e machine learning models for estimating river bathymety and roughness, tools to extract high resolution  bathymetry informed ross sections, and applid these across CONUS - all of which are provided in the egress free cloud resources!
+5. **Enriching a hydrofabric**: While the core hydrofabric respects the above data model we demontrated hoe it could be enhance through te addtioon of catchment attributes (both precomputed and custom), flowpath attributes, and forcing weights. Since then, through a partnership with ESIP we extended the climateR catalog to host access endpoints to over 100,000 unique data resources, developed a e machine learning models for estimating river bathymety and roughness, tools to extract high resolution  bathymetry informed ross sections, and applid these across CONUS - all of which are provided in the egress free cloud resources!
 
 
 ## Software
@@ -121,7 +121,7 @@ s3_source    <- "s3://lynker-spatial/hydrofabric"
 
 ### GPKG
 
-[Geopackages]((https://www.geopackage.org)/[SQLITE](https://sqlite.org/index.html) is an open, standards-based, platform-independent, and data format for spatial . It is designed to be a universal format for geospatial data storage, enabling the sharing and exchange of spatial data across different systems and software.
+[Geopackages](https://www.geopackage.org)/[SQLITE](https://sqlite.org/index.html) is an open, standards-based, platform-independent, and data format for spatial . It is designed to be a universal format for geospatial data storage, enabling the sharing and exchange of spatial data across different systems and software.
 
 ```{r gpkg}
 gpkg <- "tutorial/poudre.gpkg"
@@ -139,14 +139,18 @@ Apache [Arrow](https://arrow.apache.org) is an open-source project that provides
 
 [(geo)parquet](https://parquet.apache.org/docs/overview/) is an **on disc** data format for storing columar data. GeoParquet is an emerging standard for storing geospatial data within the Apache Parquet file format. Parquet is a columnar storage file format that is highly efficient for both storage and retrieval, particularly suited for big data and analytics applications.
 
-We distribute hydrofabric layers as VPU-based hive partitioned (geo)parquet stores. These can be accessed from lynker-spatial, or, synced (see above) to a local directory. Hive partitioning is a partitioning strategy that is used to split a table into multiple files based on partition keys. The files are organized into folders.  The complete `v2.2/reference/` directory is ~3.0GB while the `v2.1.1/nextgen` dirctory is ~
+We distribute hydrofabric layers as VPU-based hive partitioned (geo)parquet stores. These can be accessed from lynker-spatial, or, synced (see above) to a local directory. Hive partitioning is a partitioning strategy that is used to split a table into multiple files based on partition keys. The files are organized into folders.  
+
+> The complete `v2.2/reference/` directory is ~3.0GB while the `v2.1.1/nextgen` dirctory is ~ 9.0GB (including xs, flowpath/model attributes, forcing weights and routelink)
 
   
 #### Parquet store
 
 ```{r}
 (x <- glue("{local_source}/{version}/{type}/{domain}_network"))
-open_dataset(x)
+(x2 <- open_dataset(x))
+
+glimpse(x2)
 
 #> Remote parity
 #> open_dataset(glue('{s3_source}/{version}/{type}/{domain}_network/'))

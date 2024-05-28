@@ -1,17 +1,23 @@
 source("runners/config.R")
 
-ref_gpkg   <- '/Users/mjohnson/hydrofabric/reference_CONUS.gpkg'
-ref_net    <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_network')
-ref_div    <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_divides')
-ref_fl     <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_flowlines')
-ref_hl     <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_hydrolocations')
+ref_gpkg   <- '/Users/mjohnson/Downloads/reference_CONUS.gpkg'
+ref_poi <- '/Users/mjohnson/Downloads/reference_CONUS_poigeom.gpkg'
+ref_div   <- '/Users/mjohnson/Downloads/reference_catchments.gpkg'
+
+
+ref_net_out    <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_network')
+
+
+ref_div_out    <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_divides')
+ref_fl_out     <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_flowlines')
+ref_hl_out     <- glue('/Users/mjohnson/hydrofabric/v2.2/reference/conus_hydrolocations')
 
 # Reference Fabric --------------------------------------------------------
 
-fl = read_sf(ref_gpkg, 'reference_flowline') %>% 
+fl = as_sqlite(ref_gpkg, 'reference_flowline') %>% 
   select(id = comid, 
          toid = tocomid, 
-         usgs_poi_id = poi_id, 
+         poi_id = POI_ID, 
          terminalpa, 
          mainstemlp = levelpathi, 
          vpuid, 
@@ -23,21 +29,21 @@ fl = read_sf(ref_gpkg, 'reference_flowline') %>%
          streamorde, 
          totdasqkm, 
          hydroseq, 
-         dnhydroseq)
+         dnhydroseq,
+         geom) %>% 
+  read_sf_dataset_sqlite()
 
 g = nhdplusTools::get_node(fl, position = "end") %>%
   mutate(outlet_X = st_coordinates(.)[,1], 
-         outlet_Y = st_coordinates(.)[,2]
-        )
+         outlet_Y = st_coordinates(.)[,2])
 
 fl = bind_cols(fl, st_drop_geometry(g))
 
-div = as_sqlite(ref_gpkg, 'reference_catchment') %>%
+div = as_sqlite(ref_div, 'reference_catchments') %>%
   select(divide_id = featureid, vpuid, areasqkm, geom) %>%
-  collect() %>%
-  st_as_sf(crs = 5070)
+  read_sf_dataset_sqlite()
 
-poi_geom = read_sf(ref_gpkg, "poi_geometry") %>% 
+poi_geom = read_sf(ref_poi, "poi_geometry") %>% 
   mutate(X = st_coordinates(.)[,1], 
          Y = st_coordinates(.)[,2]) %>% 
   st_drop_geometry() %>% 
@@ -45,17 +51,17 @@ poi_geom = read_sf(ref_gpkg, "poi_geometry") %>%
   select(-hy_id)
 
 hl = as_sqlite(ref_gpkg, 'poi_data') %>% 
-  select(hy_id, hl_link, hl_reference, poi_id, vpuid) %>% 
+  select(hy_id, hl_link, hl_reference, nat_poi_id, vpuid) %>% 
   collect() %>% 
   mutate(hl_reference = gsub("Type_", "", hl_reference),
          hl_uri = paste0(hl_reference, "-",hl_link)) %>% 
   filter(hl_reference %in% community_hl_types) %>% 
   left_join(poi_geom,
-            by = c('poi_id', 'vpuid')) %>%
-  rename(id = hy_id) %>% 
-  group_by(vpuid, poi_id) %>% 
-  mutate(poi_id = cur_group_id()) %>% 
-  ungroup()
+            by = c('nat_poi_id', 'vpuid')) %>%
+  select(id = hy_id,
+         poi_id = nat_poi_id,
+         starts_with('hl_'),
+         vpuid, X, Y)
 
 filter(hl, hl_reference == "Gages", hl_link == "06752260") %>% 
   st_as_sf(coords = c("X", "Y"), crs = 5070) %>% 
@@ -63,17 +69,17 @@ filter(hl, hl_reference == "Gages", hl_link == "06752260") %>%
   
 net = st_drop_geometry(div) %>% 
   mutate(id = divide_id, vpuid = NULL) %>% 
-  full_join(st_drop_geometry(select(fl, -areasqkm, -usgs_poi_id)), by = "id") %>% 
+  full_join(st_drop_geometry(select(fl, -areasqkm)), by = "id") %>% 
   mutate(hf_id = id,  topo = "fl-fl") %>% 
   left_join(select(hl, -vpuid, -X, -Y),
-            by = "id",
+            by = "poi_id",
             relationship = "many-to-many")
 
 mutate(div,
        has_flowline = ifelse(divide_id %in% fl$id, TRUE, FALSE),
        id = ifelse(has_flowline, divide_id, NA)) %>% 
   group_by(vpuid) %>% 
-  write_sf_dataset(path  = ref_div,  
+  write_sf_dataset(path  = ref_div_out,  
                    version = 2.6,
                    hf_version = "2.2")
 
@@ -81,16 +87,16 @@ mutate(fl,
        has_divide = ifelse(id %in% div$divide_id, TRUE, FALSE),
        divide_id = ifelse(has_divide, id, NA)) %>% 
   group_by(vpuid) %>% 
-  write_sf_dataset(path  = ref_fl,  
+  write_sf_dataset(path  = ref_fl_out,  
                    version = 2.6,
                    hf_version = "2.2")
 
 group_by(net, vpuid) %>% 
-  arrow::write_dataset(ref_net, 
+  arrow::write_dataset(ref_net_out, 
                        version = 2.6)
 
 group_by(hl, vpuid) %>% 
-  arrow::write_dataset(path  = ref_hl,  
+  arrow::write_dataset(path  = ref_hl_out,  
                    version = 2.6)
 
 
@@ -168,6 +174,6 @@ net = st_drop_geometry(divide) %>%
   full_join(st_drop_geometry(fps), by = "id")
 
 group_by(net, vpuid) %>% 
-  arrow::write_dataset(rfc_net)
+  arrow::write_dataset(ref_net_out)
 
 gc()

@@ -70,8 +70,7 @@ gfv20 = open_dataset(glue("{source}/v2.2/reference/conus_hydrolocations")) %>%
   collect() %>% 
   mutate(hf_id = id,
          hf_source = "reference_features", 
-         hl_source = "GFv20",
-         usgs_poi_id = NULL) %>% 
+         hl_source = "GFv20") %>% 
   select(all_of(schema)) %>% 
   relocate(all_of(schema)) %>% 
   distinct() 
@@ -349,7 +348,8 @@ hl %>%
   group_by(vpuid) %>% 
   arrow::write_dataset(glue("{source}/conus_hl"), version = 2.6)
 
-aws s3 sync /Users/mjohnson/hydrofabric/conus_hl s3://lynker-spatial/hydrofabric/conus_hl
+"aws s3 sync /Users/mjohnson/hydrofabric/conus_hl s3://lynker-spatial/hydrofabric/conus_hl" %>% 
+  system()
 
 open_dataset(glue("{source}/conus_hl")) %>% collect()
 
