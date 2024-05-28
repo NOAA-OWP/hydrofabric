@@ -228,3 +228,13 @@ get_vpu_fabric("01",
                hf_version = "2.2", 
                outfile = "/Users/mjohnson/Downloads/01_ref_2.2.gpkg")
 ```
+
+# oCONUS domains
+
+We are slowly building up our oCONIS (Ontario, HI, PRVI, AK) domains. As they become avaialble, the same logic above will apply. For example to get Hawaii divides: 
+
+```{r}
+open_dataset(glue('{local_source}/{version}/{type}/hawaii_flowlines')) %>% 
+  read_sf_dataset() %>% 
+  mapview::mapview()
+```
