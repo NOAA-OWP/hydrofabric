@@ -60,9 +60,11 @@ get_subset(
   overwrite = TRUE
 )
 
-hf = read_hydrofabric(reference_file)
+st_layers(reference_file)
 
 # Pull out community POIs for Subset --------------------------------------
+# 
+hf = read_hydrofabric(reference_file)
 
 pois = open_dataset(glue("{source}/v2.2/conus_hl")) %>%
   filter(hl_source == 'GFv20', 
@@ -96,6 +98,7 @@ hydrolocations = read_sf(refactored_file, 'lookup_table') %>%
   select(poi_id, NHDPlusV2_COMID, id = reconciled_ID) %>%
   distinct()
 
+head(hydrolocations)
 
 # Aggregate Network -------------------------------------------------------
 
@@ -110,17 +113,19 @@ aggregate_to_distribution(
 
 make_map(aggregated_file, pois)
 
-
 # Apply NextGen Topology and Structure ------------------------------------
 
 unlink(nextgen_file)
-apply_nexus_topology(aggregated_file, export_gpkg = nextgen_file)
+
+apply_nexus_topology(aggregated_file, 
+                     export_gpkg = nextgen_file)
 
 make_map(nextgen_file, read_sf(nextgen_file, "nexus"))
 
-# Enriching the Network
+# Enriching the Network: Divides
 
-# Enrich your new network --------------------------------------------------
+vsi <- "/vsis3/lynker-spatial/gridded-resources"
+
 
 # Divides for NextGen Fabric
 div <- read_sf(nextgen_file, "divides")
@@ -158,6 +163,7 @@ m = execute_zonal(r[[4:5]],
 
 # Merge all tables into one
 d1 <- power_full_join(list(modes, gm, m), by = "divide_id")
+
 head(d1)
 
 # GWBUCKET Rescale Data  (Polygon --> Polygon) --------------------------------
@@ -181,13 +187,17 @@ d2 <- open_dataset(glue("{source}/v2.2/reference/conus_routelink")) |>
       gw_Expon = mode(floor(gw_Expon))
     )
 
-# Downscaleing Variables
+# Forcing Downscaling Base Data
+
+## Centroid 
 
 d3 <- st_centroid(div) |>
   st_transform(4326) |>
   st_coordinates() |>
   data.frame() |>
   mutate(divide_id = div$divide_id)
+
+## Elevation derived inputs
 
 dem_vars <- c("elev", "slope", "aspect")
 
@@ -225,7 +235,7 @@ crosswalk <- as_sqlite(nextgen_file, "network") |>
     select(hf_id, id, divide_id, hydroseq, poi_id) |>
     filter(!is.na(poi_id)) %>% 
     collect() %>% 
-    slice_min(hydroseq)
+    slice_max(hydroseq)
 
 open_dataset(glue("{source}/v2.2/reference/conus_routelink/")) |>
     select(hf_id, starts_with("ml_")) 
@@ -239,6 +249,8 @@ open_dataset(glue("{source}/v2.2/reference/conus_routelink/")) |>
               Y = mean(ml_y_bf_m),
               poi_id = poi_id[1]))
 
+#remotes::install_github("mikejohnson51/AHGestimation")
+
 bathy = AHGestimation::cross_section(r = cs$r, TW = cs$TW, Ymax = cs$Y) 
 
 plot(bathy$x, bathy$Y, type = "l", 
@@ -247,7 +259,7 @@ plot(bathy$x, bathy$Y, type = "l",
      main = glue("Average XS at POI: {cs$poi_id}"))
 
 
-# Uses this data to walk to a prior version of the NextGen Fabric!
+# Extacting Cross Sections:
 
 crosswalk <- as_sqlite(nextgen_file, "network") |>
     select(hf_id, id, toid, divide_id, hydroseq, poi_id) |>
@@ -260,8 +272,10 @@ cw = open_dataset(glue('{source}/v2.1.1/nextgen/conus_network')) %>%
 
 message(round(sum(cw$lengthkm),2), " kilometers of river")
 
-open_dataset(glue('{source}/v2.1.1/nextgen/conus_xs')) %>% 
-  filter(vpuid %in% unique(cw$vpuid), hf_id %in% unique(cw$id)) %>% 
+xs = open_dataset(glue('{source}/v2.1.1/nextgen/conus_xs')) 
+
+
+filter(xs, vpuid %in% unique(cw$vpuid), hf_id %in% unique(cw$id)) %>% 
   group_by(hf_id, cs_id) %>% 
   collect() %>% 
   mutate(uid = cur_group_id()) %>% 
@@ -272,6 +286,8 @@ open_dataset(glue('{source}/v2.1.1/nextgen/conus_xs')) %>%
               aspectratio = list(x=100, y=100, z=1)),
               showlegend = FALSE)
 
+# Populate Flowpath Attributes
+# 
 add_flowpath_attributes(nextgen_file, 
                         source = source)
 
@@ -285,6 +301,9 @@ append_style(nextgen_file, layer_names = c("divides", "flowpaths", "nexus"))
 
 
 
+
+
+# Clean up ----------------------------------------------------------------
 
 
 
