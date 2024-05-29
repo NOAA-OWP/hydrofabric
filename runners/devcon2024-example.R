@@ -2,7 +2,7 @@
 ## Script name: DevCon 2024: Hydrofabric
 ##
 ## Purpose of script: Walk users through the process of finding, 
-## manipualting and enriching a hydrofabrci network 
+## manipulating and enriching a hydrofabric network 
 ## for use in NextGen Applications
 
 ## Date Created: 2024-05-28
@@ -126,7 +126,6 @@ make_map(nextgen_file, read_sf(nextgen_file, "nexus"))
 
 vsi <- "/vsis3/lynker-spatial/gridded-resources"
 
-
 # Divides for NextGen Fabric
 div <- read_sf(nextgen_file, "divides")
 
@@ -188,7 +187,6 @@ d2 <- open_dataset(glue("{source}/v2.2/reference/conus_routelink")) |>
     )
 
 # Forcing Downscaling Base Data
-
 ## Centroid 
 
 d3 <- st_centroid(div) |>
@@ -198,7 +196,7 @@ d3 <- st_centroid(div) |>
   mutate(divide_id = div$divide_id)
 
 ## Elevation derived inputs
-
+## 
 dem_vars <- c("elev", "slope", "aspect")
 
 r  <- rast(glue('{vsi}/250m_grids/usgs_250m_{dem_vars}.tif'))
@@ -258,7 +256,6 @@ plot(bathy$x, bathy$Y, type = "l",
      xlab = "Depth (m)", 
      main = glue("Average XS at POI: {cs$poi_id}"))
 
-
 # Extacting Cross Sections:
 
 crosswalk <- as_sqlite(nextgen_file, "network") |>
@@ -287,7 +284,7 @@ filter(xs, vpuid %in% unique(cw$vpuid), hf_id %in% unique(cw$id)) %>%
               showlegend = FALSE)
 
 # Populate Flowpath Attributes
-# 
+ 
 add_flowpath_attributes(nextgen_file, 
                         source = source)
 
@@ -300,11 +297,6 @@ as_sqlite(nextgen_file, 'flowpath_attributes') %>%
 append_style(nextgen_file, layer_names = c("divides", "flowpaths", "nexus"))
 
 
-
-
-
 # Clean up ----------------------------------------------------------------
-
-
 
 fs::dir_delete(dir)

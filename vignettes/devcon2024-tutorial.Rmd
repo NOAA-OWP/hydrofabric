@@ -49,7 +49,6 @@ library(powerjoin)
 
 ```{r}
 # helper function to use throughout tutorial
-
 make_map = function(file, pois) {
   hf = read_hydrofabric(file)
   mapview::mapview(hf$catchments) + hf$flowpaths + pois
@@ -77,9 +76,8 @@ For this example, we want to prepare a NextGen hydrofabric and associated produc
 
 > The [lynker-spatial hydrolocation inventory](https://lynker-spatial.s3-us-west-2.amazonaws.com/hydrofabric/v2.2/hydrolocations.html) is both a subset and superset of the community POI set. Meaning, we use a subset of the community POIs, and add a selection needed for NextGen modeling. This include (but are not limited to) the NWS LIDs, Coastal/Terrestrail interactions, NWM reservoirs and lakes, coastal gages, and more!
 
-```{r, echo = FALSE}
-knitr::include_graphics("../man/figures/hydrofabric.png")
-```
+While we focus on the R-based subsetter (`hfsubsetR`) that integrates with the other `hydrofabric` packages here, we also provide a CLI tool called[`hfsubsetCLI`](https://github.com/lynker-spatial/hfsubsetCLI) and a (beta) [REST API](https://www.lynker-spatial.com/hydrofabric/hfsubset/__docs__/). and A Python implementation is also forthcoming. You can learn more about the subsetting tools/options [here](file:///Users/mjohnson/github/hydrofabric/docs/articles/05-subsetting.html)!
+
 
 ```{r, eval = FALSE}
 ## ---  Define starting feature by source and ID
@@ -199,7 +197,7 @@ There is a lot of **divide level** information that can be useful for running hy
 
 The easiest way to accomplish this is to use to use use the [climateR](https://github.com/mikejohnson51/climateR) package to access data, and zonal to rapidly summarize gridded data to the POLYGON scale. Both are core components of the `NOAA-OWP/hydrofabric` meta package and should already be loaded! 
 
-These summarizations can be as simple as deriving a mean value, or as complex user-defined summaries. We will highlight each of these below as we walk through the steps needed to build the divide-level data needed to run CFE, NOM, PET, and generate forcings.  
+These summarizations can be as simple as deriving a mean value, or as complex user-defined summaries. We will highlight each of these below as we walk through the steps needed to build the divide-level data needed to run CFE, NOM, PET, and generate forcing's.  
 
 ## Derive the divide-level data needed for CFE/NOM/PET
 
@@ -212,7 +210,7 @@ div <- read_sf(nextgen_file, "divides")
 
 ## NOAH OWP Varibables 
 
-If you have used the NWM data before you'll know the data distributed in the NetCDF domain files is packed unconventionally, lacks spatial information, and is not optimized for piecemeal access. As such, relevant layers were extracted and turned into Cloud Optimized Geotiffs (COG) and distributed egress free.  We'll demonstrate a few of the different ways we can summerise these in the next example. All of these are grid --> POLYGON summaries that utilize mode, mean, and geometric mean summaries.
+If you have used the NWM data before you'll know the data distributed in the NetCDF domain files is packed unconventionally, lacks spatial information, and is not optimized for piecemeal access. As such, relevant layers were extracted and turned into Cloud Optimized GeoTiffs (COG) and distributed egress free.  We'll demonstrate a few of the different ways we can summerise these in the next example. All of these are grid --> POLYGON summaries that utilize mode, mean, and geometric mean summaries.
 
 ```{r}
 # Desired variables
@@ -314,6 +312,8 @@ model_attributes <- power_full_join(list(d1, d2, d3, d4, d5), by = "divide_id")
 
 Tools like [CIROH ngen-datastream](https://github.com/CIROH-UA/ngen-datastream) and NextGen in a Box not only use the divide level information to downscale data to the NWM forcing grid, but leverage precomputed weights to summarize the forcing information to the divide level each timestep.  Doing this in an efficient manner requires pointing to a **template** grid (here the `medium_range.forcing`) and executing the `weight_grid` function from `zonal` to compute the percentage of each cell that is covered by each divide. A template grid is one in which the structure ([cell resolution, grid spacing etc.](https://mikejohnson51.github.io/climateR/articles/schema.html)), but not the input data, is important.
 
+> NOTE: If using a pre generated network, the forcing weights are a subsetable layer in our subseting tools (e.g `{source}/{version}/{type}/{domain}_forcing-weights`). It can also be generated on the fly with the REST API for a queried subset (see more in the [`docs`](https://www.lynker-spatial.com/hydrofabric/hfsubset/__docs__/)).
+
 ```{r, eval = FALSE}
 type = "medium_range.forcing"
 
@@ -351,7 +351,7 @@ crosswalk <- as_sqlite(nextgen_file, "network") |>
     collect() %>% 
     slice_max(hydroseq)
 
-# Avaialable ML outputs
+# Available ML outputs
 open_dataset(glue("{source}/v2.2/reference/conus_routelink/")) |>
     select(hf_id, starts_with("ml_")) 
 
@@ -420,7 +420,7 @@ filter(xs, vpuid %in% unique(cw$vpuid), hf_id %in% unique(cw$id)) %>%
 
 # Populate Flowpath Attributes 
 
-Slowly the ML enhanced DEM-based cross sections are being used to supplement a national Routelink file (`conus_routelink`) that is complete with the routing attributes need for both [t-route](https://github.com/NOAA-OWP/t-route) and [wrfhydro / NWM](https://ral.ucar.edu/projects/wrf_hydro) to execute. We are striving to implement the routelink file at the **reference fabric** level meaning it can be expended to any derived product. As such, the length average contribution of each reference flowline to its aggregated flowpath needs to be calculated. This can be done in the following way:
+Slowly the ML enhanced DEM-based cross sections are being used to supplement a national Routelink file (`conus_routelink`) that is complete with the routing attributes need for both [t-route](https://github.com/NOAA-OWP/t-route) and [WRF-Hydro / NWM](https://ral.ucar.edu/projects/wrf_hydro) to execute. We are striving to implement the routelink file at the **reference fabric** level meaning it can be expended to any derived product. As such, the length average contribution of each reference flowline to its aggregated flowpath needs to be calculated. This can be done in the following way:
 
 ```{r}
 add_flowpath_attributes(nextgen_file, source = source)
@@ -447,4 +447,8 @@ Let's open it with QGIS and see our final product!
 knitr::include_graphics('https://gifdb.com/images/high/hot-damn-raymond-holt-78dta22myyoo3ogx.gif')
 ```
 
+
+```{r, echo = FALSE}
+knitr::include_graphics("../man/figures/hydrofabric.png")
+```
 And with that you are ready to experiment, derive, and access your own enriched hydrofabics!
