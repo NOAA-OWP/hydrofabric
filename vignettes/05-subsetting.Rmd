@@ -136,11 +136,52 @@ subset101_enhanced$`forcing-weights`
 ```
 
 
+# REST Service (BETA)
+
+For workflows regardless of programming language, we offer an in-beta [REST API](https://www.lynker-spatial.com/hydrofabric/hfsubset/__docs__/).
+This API wraps the `hfsubsetR` library to provide the same subsetting capabilities across the web.
+
+Currently, the API offers one endpoint `/subset`. To query this endpoint, we can use a tool like [cURL](https://curl.se/):
+
+```bash
+API_URL="https://www.lynker-spatial.com/hydrofabric/hfsubset"
+curl -o hydrofabric.gpkg "${API_URL}/subset?identifier=101&identifier_type=comid&version=2.1.1&subset_type=nextgen"
+```
+
+Running the above outputs a GeoPackage subset of the v2.1.1 NextGen hydrofabric,
+containing the following layers of upstream features from COMID 101:
+
+```
+  layer_name     geometry_type features fields             crs_name
+1    divides           Polygon       20     10 NAD83 / Conus Albers
+2  flowlines Multi Line String       20     11 NAD83 / Conus Albers
+3      nexus             Point        8      6 NAD83 / Conus Albers
+4    network                NA       86     18                 <NA>
+```
+
+Additionally, we can also subset forcing weights in two ways:
+
+1. subset the pre-computed NextGen layer
+2. compute the weight grid on-demand
+
+For (1), we can accomplish this by explicitly setting the `layer` query parameter:
+
+```bash
+curl -o hydrofabric.gpkg "${API_URL}/subset?identifier=101&identifier_type=comid&version=2.1.1&subset_type=nextgen&layer=divides&layer=forcing-weights"
+```
+
+For (2), we can set the `weights` query parameter:
+
+```bash
+curl -o hydrofabric.gpkg "${API_URL}/subset?identifier=101&identifier_type=comid&version=2.1.1&subset_type=nextgen&layer=divides&weights=medium_range"
+```
+
 # CLI Option
 
-For those interested in using the NOAA NextGen fabric as is, we have provided a Go-based CLI [here](https://github.com/lynker-spatial/hfsubset/releases)
+For those interested in using the NOAA NextGen fabric, without directly needing R, or within a non-interactive pipeline,
+we provide pre-built binaries for a [Go-based CLI tool](https://github.com/lynker-spatial/hfsubset/releases) that creates and forwards requests to the REST API, preventing the need to construct URLs and use cURL as in the examples above.
 
-This utility has the following syntax:
+The help output for this tool is as follows:
 
 ```{bash, eval = FALSE}
 hfsubset - Hydrofabric Subsetter
@@ -149,24 +190,62 @@ Usage:
   hfsubset [OPTIONS] identifiers...
   hfsubset (-h | --help)
 
-Example:
-  hfsubset -l divides -o ./poudre-divides.gpkg -r "pre-release" -t hl "Gages-06752260"
-  hfsubset -o ./poudre-all.gpkg -t hl "Gages-06752260"
+Examples:
+  hfsubset -o ./divides_nexus.gpkg \
+           -r "2.2"                \
+           -t hl                   \
+           "Gages-06752260"
+
+  hfsubset -o ./poudre.gpkg -t hl "Gages-06752260"
+
+  # Using network-linked data index identifiers
+  hfsubset -o ./poudre.gpkg -t nldi "nwissite:USGS-08279500"
+  
+  # Specifying hydrofabric version and subset type
+  hfsubset -o ./divides_nexus.gpkg -l divides,flowlines,nexus -r "2.1.1" -s "nextgen" -t hl "Gages-06752260"
+  
+  # Finding data around a coordinate point
+  hfsubset -o ./sacramento_flowlines.gpkg -l flowlines -t xy -121.494400,38.581573
+
+Environment Variables:
+  ${HFSUBSET_ENDPOINT} - Endpoint to use for subsetting,
+                         defaults to 'https://www.lynker-spatial.com/hydrofabric/hfsubset/'.
+                         Note: the endpoint must end with a trailing slash.
+
+Details:
+  * Finding POI identifiers can be done visually
+    through https://www.lynker-spatial.com/hydrolocations.html
+
+  * When using identifier type 'xy', the coordinates are in OGC:CRS84 order,
+    which is the same reference system as EPSG:4326 (WGS84), but uses
+    longitude-latitude axis order rather than latitude-longitude.
+
+  * When using identifier type 'nldi', the identifiers follow the syntax
+
+      <featureSource>:<featureID>
+
+    For example, USGS-08279500 is accessed with featureSource 'nwissite',
+    so this gives the form 'nwissite:USGS-08279500'
 
 Options:
+  -debug
+        Run in debug mode
+  -dryrun
+        Perform a dry run, only outputting the request that will be sent
   -l string
-        Layers to subset (default "divides,nexus,flowpaths,network,hydrolocations")
+        Comma-delimited list of layers to subset. (default "divides,flowlines,network,nexus")
   -o string
         Output file name (default "hydrofabric.gpkg")
-  -r string
-        Hydrofabric version (default "pre-release")
+  -quiet
+        Disable logging
+  -s string
+        Hydrofabric type, only "reference" is supported (default "reference")
   -t string
-        One of: hf, hl, or comid (default "hf")
-```
-
-
-# REST Service (BETA)
-
-```{r,eval = FALSE}
-https://www.lynker-spatial.com/hydrofabric/hfsubset/subset?identifier=101&identifier_type=comid
+        One of: "hf", "comid", "hl", "poi", "nldi", or "xy" (default "hf")
+  -v string
+        Hydrofabric version (NOTE: omit the preceeding v) (default "2.2")
+  -verify
+        Verify that endpoint is available (default true)
+  -w string
+        Comma-delimited list of weights to generate over the subset.
 ```
