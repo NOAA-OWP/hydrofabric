@@ -58,7 +58,7 @@ RStudio is an integrated development environment (IDE) for R.  Combined the R la
 
 #### Install R
 
-- [Download](https://cran.r-project.org/bin/windows/base/) the latest R installer (.exe) for Windows. Install the downloaded file as any other windows app. Now that R is installed, you can download and install RStudio.
+- [Download](https://cran.r-project.org/bin/windows/base/) the latest R installer (.exe) for Windows. Install the downloaded file as any other windows app. 
 
 - Now that R is installed, you can download and install RStudio.
 
@@ -109,7 +109,6 @@ The `hydrofabric` contains a collection of very useful packages that play nicely
 ```{r, eval = FALSE}
 install.packages('powerjoin')
 install.packages("remotes") 
-remotes::install_github("NOAA-OWP/hydrofabric")
 ```
 
 In development package (yay DevCon!) can be installed from Github using the `remotes` package (installed above):

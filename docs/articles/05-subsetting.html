@@ -309,48 +309,121 @@ attributes and the forcing weights needed for NGIAB.</p>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 328 × 5</span></span></span>
 <span><span class="co">##    divide_id       cell coverage_fraction grid_id                    vpuid</span></span>
 <span><span class="co">##    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> cat-2430835 13<span style="text-decoration: underline;">282</span>774             0.262 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> cat-2430835 13<span style="text-decoration: underline;">282</span>775             0.603 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> cat-2430835 13<span style="text-decoration: underline;">282</span>776             0.582 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> cat-2430835 13<span style="text-decoration: underline;">282</span>777             0.112 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> cat-2430835 13<span style="text-decoration: underline;">287</span>382             0.145 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> cat-2430835 13<span style="text-decoration: underline;">287</span>383             0.980 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> cat-2430835 13<span style="text-decoration: underline;">287</span>384             1     medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> cat-2430835 13<span style="text-decoration: underline;">287</span>385             0.945 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> cat-2430835 13<span style="text-decoration: underline;">287</span>386             0.308 medium_range.forcing.conus 12   </span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">10</span> cat-2430835 13<span style="text-decoration: underline;">291</span>990             0.397 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 1</span> cat-2430833 13<span style="text-decoration: underline;">236</span>693             0.130 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 2</span> cat-2430833 13<span style="text-decoration: underline;">236</span>694             0.772 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 3</span> cat-2430833 13<span style="text-decoration: underline;">236</span>695             0.423 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 4</span> cat-2430833 13<span style="text-decoration: underline;">241</span>301             0.306 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 5</span> cat-2430833 13<span style="text-decoration: underline;">241</span>302             1     medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 6</span> cat-2430833 13<span style="text-decoration: underline;">241</span>303             0.644 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 7</span> cat-2430833 13<span style="text-decoration: underline;">245</span>908             0.101 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 8</span> cat-2430833 13<span style="text-decoration: underline;">245</span>909             0.866 medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;"> 9</span> cat-2430833 13<span style="text-decoration: underline;">245</span>910             1     medium_range.forcing.conus 12   </span></span>
+<span><span class="co">## <span style="color: #BCBCBC;">10</span> cat-2430833 13<span style="text-decoration: underline;">245</span>911             0.488 medium_range.forcing.conus 12   </span></span>
 <span><span class="co">## <span style="color: #949494;"># ℹ 318 more rows</span></span></span></code></pre>
-</div>
-<div class="section level2">
-<h2 id="cli-option">CLI Option<a class="anchor" aria-label="anchor" href="#cli-option"></a>
-</h2>
-<p>For those interested in using the NOAA NextGen fabric as is, we have
-provided a Go-based CLI <a href="https://github.com/lynker-spatial/hfsubset/releases" class="external-link">here</a></p>
-<p>This utility has the following syntax:</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="ex">hfsubset</span> <span class="at">-</span> Hydrofabric Subsetter</span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a></span>
-<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a><span class="ex">Usage:</span></span>
-<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="pp">[</span><span class="ss">OPTIONS</span><span class="pp">]</span> identifiers...</span>
-<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="er">(</span><span class="ex">-h</span> <span class="kw">|</span> <span class="ex">--help</span><span class="kw">)</span></span>
-<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a></span>
-<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a><span class="ex">Example:</span></span>
-<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="at">-l</span> divides <span class="at">-o</span> ./poudre-divides.gpkg <span class="at">-r</span> <span class="st">"pre-release"</span> <span class="at">-t</span> hl <span class="st">"Gages-06752260"</span></span>
-<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="at">-o</span> ./poudre-all.gpkg <span class="at">-t</span> hl <span class="st">"Gages-06752260"</span></span>
-<span id="cb25-10"><a href="#cb25-10" tabindex="-1"></a></span>
-<span id="cb25-11"><a href="#cb25-11" tabindex="-1"></a><span class="ex">Options:</span></span>
-<span id="cb25-12"><a href="#cb25-12" tabindex="-1"></a>  <span class="ex">-l</span> string</span>
-<span id="cb25-13"><a href="#cb25-13" tabindex="-1"></a>        <span class="ex">Layers</span> to subset <span class="er">(</span><span class="ex">default</span> <span class="st">"divides,nexus,flowpaths,network,hydrolocations"</span><span class="kw">)</span></span>
-<span id="cb25-14"><a href="#cb25-14" tabindex="-1"></a>  <span class="ex">-o</span> string</span>
-<span id="cb25-15"><a href="#cb25-15" tabindex="-1"></a>        <span class="ex">Output</span> file name <span class="er">(</span><span class="ex">default</span> <span class="st">"hydrofabric.gpkg"</span><span class="kw">)</span></span>
-<span id="cb25-16"><a href="#cb25-16" tabindex="-1"></a>  <span class="ex">-r</span> string</span>
-<span id="cb25-17"><a href="#cb25-17" tabindex="-1"></a>        <span class="ex">Hydrofabric</span> version <span class="er">(</span><span class="ex">default</span> <span class="st">"pre-release"</span><span class="kw">)</span></span>
-<span id="cb25-18"><a href="#cb25-18" tabindex="-1"></a>  <span class="ex">-t</span> string</span>
-<span id="cb25-19"><a href="#cb25-19" tabindex="-1"></a>        <span class="ex">One</span> of: hf, hl, or comid <span class="er">(</span><span class="ex">default</span> <span class="st">"hf"</span><span class="kw">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="rest-service-beta">REST Service (BETA)<a class="anchor" aria-label="anchor" href="#rest-service-beta"></a>
 </h2>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>https<span class="sc">:</span><span class="er">//</span>www.lynker<span class="sc">-</span>spatial.com<span class="sc">/</span>hydrofabric<span class="sc">/</span>hfsubset<span class="sc">/</span>subset?identifier<span class="ot">=</span><span class="dv">101</span><span class="sc">&amp;</span>identifier_type<span class="ot">=</span>comid</span></code></pre></div>
+<p>For workflows regardless of programming language, we offer an in-beta
+<a href="https://www.lynker-spatial.com/hydrofabric/hfsubset/__docs__/" class="external-link">REST
+API</a>. This API wraps the <code>hfsubsetR</code> library to provide
+the same subsetting capabilities across the web.</p>
+<p>Currently, the API offers one endpoint <code>/subset</code>. To query
+this endpoint, we can use a tool like <a href="https://curl.se/" class="external-link">cURL</a>:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="va">API_URL</span><span class="op">=</span><span class="st">"https://www.lynker-spatial.com/hydrofabric/hfsubset"</span></span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-o</span> hydrofabric.gpkg <span class="st">"</span><span class="va">${API_URL}</span><span class="st">/subset?identifier=101&amp;identifier_type=comid&amp;version=2.1.1&amp;subset_type=nextgen"</span></span></code></pre></div>
+<p>Running the above outputs a GeoPackage subset of the v2.1.1 NextGen
+hydrofabric, containing the following layers of upstream features from
+COMID 101:</p>
+<pre><code>  layer_name     geometry_type features fields             crs_name
+1    divides           Polygon       20     10 NAD83 / Conus Albers
+2  flowlines Multi Line String       20     11 NAD83 / Conus Albers
+3      nexus             Point        8      6 NAD83 / Conus Albers
+4    network                NA       86     18                 &lt;NA&gt;</code></pre>
+<p>Additionally, we can also subset forcing weights in two ways:</p>
+<ol style="list-style-type: decimal">
+<li>subset the pre-computed NextGen layer</li>
+<li>compute the weight grid on-demand</li>
+</ol>
+<p>For (1), we can accomplish this by explicitly setting the
+<code>layer</code> query parameter:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-o</span> hydrofabric.gpkg <span class="st">"</span><span class="va">${API_URL}</span><span class="st">/subset?identifier=101&amp;identifier_type=comid&amp;version=2.1.1&amp;subset_type=nextgen&amp;layer=divides&amp;layer=forcing-weights"</span></span></code></pre></div>
+<p>For (2), we can set the <code>weights</code> query parameter:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-o</span> hydrofabric.gpkg <span class="st">"</span><span class="va">${API_URL}</span><span class="st">/subset?identifier=101&amp;identifier_type=comid&amp;version=2.1.1&amp;subset_type=nextgen&amp;layer=divides&amp;weights=medium_range"</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="cli-option">CLI Option<a class="anchor" aria-label="anchor" href="#cli-option"></a>
+</h2>
+<p>For those interested in using the NOAA NextGen fabric, without
+directly needing R, or within a non-interactive pipeline, we provide
+pre-built binaries for a <a href="https://github.com/lynker-spatial/hfsubset/releases" class="external-link">Go-based CLI
+tool</a> that creates and forwards requests to the REST API, preventing
+the need to construct URLs and use cURL as in the examples above.</p>
+<p>The help output for this tool is as follows:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="ex">hfsubset</span> <span class="at">-</span> Hydrofabric Subsetter</span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a><span class="ex">Usage:</span></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="pp">[</span><span class="ss">OPTIONS</span><span class="pp">]</span> identifiers...</span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="er">(</span><span class="ex">-h</span> <span class="kw">|</span> <span class="ex">--help</span><span class="kw">)</span></span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a><span class="ex">Examples:</span></span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="at">-o</span> ./divides_nexus.gpkg <span class="dt">\</span></span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a>           <span class="at">-r</span> <span class="st">"2.2"</span>                <span class="dt">\</span></span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a>           <span class="at">-t</span> hl                   <span class="dt">\</span></span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a>           <span class="st">"Gages-06752260"</span></span>
+<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a></span>
+<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="at">-o</span> ./poudre.gpkg <span class="at">-t</span> hl <span class="st">"Gages-06752260"</span></span>
+<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a></span>
+<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a>  <span class="co"># Using network-linked data index identifiers</span></span>
+<span id="cb29-16"><a href="#cb29-16" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="at">-o</span> ./poudre.gpkg <span class="at">-t</span> nldi <span class="st">"nwissite:USGS-08279500"</span></span>
+<span id="cb29-17"><a href="#cb29-17" tabindex="-1"></a>  </span>
+<span id="cb29-18"><a href="#cb29-18" tabindex="-1"></a>  <span class="co"># Specifying hydrofabric version and subset type</span></span>
+<span id="cb29-19"><a href="#cb29-19" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="at">-o</span> ./divides_nexus.gpkg <span class="at">-l</span> divides,flowlines,nexus <span class="at">-r</span> <span class="st">"2.1.1"</span> <span class="at">-s</span> <span class="st">"nextgen"</span> <span class="at">-t</span> hl <span class="st">"Gages-06752260"</span></span>
+<span id="cb29-20"><a href="#cb29-20" tabindex="-1"></a>  </span>
+<span id="cb29-21"><a href="#cb29-21" tabindex="-1"></a>  <span class="co"># Finding data around a coordinate point</span></span>
+<span id="cb29-22"><a href="#cb29-22" tabindex="-1"></a>  <span class="ex">hfsubset</span> <span class="at">-o</span> ./sacramento_flowlines.gpkg <span class="at">-l</span> flowlines <span class="at">-t</span> xy <span class="at">-121.494400,38.581573</span></span>
+<span id="cb29-23"><a href="#cb29-23" tabindex="-1"></a></span>
+<span id="cb29-24"><a href="#cb29-24" tabindex="-1"></a><span class="ex">Environment</span> Variables:</span>
+<span id="cb29-25"><a href="#cb29-25" tabindex="-1"></a>  <span class="va">${HFSUBSET_ENDPOINT}</span> <span class="at">-</span> Endpoint to use for subsetting,</span>
+<span id="cb29-26"><a href="#cb29-26" tabindex="-1"></a>                         <span class="ex">defaults</span> to <span class="st">'https://www.lynker-spatial.com/hydrofabric/hfsubset/'</span>.</span>
+<span id="cb29-27"><a href="#cb29-27" tabindex="-1"></a>                         <span class="ex">Note:</span> the endpoint must end with a trailing slash.</span>
+<span id="cb29-28"><a href="#cb29-28" tabindex="-1"></a></span>
+<span id="cb29-29"><a href="#cb29-29" tabindex="-1"></a><span class="ex">Details:</span></span>
+<span id="cb29-30"><a href="#cb29-30" tabindex="-1"></a>  <span class="ex">*</span> Finding POI identifiers can be done visually</span>
+<span id="cb29-31"><a href="#cb29-31" tabindex="-1"></a>    <span class="ex">through</span> https://www.lynker-spatial.com/hydrolocations.html</span>
+<span id="cb29-32"><a href="#cb29-32" tabindex="-1"></a></span>
+<span id="cb29-33"><a href="#cb29-33" tabindex="-1"></a>  <span class="ex">*</span> When using identifier type <span class="st">'xy'</span>, the coordinates are in OGC:CRS84 order,</span>
+<span id="cb29-34"><a href="#cb29-34" tabindex="-1"></a>    <span class="fu">which</span> is the same reference system as EPSG:4326 <span class="er">(</span><span class="ex">WGS84</span><span class="kw">)</span><span class="ex">,</span> but uses</span>
+<span id="cb29-35"><a href="#cb29-35" tabindex="-1"></a>    <span class="ex">longitude-latitude</span> axis order rather than latitude-longitude.</span>
+<span id="cb29-36"><a href="#cb29-36" tabindex="-1"></a></span>
+<span id="cb29-37"><a href="#cb29-37" tabindex="-1"></a>  <span class="ex">*</span> When using identifier type <span class="st">'nldi'</span>, the identifiers follow the syntax</span>
+<span id="cb29-38"><a href="#cb29-38" tabindex="-1"></a></span>
+<span id="cb29-39"><a href="#cb29-39" tabindex="-1"></a>      <span class="op">&lt;</span>featureSource<span class="op">&gt;</span>:<span class="op">&lt;</span>featureID<span class="op">&gt;</span></span>
+<span id="cb29-40"><a href="#cb29-40" tabindex="-1"></a></span>
+<span id="cb29-41"><a href="#cb29-41" tabindex="-1"></a>    <span class="ex">For</span> example, USGS-08279500 is accessed with featureSource <span class="st">'nwissite'</span>,</span>
+<span id="cb29-42"><a href="#cb29-42" tabindex="-1"></a>    <span class="ex">so</span> this gives the form <span class="st">'nwissite:USGS-08279500'</span></span>
+<span id="cb29-43"><a href="#cb29-43" tabindex="-1"></a></span>
+<span id="cb29-44"><a href="#cb29-44" tabindex="-1"></a><span class="ex">Options:</span></span>
+<span id="cb29-45"><a href="#cb29-45" tabindex="-1"></a>  <span class="ex">-debug</span></span>
+<span id="cb29-46"><a href="#cb29-46" tabindex="-1"></a>        <span class="ex">Run</span> in debug mode</span>
+<span id="cb29-47"><a href="#cb29-47" tabindex="-1"></a>  <span class="ex">-dryrun</span></span>
+<span id="cb29-48"><a href="#cb29-48" tabindex="-1"></a>        <span class="ex">Perform</span> a dry run, only outputting the request that will be sent</span>
+<span id="cb29-49"><a href="#cb29-49" tabindex="-1"></a>  <span class="ex">-l</span> string</span>
+<span id="cb29-50"><a href="#cb29-50" tabindex="-1"></a>        <span class="ex">Comma-delimited</span> list of layers to subset. <span class="er">(</span><span class="ex">default</span> <span class="st">"divides,flowlines,network,nexus"</span><span class="kw">)</span></span>
+<span id="cb29-51"><a href="#cb29-51" tabindex="-1"></a>  <span class="ex">-o</span> string</span>
+<span id="cb29-52"><a href="#cb29-52" tabindex="-1"></a>        <span class="ex">Output</span> file name <span class="er">(</span><span class="ex">default</span> <span class="st">"hydrofabric.gpkg"</span><span class="kw">)</span></span>
+<span id="cb29-53"><a href="#cb29-53" tabindex="-1"></a>  <span class="ex">-quiet</span></span>
+<span id="cb29-54"><a href="#cb29-54" tabindex="-1"></a>        <span class="ex">Disable</span> logging</span>
+<span id="cb29-55"><a href="#cb29-55" tabindex="-1"></a>  <span class="ex">-s</span> string</span>
+<span id="cb29-56"><a href="#cb29-56" tabindex="-1"></a>        <span class="ex">Hydrofabric</span> type, only <span class="st">"reference"</span> is supported <span class="er">(</span><span class="ex">default</span> <span class="st">"reference"</span><span class="kw">)</span></span>
+<span id="cb29-57"><a href="#cb29-57" tabindex="-1"></a>  <span class="ex">-t</span> string</span>
+<span id="cb29-58"><a href="#cb29-58" tabindex="-1"></a>        <span class="ex">One</span> of: <span class="st">"hf"</span>, <span class="st">"comid"</span>, <span class="st">"hl"</span>, <span class="st">"poi"</span>, <span class="st">"nldi"</span>, or <span class="st">"xy"</span> <span class="er">(</span><span class="ex">default</span> <span class="st">"hf"</span><span class="kw">)</span></span>
+<span id="cb29-59"><a href="#cb29-59" tabindex="-1"></a>  <span class="ex">-v</span> string</span>
+<span id="cb29-60"><a href="#cb29-60" tabindex="-1"></a>        <span class="ex">Hydrofabric</span> version <span class="er">(</span><span class="ex">NOTE:</span> omit the preceeding v<span class="kw">)</span> <span class="kw">(</span><span class="ex">default</span> <span class="st">"2.2"</span><span class="kw">)</span></span>
+<span id="cb29-61"><a href="#cb29-61" tabindex="-1"></a>  <span class="ex">-verify</span></span>
+<span id="cb29-62"><a href="#cb29-62" tabindex="-1"></a>        <span class="ex">Verify</span> that endpoint is available <span class="er">(</span><span class="ex">default</span> true<span class="kw">)</span></span>
+<span id="cb29-63"><a href="#cb29-63" tabindex="-1"></a>  <span class="ex">-w</span> string</span>
+<span id="cb29-64"><a href="#cb29-64" tabindex="-1"></a>        <span class="ex">Comma-delimited</span> list of weights to generate over the subset.</span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
