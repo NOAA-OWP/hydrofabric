@@ -27,7 +27,7 @@ path_df
 # loop over each vpu and generate cross sections, then save locally and upload to s3 bucket
 # for(i in 1:nrow(path_df)) {
   
-  # i = 8
+  i = 8
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
@@ -65,13 +65,181 @@ path_df
   
   # read in nextgen flowlines data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
-  system.time({
-   extended_transects <- get_transect_extension_distances_to_polygons(transects,
-                                               fema,
-                                               flines,
-                                               3000)
-  })
-   # library(nngeo)
+  # 
+  # system.time({
+  #  extended_transects <- get_transect_extension_distances_to_polygons(transects, fema, flines, 3000)
+  # })
+  # 
+  # sf::write_sf(extended_transects, '/Users/anguswatters/Desktop/test_fema_extended_trans.gpkg')
+  # ------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- --- 
+  # ----- Generate plots of extensions ----
+  # ------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- --- 
+  extended_transects <- sf::read_sf('/Users/anguswatters/Desktop/test_fema_extended_trans.gpkg') %>% 
+    hydrofabric3D::add_tmp_id()
+  # ids_of_interest = c("wb-1002167", "wb-1002166", "wb-1002165", "wb-1002164")
+  # ids_of_interest = c( "wb-1002166", "wb-1002165")
+  # ids_of_interest = c("wb-1014540", "wb-1014541", "wb-1014542", "wb-1014570", "wb-1014574",
+  #   "wb-1014575", "wb-1014572" ,"wb-1014573" ,"wb-1014571", 
+  #   "wb-1014568", "wb-1014569", "wb-1014567", "wb-1014543")
+
+  # ids_of_interest = c( "wb-1014542")
+  
+  any_extended <- 
+    extended_transects %>% 
+    dplyr::filter(
+      (left_is_extended & right_is_extended) | (left_is_extended & !right_is_extended) | (!left_is_extended & right_is_extended)
+    ) %>%
+    dplyr::mutate(
+      extend_status = dplyr::case_when(
+        (left_is_extended & right_is_extended)  ~ "both",
+        (left_is_extended & !right_is_extended) ~ "left_only",
+        (!left_is_extended & right_is_extended) ~ "right_only",
+        TRUE ~ "no_extension"
+      )
+    ) %>% 
+    dplyr::mutate(
+      extend_distance = left_distance + right_distance
+    ) %>% 
+    dplyr::relocate(extend_status, extend_distance) %>% 
+    dplyr::filter(hy_id == "wb-1002550") 
+    # dplyr::slice(1:1500)
+  
+  fema_subset_intersects <- sf::st_intersects(fema, any_extended)
+  fema_polygons <- fema[lengths(fema_subset_intersects) > 0, ]
+  fema_polygons
+  
+  og_trans <- 
+    transects %>% 
+    hydrofabric3D::add_tmp_id() %>% 
+    dplyr::filter(tmp_id %in% any_extended$tmp_id | hy_id %in% any_extended$hy_id) %>% 
+    dplyr::mutate(
+      extend_status = "original"
+    ) 
+  
+  Flowlines <-
+    flines %>% 
+    dplyr::filter(id %in% unique(any_extended$hy_id))
+  
+  FEMA = fema_polygons
+  Extended = sf::st_buffer(any_extended, 10)
+  Original = sf::st_buffer(og_trans, 10)
+  
+  mapview::mapview(FEMA, col.regions = "dodgerblue") + 
+    mapview::mapview(Flowlines, color = "darkblue") + 
+    mapview::mapview(Extended, col.regions = "green") +
+    mapview::mapview(Original, col.regions = "red") 
+    # mapview::mapview(Extended, color = "green") +
+    # mapview::mapview(Original, color = "red") 
+  extend_subset <- 
+    any_extended %>% 
+    dplyr::filter(hy_id %in% ids_of_interest)
+    # dplyr::group_by(extend_status) %>%
+    # dplyr::arrange(-extend_distance, .by_group = TRUE) %>% 
+    # dplyr::slice(
+    #   which.min(extend_distance),
+    #   which.max(extend_distance)
+    # )
+    # dplyr::slice(1)
+  extend_subset <-
+    any_extended %>%
+    dplyr::group_by(extend_status) %>%
+    dplyr::arrange(-extend_distance, .by_group = TRUE) %>%
+    # dplyr::slice(
+    #   which.min(extend_distance),
+    #   which.max(extend_distance)
+    # )
+    dplyr::slice(2000:2020)
+  extend_subset
+  
+  fline_subset <-
+    flines %>% 
+    dplyr::filter(id %in% unique(extend_subset$hy_id))
+  
+  plot_data <- 
+    dplyr::bind_rows(
+    transects %>% 
+      hydrofabric3D::add_tmp_id() %>% 
+      dplyr::filter(tmp_id %in% extend_subset$tmp_id) %>% 
+      dplyr::mutate(
+        extend_status = "original"
+      ),
+    dplyr::filter(extend_subset, 
+                  extend_status != "no_extension")
+  ) %>% 
+  dplyr::relocate(extend_status, extend_distance) %>% 
+    dplyr::mutate(
+      extend_status = dplyr::case_when(
+        extend_status != "original" ~ "extended",
+        TRUE ~ extend_status
+      )
+    ) 
+  
+  fema_subset_intersects <- sf::st_intersects(fema, fline_subset)
+  fema_polygons <- fema[lengths(fema_subset_intersects) > 0, ]
+  fema_polygons
+  
+  flines[lengths(sf::st_intersects(flines, fema_polygons)) > 0, ] %>% 
+    dplyr::pull(id) %>% 
+    unique()
+  fema_polygons
+  sf::st_crop(fema_polygons, fline_subset)
+  ggplot2::ggplot() +
+    ggplot2::geom_sf(data =   sf::st_crop(fema_polygons, fline_subset), fill = "grey") +
+    ggplot2::geom_sf(data = fline_subset, color = "black", lwd = 1) +
+    # ggplot2::geom_sf(data = plot_data, ggplot2::aes(color = extend_status))
+   ggplot2::geom_sf(data = dplyr::filter(plot_data, extend_status == "extended"),
+                    color = "green") + 
+   ggplot2::geom_sf(data = dplyr::filter(plot_data, extend_status == "original"), 
+                    color = "red")
+
+  
+  mapview::mapview(fema_polygons, col.regions = "dodgerblue") + 
+  mapview::mapview(fline_subset, color = "dodgerblue") + 
+    mapview::mapview(dplyr::filter(plot_data, extend_status == "extended"), color = "green") +
+    mapview::mapview(dplyr::filter(plot_data, extend_status == "original"), color = "red") 
+  transects %>% 
+    hydrofabric3D::add_tmp_id() %>% 
+    dplyr::filter(tmp_id %in% extend_subset$tmp_id) %>% 
+    dplyr::mutate(
+      extend_status = "original"
+    )
+  
+  extend_subset
+  
+  ggplot2::ggplot() +
+    ggplot2::geom_sf(data = fline_subset, color = "black", lwd = 5) +
+    ggplot2::geom_sf(data = extend_subset, ggplot2::aes(color = extend_status))
+  
+  mapview::mapview(fline_subset, color = "dodgerblue") + 
+   mapview::mapview(extend_subset, color = "green") 
+  
+  
+  both_extended <-
+    extended_transects %>% 
+    dplyr::filter(left_is_extended, right_is_extended)
+  
+  left_only_extended <- 
+    extended_transects %>% 
+    dplyr::filter(left_is_extended, !right_is_extended) 
+  
+  right_only_extended <- 
+    extended_transects %>% 
+    dplyr::filter(!left_is_extended, right_is_extended)
+  
+  unique(both_extended$hy_id)
+  
+  extended_transects %>% 
+    dplyr::filter(
+      # tmp_id %in% unique(left_only_extended$tmp_id),
+      tmp_id %in% unique(right_only_extended$tmp_id) || 
+      tmp_id %in% unique(both_extended$tmp_id)
+      )
+  
+  unique(extended_transects$hy_id)
+  # ------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- --- 
+  # ------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- --- 
+  # ------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ---  
+  # library(nngeo)
   # fema %>% 
   #   dplyr::group_by(fema_id) %>% 
   #   dplyr::mutate(
@@ -180,10 +348,7 @@ path_df
   # transect_lines, set of Sf linestrigns to extend (only if the transect lines are ENTIRELLY within a polygons)
   # polygons, set of sf polygons that transect lines should be exteneded 
   # max_extension_distance numeric, maximum distance (meters) to extend a transect line in either direction to try and intersect one of the "polygons"
-  get_transect_extension_distances_to_polygons <- function(transect_lines, 
-                                                           polygons, 
-                                                           flines,
-                                                           max_extension_distance) {
+  get_transect_extension_distances_to_polygons <- function(transect_lines,   polygons,  flines, max_extension_distance) {
     
     ###    ###    ###    ###    ###    ###    ###
     # transect_lines <- transects
@@ -789,9 +954,7 @@ path_df
         # ---------------------------------------------------
         
         # start %>% class()
-      
-     
-    }
+    }      
     
     # transects2 <- transects 
       # dplyr::mutate(
@@ -822,90 +985,7 @@ path_df
     return(transects)
     
   }    
-    # transects2 %>% 
-      # dplyr::filter(left_is_extended, right_is_extended)
-#     
-#     any_extended <- 
-#       transects2 %>% 
-#       dplyr::filter(left_is_extended | right_is_extended)
-#     
-#     any_flines <- 
-#       flines %>% 
-#       dplyr::filter(id %in% any_extended$hy_id)
-#     
-#     # left_only_extended <- 
-#     #   transects2 %>% 
-#     #   dplyr::filter(left_is_extended, !right_is_extended)
-#     # 
-#     # left_only_flines <- 
-#     #   flines %>% 
-#     #   dplyr::filter(id %in% left_only_extended$hy_id)
-#     # 
-#     # right_only_extended <- 
-#     #   transects2 %>% 
-#     #   dplyr::filter(!left_is_extended, right_is_extended)
-#     # 
-#     # right_only_flines <- 
-#     #   flines %>% 
-#     #   dplyr::filter(id %in% right_only_extended$hy_id)
-#   
-#     # left_fema_polygons <- 
-#       # left_trans %>% 
-#     # ----------------------------------------------------------------
-#     # ------- Subset data for mapping ----------- 
-#     # ----------------------------------------------------------------
-#     extended_for_map <- 
-#       any_extended %>% 
-#       dplyr::slice(1:1000)
-#     
-#     og_transects_for_map <- 
-#       transects %>% 
-#       hydrofabric3D::add_tmp_id() %>% 
-#       dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id)
-#     
-#     fema_indexes_in_aoi <-
-#       dplyr::bind_rows(
-#         sf::st_drop_geometry(
-#           dplyr::rename(left_trans, fema_index = left_fema_index)
-#         ),
-#         sf::st_drop_geometry(     
-#           dplyr::rename(right_trans, 
-#                         fema_index = right_fema_index)
-#         )
-#       ) %>% 
-#       hydrofabric3D::add_tmp_id() %>% 
-#       dplyr::filter(tmp_id %in% hydrofabric3D::add_tmp_id(extended_for_map)$tmp_id) %>% 
-#       # dplyr::filter(
-#       #   # tmp_id %in% hydrofabric3D::add_tmp_id(left_only_extended)$tmp_id |
-#       #   # tmp_id %in% hydrofabric3D::add_tmp_id(right_only_extended)$tmp_id
-#       #  
-#       #   tmp_id %in%  unique(hydrofabric3D::add_tmp_id(dplyr::filter(transects2, left_is_extended, right_is_extended))$tmp_id)
-#       #   
-#       #   ) %>% 
-#       # dplyr::filter(left_is_within_fema | right_is_within_fema) %>% 
-#       # dplyr::slice(1:200) %>%
-#       .$fema_index %>% 
-#       unlist() %>% 
-#       na.omit() %>% 
-#       unique() %>% 
-#       sort()
-#       # length()
-#     
-#     sf::st_as_sf(intersect_polygons[fema_indexes_in_aoi])
-# 
-#     # hydrofabric3D::add_tmp_id(left_only_extended)$tmp_id
-#     # transects_with_distances
-#     # %>% 
-#     mapview::mapview( sf::st_as_sf(intersect_polygons[fema_indexes_in_aoi]),  col.regions = "lightblue") + 
-#       mapview::mapview(any_flines, color = "dodgerblue") + 
-#       mapview::mapview(og_transects_for_map, color = "green") + 
-#       mapview::mapview(extended_for_map, color = "red") 
-# 
-#       # mapview::mapview(left_only_flines, color = "dodgerblue") + 
-#       #     mapview::mapview(right_only_flines, color = "dodgerblue") + 
-#     # mapview::mapview(left_only_extended, color = "red") + 
-#     #      mapview::mapview(right_only_extended, color = "green")
-#     # transects$cs_lengthm  <- length_list
+   
 #     # ----------------------------------------------------------------
 #     # ----------------------------------------------------------------
 #     # ----------------------------------------------------------------  

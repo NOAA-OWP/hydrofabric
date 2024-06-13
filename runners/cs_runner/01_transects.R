@@ -11,7 +11,7 @@ source("runners/cs_runner/config.R")
 transects_prefix <- paste0(s3_bucket, version_prefix, "/3D/transects/")
 
 # paths to nextgen datasets and model attribute parquet files
-nextgen_files <- list.files(nextgen_dir, full.names = FALSE)
+nextgen_files    <- list.files(nextgen_dir, full.names = FALSE)
 model_attr_files <- list.files(model_attr_dir, full.names = FALSE)
 
 # string to fill in "cs_source" column in output datasets
@@ -26,16 +26,32 @@ path_df <- align_files_by_vpu(
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
 for(i in 1:nrow(path_df)) {
-  
+  # i = 8
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(nextgen_dir, nextgen_file)
+  
+  vpu <- path_df$vpu[i]
+
+  # Get FEMA by VPU directory and files for current VPU 
+  fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))], "/merged")
+  # fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))], "/merged")
+
+  vpu_fema_files <- list.files(fema_vpu_dir, full.names = TRUE)
+  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_union.gpkg"), vpu_fema_files)]
+  
+  # fema polygons and transect lines
+  fema <- sf::read_sf(vpu_fema_file)
   
   # # model attributes file and full path
   # model_attr_file <- path_df$y[i]
   # model_attr_path <- paste0(model_attr_dir, model_attr_file)
 
-  message("Creating VPU ", path_df$vpu[i], " transects:\n - flowpaths: '", nextgen_file, "'")
+  message("Creating VPU ", vpu, " transects:", 
+          "\n - flowpaths: '",
+          nextgen_file, "'",
+           "\n - FEMA polygons: ", basename(vpu_fema_file)
+          )
   # message("Creating VPU ", path_df$vpu[i], " transects:\n - flowpaths: '", nextgen_file, "'\n - model attributes: '", model_attr_file, "'")
   
   # read in nextgen data
@@ -114,6 +130,15 @@ for(i in 1:nrow(path_df)) {
       cs_source = net_source
     )
   
+  # TODO: make sure this 3000m extension distance is appropriate across VPUs 
+  # TODO: also got to make sure that this will be feasible on memory on the larger VPUs...
+  transects <- hydrofabric3D::get_transect_extension_distances_to_polygons(
+                                                  transect_lines         = transects, 
+                                                  polygons               = fema, 
+                                                  flines                 = flines, 
+                                                  max_extension_distance = 3000 
+                                                  )
+                                                
   # save transects with only columns to be uploaded to S3 (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
   sf::write_sf(
     # save dataset with only subset of columns to upload to S3
@@ -128,6 +153,9 @@ for(i in 1:nrow(path_df)) {
     ),
     out_path
     )
+  
+  transects <- sf::read_sf(out_path)
+
   
   # command to copy transects geopackage to S3
   copy_to_s3 <- paste0("aws s3 cp ", out_path, " ", transects_prefix, out_file, 
