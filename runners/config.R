@@ -2,6 +2,9 @@
 ## 
 ## This file is used to populate scripts that are part of the Makefile pipeline
 library(tidyr)
+library(RNetCDF)
+library(dataRetrieval)
+library(data.table)
 #library(AOI)
 
 # ---- Set up software ---- #
@@ -15,7 +18,7 @@ if(dev_mode){
   message("FIX ONLY: ", ifelse(FIX, "ON", "OFF"))
   devtools::load_all()
   # Either install and update your own dev versions or set dev_mode to FALSE
-  devtools::load_all(glue::glue('{dirname(getwd())}/ngen-hydrofab'))
+  devtools::load_all(glue::glue('{dirname(getwd())}/ngen.hydrofab'))
   devtools::load_all(glue::glue('{dirname(getwd())}/hfsubsetR'))
   # devtools::load_all(glue::glue('{dirname(getwd())}/zonal'))
   # devtools::load_all(glue('{dirname(getwd())}/zonal'))
@@ -35,7 +38,8 @@ dir      <- "/Volumes/MyBook"
 version  <- "2.2"
 
 # POI  config: 
-schema <- c("poi_id", "hl_source", "hl_reference", "hl_link", 
+schema <- c("poi_id", 
+            "hl_source", "hl_reference", "hl_link", "hl_position",
             "X", "Y",
             "hf_id", "hf_source")
 
