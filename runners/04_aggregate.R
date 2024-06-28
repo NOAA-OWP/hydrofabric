@@ -1,20 +1,22 @@
 source("runners/config.R")
 ## TASK 1: build out uniform catchment distribution ----
 
-base       <- "/Volumes/MyBook/TNC"
+base       <- "/Users/mikejohnson/hydrofabric"
 version    <- "2.2"
+
 base_rfc   <- glue("{base}/v{version}/refactor")
-full_hl = '/Volumes/MyBook/conus-hydrofabric/v2.2/conus_hl'
-rfc_div    <- glue("{base_rfc}/conus_divides")
-rfc_fl     <- glue("{base_rfc}/conus_flowlines")
+  full_hl    <- glue("{base}/v{version}/conus_hydrolocations")
+  rfc_div    <- glue("{base_rfc}/conus_divides")
+  rfc_fl     <- glue("{base_rfc}/conus_flowlines")
+  rfc_net    <- glue('{base_rfc}/conus_network')
 
 base_ref   <- glue("{base}/v{version}/reference")
-ref_gpkg   <- glue('{base_ref}/reference_CONUS.gpkg')
-ref_net    <- glue('{base_ref}/conus_network')
-ref_div    <- glue('{base_ref}/conus_divides')
-ref_fl     <- glue('{base_ref}/conus_flowlines')
+  ref_gpkg   <- glue('{base_ref}/reference_CONUS.gpkg')
+  ref_net    <- glue('{base_ref}/conus_network')
+  ref_div    <- glue('{base_ref}/conus_divides')
+  ref_fl     <- glue('{base_ref}/conus_flowlines')
 
-cw = read_parquet(huc12_cw)
+cw = read_parquet('/Volumes/MyBook/conus-hydrofabric/huc12_nhdplusv2_cw.parquet')
 
 for (i in 1:nrow(pipeline)) {
   
@@ -22,26 +24,33 @@ for (i in 1:nrow(pipeline)) {
   
   divides = open_dataset(rfc_div) %>% 
     filter(vpuid == vpu) %>% 
-    sfarrow::read_sf_dataset()
+    read_sf_dataset()
+  
+  network = open_dataset(rfc_net) %>% 
+    filter(vpuid == vpu) %>% 
+    select(id, member_comid) |> 
+    distinct() |> 
+    collect() |> 
+    group_by(id) |> 
+    mutate(member_comid = paste(member_comid, collapse = ",")) |> 
+    distinct() |> 
+    ungroup()
   
   flowpaths = open_dataset(rfc_fl) %>% 
     filter(vpuid == vpu) %>% 
-    sfarrow::read_sf_dataset()
+    read_sf_dataset() |> 
+    left_join(network, by = "id")
 
-  hl_sub = open_dataset('/Volumes/MyBook/conus-hydrofabric/v2.2/conus_hl') %>% 
+  hl_sub = open_dataset(rfc_net) %>% 
     filter(vpuid == vpu) %>% 
-    select(poi_id, hf_id, geometry) %>% 
-    sfarrow::read_sf_dataset() %>% 
-    st_set_crs(5070) %>% 
-    left_join(select(st_drop_geometry(flowpaths), id, hf_id),
-              by = "hf_id",
-              relationship = "many-to-many")
-  
+    distinct() |> 
+    collect()
+
   gpkg = aggregate_to_distribution(
     divide = divides,
     flowpath = flowpaths, 
     vpu                    = vpu,
-    outfile                = glue("{base}/v{version}/refactor/{vpu}_test.gpkg"),
+    outfile                = glue("data/{vpu}_test.gpkg"),
     hydrolocations         = hl_sub,
     overwrite = TRUE)
   
@@ -56,5 +65,7 @@ for (i in 1:nrow(pipeline)) {
   
   message("Finished ", i, " of ", nrow(pipeline))
 }
+
+
 
 

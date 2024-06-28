@@ -19,7 +19,7 @@ schema
 #
 # > X: Longitude (EPSG: 5070)
 # > Y: Latitude  (EPSG: 5070)
-#
+
 # > hf_id: ID from reference hydrofabric
 # > hf_source: Source of reference hydrofabric
 
@@ -380,7 +380,7 @@ hl_fin_complete = filter(hl_fin, is.na(poi_id)) |>
   ungroup() %>%
   left_join(distinct(select(ref_net, hf_id, mainstemlp, vpuid)), by = "hf_id", relationship = "many-to-many") %>%
   distinct() %>%
-  mutate(hl_uri = paste0(hl_reference, "-", hl_link))
+  mutate(hl_uri = paste0(hl_reference, "-", hl_link)) 
 
 # Write Hydrolocation Table
 hl_fin_complete %>%
