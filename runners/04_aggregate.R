@@ -11,10 +11,7 @@ base_rfc   <- glue("{base}/v{version}/refactor")
   rfc_net    <- glue('{base_rfc}/conus_network')
 
 base_ref   <- glue("{base}/v{version}/reference")
-  ref_gpkg   <- glue('{base_ref}/reference_CONUS.gpkg')
-  ref_net    <- glue('{base_ref}/conus_network')
   ref_div    <- glue('{base_ref}/conus_divides')
-  ref_fl     <- glue('{base_ref}/conus_flowlines')
 
 cw = read_parquet('/Volumes/MyBook/conus-hydrofabric/huc12_nhdplusv2_cw.parquet')
 
@@ -50,7 +47,7 @@ for (i in 1:nrow(pipeline)) {
     divide = divides,
     flowpath = flowpaths, 
     vpu                    = vpu,
-    outfile                = glue("data/{vpu}_test.gpkg"),
+    outfile                = glue("/Users/mikejohnson/hydrofabric/v2.2/tmp-aggregate/{vpu}.gpkg"),
     hydrolocations         = hl_sub,
     overwrite = TRUE)
   
