@@ -24,6 +24,9 @@ path_df <- align_files_by_vpu(
 
 path_df
 
+# # install.packages("devtools")
+devtools::install_github("anguswg-ucsb/hydrofabric3D")
+
 # loop over each vpu and generate cross sections, then save locally and upload to s3 bucket
 # for(i in 1:nrow(path_df)) {
   

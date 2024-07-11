@@ -19,6 +19,7 @@ source("runners/cs_runner/utils.R")
 library(dplyr)
 library(sf)
 library(geos)
+library(fastmap)
 
 # -------------------------------------------------------------------------------------
 # ---- OVERWRITE_FEMA_FILES constant logical ----
@@ -108,7 +109,8 @@ FEMA_FILE_PATHS <- paste0(FEMA_FGB_PATH, "/", FEMA_FILENAMES)
 # -------------------------------------------------------------------------------------
 
 for (file in FEMA_FILENAMES) {
-  
+  # message(file)
+
   local_fema_path <- paste0(FEMA_FGB_PATH, "/", file)
   
   geojson_filename     <- gsub(".fgb", ".geojson", file)
@@ -146,15 +148,25 @@ for (file in FEMA_geojson_paths) {
   # message("Fema 100 year flood plain:\n > '", file, "'")
   output_clean_filename <- gsub(".geojson", "_clean.geojson", basename(file))
   output_path <- paste0(FEMA_CLEAN_PATH, "/", output_clean_filename)
-  
+
   clean_geojson_exists <- file.exists(output_path)
   message(" >>> '", output_clean_filename, "' already exists? ", clean_geojson_exists)
   message(" >>> Overwrite? ", OVERWRITE_FEMA_FILES)
   
+  # start_fema <- sf::read_sf(file)
+  
+  # mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', file, 
+  #                            ' -simplify 0.15 visvalingam \\', 
+  #                            ' -dissolve \\', 
+  #                            ' -explode \\', 
+  #                            ' -o ', output_path
+  # )
+  
   mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', file, 
-                             ' -simplify 0.15 visvalingam \\', 
-                             ' -dissolve \\', 
-                             ' -explode \\', 
+                             ' -dissolve2 FLD_AR_ID \\', 
+                             ' -simplify 0.1 visvalingam \\', 
+                             # ' -explode \\',
+                             ' -snap \\',
                              ' -o ', output_path
   )
   
@@ -163,12 +175,14 @@ for (file in FEMA_geojson_paths) {
     system(mapshaper_command)
     message("Writting '", output_clean_filename, "' to: \n > '", output_path, "'")
   }
+  # end_fema <- sf::read_sf(output_path)
   
   message()
-}
+
+  }
 
 # -------------------------------------------------------------------------------------
-# ---- Convert cleaned FEMA geometries to geopackages ----
+# ---- Convert cleaned FEMA geojson geometries to geopackages ----
 # -------------------------------------------------------------------------------------
 
 # paths to FEMA 100 year flood plain files
@@ -181,8 +195,6 @@ for (file in FEMA_clean_paths) {
   output_path          <- paste0(FEMA_GPKG_PATH, "/", output_gpkg_filename)
   
   message("Converting GEOJSON file to GPKG:\n > '", basename(file), "' > '", output_gpkg_filename, "'")
-  
-  # system(ogr2ogr_command)
   
   clean_gpkg_exists <- file.exists(output_path)
   
@@ -199,41 +211,97 @@ for (file in FEMA_clean_paths) {
   message()
 }
 
-# # -------------------------------------------------------------------------------------
-# # ---- Apply hydrofab::clean_geometries() to cleaned FEMA geometries  ----
-# # -------------------------------------------------------------------------------------
-# 
+# # -------------------------------------------------------------------------------------------------------------------
+# # ---- Apply final dissolve/snap and removal of internal boudnaries in FEMA geometries  ----
+# # -------------------------------------------------------------------------------------------------------------------
+
 # paths to FEMA 100 year flood plain files
 FEMA_gpkg_paths      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
 
 for (file_path in FEMA_gpkg_paths) {
   message("Applying hydrofab::clean_geometry() to:\n > '", basename(file_path), "'")
+   
+  fema <- sf::read_sf(file_path)
+
+  fema <-
+    fema[!sf::st_is_empty(fema), ] %>% 
+    sf::st_transform(5070)
+ 
+  #  TODO: Snap using geos::geos_snap()
+  # fema <-
+  #   geos::geos_snap(
+  #     geos::as_geos_geometry(fema),
+  #     geos::as_geos_geometry(fema),
+  #     tolerance = 1
+  #     ) %>%
+  #   geos::geos_make_valid()  %>%
+  #   sf::st_as_sf()
+  
+  # TODO: we get this error when trying to use the geometry column after geos snapping
+  # TODO: Error = "Error: Not compatible with STRSXP: [type=NULL]."
+  # fema %>%
+    # sf::st_cast("POLYGON")
+
+  # TODO: Snap using sf::st_snap()
+  # fema <- sf::st_snap(
+  #             fema,
+  #             fema,
+  #             tolerance = 2
+  #             )
   
   fema <-
-    file_path %>%
-    sf::read_sf() %>%
-    sf::st_transform(5070) %>%
-    sf::st_cast("POLYGON") %>%
+    fema %>% 
+    # fema[!sf::st_is_empty(fema), ] %>% 
+    dplyr::select(geometry = geom) %>%
+    add_predicate_group_id(sf::st_intersects) %>% 
+    sf::st_make_valid() %>% 
+    dplyr::group_by(group_id) %>% 
+    dplyr::summarise(
+      geometry = sf::st_combine(sf::st_union(geometry))
+    ) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(-group_id) %>% 
+    add_predicate_group_id(sf::st_intersects) %>% 
+    rmapshaper::ms_dissolve(sys = TRUE, sys_mem = 16) %>% 
+    rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) %>% 
     dplyr::mutate(
-      fema_id = 1:dplyr::n()
-    ) %>%
-    dplyr::select(fema_id, geometry = geom)
-
-  message(" > ", nrow(fema), " POLYGONs")
-  message("Start time: ", Sys.time())
-
-  fema_clean <- hydrofab::clean_geometry(
-    catchments = fema,
-    ID         = "fema_id"
-    )
+      fema_id = as.character(1:dplyr::n())
+    ) %>% 
+    dplyr::select(fema_id, geometry)
   
-  fema_clean <-
-    fema_clean %>%
+  # mapview::mapview(fema, color = 'cyan', col.regions = "cyan") + 
+  # mapview::mapview(end_fema, color = 'red', col.regions = "white") 
+  # mapview::mapview(start_fema$geom, color = "red", col.regions = "red") + 
+  #   mapview::mapview(end_fema$geom, color = 'limegreen', col.regions = "limegreen") + 
+  #   mapview::mapview(snap_union_sf, color = 'gold', col.regions = "gold") + 
+  # mapview::mapview(final_fema, color = 'white', col.regions = "white") + 
+  # mapview::mapview(fin, color = 'white', col.regions = "white") 
+
+  # message(" > ", nrow(fema), " POLYGONs")
+  # message("Start time: ", Sys.time())
+  # 
+  # fema_clean <- hydrofab::clean_geometry(
+  #   catchments = fema,
+  #   ID         = "fema_id"
+  #   )
+  # 
+  # fema_clean <-
+  #   fema_clean %>%
+  #   dplyr::mutate(
+  #     source = basename(file_path),
+  #     state  = gsub("-100yr-flood_valid_clean.gpkg", "", source)
+  #   ) %>%
+  #   dplyr::select(fema_id, source, state, areasqkm, geometry)
+  
+  fema <- 
+    fema %>% 
     dplyr::mutate(
       source = basename(file_path),
       state  = gsub("-100yr-flood_valid_clean.gpkg", "", source)
     ) %>%
-    dplyr::select(fema_id, source, state, areasqkm, geometry)
+    dplyr::select(fema_id, source, state, 
+                  # areasqkm, 
+                  geometry)
 
   message("End time: ", Sys.time())
   
@@ -245,7 +313,8 @@ for (file_path in FEMA_gpkg_paths) {
   if (OVERWRITE_FEMA_FILES) {
     message("Writting '", basename(file_path), "' to: \n > '", file_path, "'")
     sf::write_sf(
-      fema_clean,
+      # fema_clean,
+      fema,
       file_path
     )
   }
