@@ -20,6 +20,10 @@ library(dplyr)
 library(sf)
 library(geos)
 library(fastmap)
+library(nngeo)
+
+# TODO: Steps that converts FGB to geojson and then geojson to gpkg can be put into a single loop
+# TODO: Delete old files as needed
 
 # -------------------------------------------------------------------------------------
 # ---- OVERWRITE_FEMA_FILES constant logical ----
@@ -330,9 +334,8 @@ for (file_path in FEMA_gpkg_paths) {
 FEMA_CLEAN_GPKG_PATHS      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
 
 # paths to nextgen datasets and model attribute parquet files
-NEXTGEN_FILENAMES  <- list.files(nextgen_dir, full.names = FALSE)
-NEXTGEN_FILE_PATHS <- paste0(nextgen_dir, NEXTGEN_FILENAMES)
-# OVERWRITE_FEMA_FILES
+NEXTGEN_FILENAMES    <- list.files(nextgen_dir, full.names = FALSE)
+NEXTGEN_FILE_PATHS   <- paste0(nextgen_dir, NEXTGEN_FILENAMES)
 
 for (file_path in FEMA_CLEAN_GPKG_PATHS) {
   fema_file <- basename(file_path)
@@ -371,8 +374,7 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
         dplyr::mutate(
           vpu = vpu
         ) %>%
-        dplyr::select(vpu, fema_id, source, state,
-                      areasqkm, geom)
+        dplyr::select(vpu, fema_id, source, state, geom)
       
       # state <- gsub("-100yr-flood_valid_clean.gpkg", "", fema_file)
 
@@ -409,14 +411,11 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
 
 DELETE_STAGING_GPKGS <- FALSE 
 
-# FEMA_VPU_SUBFOLDERS
-
 for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
-# for (i in 1:4) {
-  vpu_dir = FEMA_VPU_SUBFOLDERS[i]
+ # for (i in 1:4) {
+  # vpu_dir = FEMA_VPU_SUBFOLDERS[i]
   message("Merging files in '", basename(vpu_dir), "' directory...")
-  
-# }
+ # }
   
   # vpu_dir <- '/Users/anguswatters/Desktop/lynker-spatial/FEMA_BY_VPU/VPU_06'
   vpu_subdirs    <- list.files(vpu_dir, full.names = TRUE)
