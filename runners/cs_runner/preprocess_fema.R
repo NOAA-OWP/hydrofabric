@@ -473,10 +473,9 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
 # -------------------------------------------------------------------------------------
 
 MERGED_DIRS <- paste0(FEMA_VPU_SUBFOLDERS, "/merged")
-
+MERGED_DIRS
 for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   # i = 8
-  # i
   vpu_dir = FEMA_VPU_SUBFOLDERS[i]
   
   VPU        <- basename(vpu_dir)
@@ -502,22 +501,50 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   fema_vpu_file <- fema_vpu_file[!grepl("_union.gpkg", fema_vpu_file)]
 
   fema_vpu <- sf::read_sf(fema_vpu_file)
-  
-  # fema_vpu
-  
-  # fema_ids <- c(695)
   # fema_vpu <-
   #   fema_vpu %>%
   #   dplyr::group_by(source) %>%
   #   dplyr::summarise()  %>%
   #   dplyr::ungroup()
-  # fema_vpu
+ 
+   mapview::npts(fema_vpu)
+  fema_vpu2 <- 
+    fema_vpu %>% 
+    nngeo::st_remove_holes(max_area = 20) %>%
+    # dplyr::select(geometry = geom) %>%
+    add_predicate_group_id(sf::st_intersects) %>% 
+    sf::st_make_valid() %>% 
+    dplyr::group_by(group_id) %>% 
+    dplyr::summarise(
+      geometry = sf::st_combine(sf::st_union(geometry))
+    ) %>% 
+    dplyr::ungroup() %>% 
+    dplyr::select(-group_id) %>%
+    add_predicate_group_id(sf::st_intersects) %>%
+    rmapshaper::ms_dissolve(sys = TRUE, sys_mem = 16) %>%
+    rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) %>%
+    dplyr::mutate(
+      fema_id = as.character(1:dplyr::n())
+    ) %>% 
+    dplyr::select(fema_id, geometry)
   
-  # fema_snapped <- sf::st_snap(fema_vpu, fema_vpu, tolerance = 10)
-  # sf::st_
+  fema_vpu2 %>% mapview::npts()
+  
+  fema_vpu2_subset <- fema_vpu2[lengths(sf::st_intersects(fema_vpu2, fema_vpu[1:100, ]))  > 1, ]
+  
+  mapview::mapview(fema_vpu[1:100, ], color = 'red', col.regions = 'white') +
+    mapview::mapview(fema_vpu2_subset, color = 'green', col.regions = 'white')
+      # mapview::mapview(fema_vpu2[1:100, ], color = 'green', col.regions = 'white')
+    
   # message("Removing holes before dissolve...")
   fema_vpu <- nngeo::st_remove_holes(fema_vpu)
-  # 
+  mapview::mapview(fema_vpu[1:100, ], color = 'red', col.regions = 'white') +
+  mapview::mapview(fema_vpu2[1:100, ], color = 'green', col.regions = 'white') 
+  # mapview::npts(fema_vpu)
+  all(sf::st_is_valid(fema_vpu))
+  rmapshaper::ms_innerlines(fema_vpu)
+  
+  
   # message("Making valid geometries...")
   # fema_vpu <- sf::st_make_valid(fema_vpu) 
   
@@ -527,8 +554,8 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   
   message("Dissolving...")
   
-  # 2633 = old number of polygons
-  fema_vpu <- rmapshaper::ms_dissolve(
+  # 1421 = old number of polygons
+  fema_vpu2 <- rmapshaper::ms_dissolve(
                             input   = fema_vpu,
                             field   = "source",
                             sys     = TRUE,
@@ -536,18 +563,38 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
                             )
   
   message("Exploding...")
+  
   # mapview::npts(fema_vpu)
-  # mapview::npts(fema_vpu_dissolve)
-  fema_vpu <- rmapshaper::ms_explode(
-                            input   = fema_vpu,     
+  # mapview::npts(fema_vpu2)
+  
+  fema_vpu2 <- rmapshaper::ms_explode(
+                            input   = fema_vpu2,     
                             sys     = TRUE,
                             sys_mem = 16
                             )
-  # mapview::npts(fema_exp)
+  # mapview::npts(fema_vpu2)
   message("Removing holes after explosion...")
-  fema_vpu <- nngeo::st_remove_holes(fema_vpu)
-  # mapview::npts(fema_exp_noholes)
+  fema_vpu2 <- nngeo::st_remove_holes(fema_vpu2)
   
+  fema_vpu2 <- 
+    fema_vpu2 %>% 
+    add_predicate_group_id(sf::st_intersects) %>% 
+    dplyr::group_by(group_id) %>% 
+    dplyr::summarise(
+      geometry = sf::st_combine(sf::st_union(geometry))
+    )
+  
+  mapview::mapview(fema_vpu[1:100, ], color = 'red', col.regions = 'white') +
+    mapview::mapview(fema_vpu2[1:00, ], color = 'green', col.regions = 'white') 
+  
+  # mapview::npts(fema_vpu2)
+  sf::st_is_valid(fema_vpu2) %>% all()
+  
+  fema_vpu2 %>% 
+    sf::st_make_valid() %>% 
+    sf::st_geometry_type() %>% 
+    unique()
+  sf::st_geometry_type(fema_vpu2) %>% unique()
   # slice_subset = 1:50
   # fema_exp_noholes[slice_subset, ]
   # mapview::mapview(  fema_vpu[1:100, ], col.regions = "dodgerblue")+ 
