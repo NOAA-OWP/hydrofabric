@@ -122,7 +122,7 @@ for (file in FEMA_FILENAMES) {
                              ' -simplify 0.1 visvalingam \\', 
                              ' -snap \\',
                              ' -o ', output_clean_geojson_path
-  )
+                             )
   
   
   if (OVERWRITE_FEMA_FILES || !clean_geojson_exists) {
@@ -405,7 +405,7 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   VPU        <- basename(vpu_dir)
   
   message(i, " - Attempting to union FEMA polygons for '", VPU, "'...")
-  
+
   # path to the merged directory where the final merged geopackage will end up
   master_name       <- paste0("fema_", gsub("VPU", "vpu", basename(vpu_dir)))
   master_gpkg_name  <- paste0(master_name, ".gpkg")
@@ -423,7 +423,7 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   fema_vpu <- sf::read_sf(master_filepath)
   
   # fema_vpu %>% sf::st_geometry_type() %>% unique()
-  
+
   fema_vpu <- 
     fema_vpu %>% 
     nngeo::st_remove_holes(max_area = 200) %>%
