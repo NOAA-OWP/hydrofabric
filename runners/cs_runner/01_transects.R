@@ -38,7 +38,7 @@ for(i in 1:nrow(path_df)) {
   # fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))], "/merged")
 
   vpu_fema_files <- list.files(fema_vpu_dir, full.names = TRUE)
-  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_union.gpkg"), vpu_fema_files)]
+  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_output.gpkg"), vpu_fema_files)]
   
 
   # # model attributes file and full path

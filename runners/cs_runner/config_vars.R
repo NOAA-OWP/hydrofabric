@@ -38,6 +38,16 @@ FEMA_VPU_SUBFOLDERS <- paste0(FEMA_BY_VPU_PATH, "/VPU_", VPU_IDS)
 #                           )
 #                         )
 
+# -------------------------------------------------------------------------------------
+# ---- OVERWRITE_FEMA_FILES constant logical ----
+# ---- > if TRUE, processing steps will be run again 
+#          and overwrite existing previously processed files
+# -------------------------------------------------------------------------------------
+
+# Default is TRUE (i.e. a fresh processing run is done from start to finish)
+OVERWRITE_FEMA_FILES  <- TRUE
+DELETE_STAGING_GPKGS  <- TRUE # remove intermediary files from the main output folder
+
 # ----------------------------------------------------------------------------
 # ---- Cross section point extraction constant variables ----
 # ----------------------------------------------------------------------------

@@ -35,8 +35,7 @@ library(nngeo)
 
 # Default is TRUE (i.e. a fresh processing run is done from start to finish)
 OVERWRITE_FEMA_FILES  <- TRUE
-DELETE_STAGING_GPKGS  <- FALSE
-# DELETE_STAGING_GPKGS  <- TRUE
+DELETE_STAGING_GPKGS  <- TRUE
 
 # -------------------------------------------------------------------------------------
 # ---- Create directories (if they do NOT exist) ----
@@ -498,32 +497,7 @@ for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
       )
   
     })
-  
-    # fema_vpu2 <- 
-    #   fema_vpu %>% 
-    #   nngeo::st_remove_holes(max_area = 200) %>% 
-    #   # sf::st_make_valid() %>% 
-    #   # dplyr::filter(sf::st_geometry_type(geom) %in% c("POLYGON", "MULTIPOLYGON")) %>% 
-    #   add_predicate_group_id(sf::st_intersects) %>% 
-    #   dplyr::group_by(group_id) %>% 
-    #   dplyr::summarise(
-    #     geometry = sf::st_combine(sf::st_union(geometry))
-    #   ) %>%
-    #   rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) %>% 
-    #   dplyr::ungroup() %>% 
-    #   nngeo::st_remove_holes(max_area = 200)
-      
-  # fema_vpu <- 
-  #   fema_vpu %>% 
-  #   dplyr::mutate(      
-  #     vpu      = gsub("VPU_", "", VPU),
-  #     fema_id  = as.character(1:dplyr::n())
-  #   ) %>% 
-  #   dplyr::select(
-  #       vpu, fema_id,
-  #       # state, 
-  #       geom = geometry
-  #       )
+
   
   
   # fema_vpu <- 
@@ -539,17 +513,11 @@ for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
   #   dplyr::ungroup() %>% 
   #   dplyr::select(-group_id) %>%
   #   add_predicate_group_id(sf::st_intersects)
-  # 
-  # fema_vpu %>% sf::st_geometry_type() %>% unique()
-  # fema_vpu %>% mapview::npts()
-  # 
   # geom_type_counts <- table(sf::st_geometry_type(fema_vpu))
-  # 
   # message("Geometry counts before casting all geometries to MULTIPOLYGON:")
   # for (g in seq_along(geom_type_counts)) {
   #   message(" > ", names(geom_type_counts[g]), ": ", geom_type_counts[g])
   # }
-  # 
   # message("Keeping only POLYGON and MULTIPOLYGON geometries...")
   # fema_vpu <- 
   #   fema_vpu %>%
@@ -575,9 +543,6 @@ for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
   # fema_vpu2_subset <- fema_vpu2[lengths(sf::st_intersects(fema_vpu2, fema_vpu[1:100, ]))  > 1, ]
   # mapview::mapview(fema_vpu, color = 'red', col.regions = 'white') +
   #       mapview::mapview(fema_vpu2, color = 'green', col.regions = 'white')
-  #   # mapview::mapview(fema_vpu2_subset, color = 'green', col.regions = 'white')
-  # # mapview::mapview(fema_vpu2[1:100, ], color = 'green', col.regions = 'white')
-  
   # fema_vpu <-
   #   fema_vpu %>%
   #   # dplyr::group_by(source) %>%
@@ -587,9 +552,7 @@ for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
   #     fema_id  = 1:dplyr::n()
   #   ) %>%
   #   dplyr::ungroup() %>%
-  #   dplyr::select(vpu, fema_id, 
-  #                 # state, 
-  #                 geom = geometry)
+  #   dplyr::select(vpu, fema_id, geom = geometry)
   
   if (OVERWRITE_FEMA_FILES) {
     
