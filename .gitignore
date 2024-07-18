@@ -8,7 +8,8 @@ depriciate
 dead
 inst/doc
 vignettes/cihro-data
-data
+vignettes/tutorial
 check
-.Rapp.history
-runners/cs_runner/fema_extension_plotting.R
+runners/secret
+runners/data
+in-progress

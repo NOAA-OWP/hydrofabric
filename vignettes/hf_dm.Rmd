@@ -1,5 +1,6 @@
 ---
-title: "Hydrofabric Data Model"
+title: "Current Hydrofabric Data Model"
+date: "`r Sys.Date()`"
 author:
   - name: "Mike Johnson"
     url: https://github.com/mikejohnson51
@@ -12,176 +13,11 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, 
-                      message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 library(dm)
-library(DBI)
-library(sf)
+library(hydrofabric)
 ```
 
-```{r, echo = FALSE}
-
-hf_dm = list(
-  
-  flowlines = data.frame(
-    id = integer(1L),
-    toid = integer(1L),
-    mainstem = integer(1L),
-    order = integer(1L),
-    hydroseq = integer(1L),
-    lengthkm = numeric(1L),
-    areasqkm = numeric(1L),
-    tot_drainage_areasqkm = numeric(1L),
-    divide_id = integer(1L),
-    has_divide = logical(1),
-    geometry = double(1L)
-  ),
-  
-  divides = data.frame(
-    divide_id = integer(1L),
-    id   = integer(1L),
-    toid = integer(1L),
-    ds_id = integer(1L),
-    areasqkm = numeric(1L),
-    type = character(1L),
-    has_flowline = logical(1),
-    geometry = double(1L)
-  ),
-  
-  nexus = data.frame(
-    id      = integer(1L),
-    toid    = integer(1L),
-    hl_id   = character(1L),
-    hl_uri      = character(1L),
-    type    = character(1L),
-    geometry = double(1L)
-  ),
-  
-  # Can have 1:many, NOT! part of topology 
-  hydrolocations = data.frame(
-    hl_id = integer(1L),
-    id           = integer(1L),
-    hl_reference = character(1L),
-    hl_link      = character(1L),
-    hl_uri       = character(1L),
-    hl_position  = character(1L),
-    geometry     = numeric(1L)
-  ),
-  
-  network = data.frame(
-    # Topology
-    id         = integer(1L),
-    toid       = integer(1L),
-    # Associations
-    divide_id  = integer(1L),
-    ds_id = integer(1L),
-    mainstem   = integer(1L),
-    hydroseq   = integer(1L),
-    wb_id      = integer(1L), 
-    hl_id      = integer(1L),
-    hl_uri     = character(1L),
-    # Reference
-    hf_source  = integer(1),
-    hf_id      = numeric(1L),
-    #hf_id_part = integer(1L),
-    # Description
-    lengthkm = numeric(1L),
-    areasqkm = numeric(1L),
-    tot_drainage_areasqkm = numeric(1L),
-    type = character(1L),
-    vpu = character(1L)
-  ),
-
-  WB = data.frame(
-    id    = integer(1L),
-    wb_id = integer(1L),
-    wb_area = numeric(1L),
-    wb_source = numeric(1L),
-    geometry = numeric(1L)
-  ) 
-)
-```
-
-```{r, echo = FALSE}
-
-usethis::use_data(hf_dm, overwrite = TRUE)
-
-fs::file_copy(
-  '/Users/mjohnson/github/hydrofabric/data/hf_dm.rda',
-  '/Users/mjohnson/github/hydrofab/data/hf_dm.rda',
-  overwrite = TRUE)
-
-meta = tibble::tribble(
-~Attribute, ~Description,
-"id",             "A hydrofabric specfic, globaly unique flowline identifier",
-"hf_source",      "The source dataset for the hydrofabric development (e.g. NHDPlusV2)",
-"hf_id",          "The unique identifier in the source hydrofabric (hf_source)",
-#"hf_id_part",     "If the original hydrofabric identifier was split, the subpart. Parts increase from outlet to inlet",
-"divide_id",      "A hydrofabric specfic, globaly unique divide identifier",
-"mainstem",       "A nationally unique identifier assigned to the set of flowlines that compose a stream from its headwater to its mouth",
-"hl_id",          "A hydrofabric specifc, globaly unique, hydrologic location identifier",
-"hl_reference",   "The hydrologic location type (e.g. Gage, NID)",
-"hl_link",         "The unique identifier in the source hydrologic location dataset.",
-"hl_uri",         "A comma seperated conncatination of hl_reference and hl_link that mirrors thse used in the NLDI",
-"hl_position",    "Position of hydrolocation on flowpath (inflow, outflow, along)",
-"wb_id",          "Water body Common Identifier from wb_source",
-"ds_id",          "Most downstream adjacent divide. Only applicable to internal catchments",
-
-"toid",                     "The identifier of the directly downstream flowpath/flowline",
-"lengthkm",                 "The length in kilometers of the flowpath element",
-"areasqkm",                 "The area of the incremental divides",
-"tot_drainage_areasqkm",    "The total upstream area contributing to the feature",
-
-"order",                    "Strahler stream order",
-"hydroseq",                 "VPU based hydrologic sort. Increases from downstream to upstream",
-
-"geometry",      "Simple Features Geometry (POINT, LINESTRING, POLYGON)",
-"type",          "Type of network feature (network, internal, coastal, connector)",
-
-"wb_area",       "Waterbody area",
-"wb_source",     "Waterbody source",
-
-"has_divide",    "Does an abstract catchment have a divide realization",
-"has_flowline",  "Does an abstract catchment have a flowline/flowpath realization",
-"vpu", "A processing unit used to segment large scale hydrofabrics")
-
-x = unique(unlist(sapply(hf_dm, names)))
-
-
-if(!all(length(x[!x %in% meta$Attribute]) == 0, length(meta$Attribute[!meta$Attribute %in% x]) == 0)){stop()}
-
-dm = dm::dm(
-            network = hf_dm$network,
-            flowlines = hf_dm$flowlines,
-            hydrolocations = hf_dm$hydrolocations,
-            divides = hf_dm$divides,
-            WB = hf_dm$WB,
-            nexus = hf_dm$nexus) %>% 
-  dm_add_pk(flowlines, id)  %>% 
-  dm_add_pk(hydrolocations, hl_id)  %>% 
-  dm_add_pk(WB, wb_id)  %>% 
-  dm_add_pk(divides, divide_id)  %>% 
-  dm_add_pk(nexus, id)  %>% 
-  dm_set_colors(red = flowlines, 
-                red = divides,
-                red = hydrolocations,
-                gray = WB, 
-                red  = network,
-                blue = nexus)
-
-df = data.frame(names = names(unlist(hf_dm))) %>% 
-             tidyr::separate(names, sep = "[.]", into  = c('layer', 'Attribute')) %>% 
-  group_by(Attribute) %>% 
-  summarise(layers = paste(layer, collapse = ", "))
-
-
-meta = left_join(meta, df, by = "Attribute")
-
-```
-
-
-## Proposed Data Model 
-### (`r Sys.Date()`)
 #### `red`:  hydrofabric data
 #### `blue`: nextgen specific data
 #### `gray`: unresolved data
@@ -190,11 +26,11 @@ meta = left_join(meta, df, by = "Attribute")
 <br><br><br>
 
 ```{r, echo = FALSE, fig.height=8, fig.width=8, fig.show='hold'}
-dm_draw(dm,  view_type = "all", column_types = TRUE, rankdir = "LR")
+dm_draw(hydrofabric::hf_dm$dm,  view_type = "all", column_types = TRUE, rankdir = "LR")
 ```
 
 ## Descriptions 
 
 ```{r, echo = FALSE}
-DT::datatable(arrange(meta, Attribute), options = list(pageLength = 35, dom = 't'), rownames = FALSE)
+DT::datatable(arrange(hydrofabric::hf_dm$meta, Attribute), options = list(pageLength = 50, dom = 't'), rownames = FALSE)
 ```

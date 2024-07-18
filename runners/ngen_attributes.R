@@ -20,3 +20,22 @@ for(i in 1:length(layers)){
   terra::writeRaster(d, o, filetype = "COG", overwrite = T)
   message(i, " of ", length(layers))
 }
+
+AOI = AOI::aoi_ext("Fairbanks, AK")
+
+
+AOI = AOI::aoi_ext(“Anchorage, AK”, wh = (10000), bbox = TRUE)
+st_set_crs(AOI, readLines(‘/Users/mjohnson/Downloads/projtest.prj’))
+
+tt = read_parquet(conus_net)
+
+library(dplyr)
+sub = select(tt, id, divide_id, toid, type) %>% 
+  filter(type != 'terminal') %>% 
+  distinct()
+
+filter(sub, !toid %in% id)
+
+
+filter(tt, toid == 'nex-1858281')$vpu
+

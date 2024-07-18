@@ -25,6 +25,9 @@
     <loc>/articles/03-processing-deep-dive.html</loc>
   </url>
   <url>
+    <loc>/articles/04-applying-nextgen-model.html</loc>
+  </url>
+  <url>
     <loc>/articles/04-data-model-deep-dive.html</loc>
   </url>
   <url>
@@ -43,7 +46,19 @@
     <loc>/articles/cs_dm.html</loc>
   </url>
   <url>
+    <loc>/articles/data.html</loc>
+  </url>
+  <url>
     <loc>/articles/data_access.html</loc>
+  </url>
+  <url>
+    <loc>/articles/devcon2024-background.html</loc>
+  </url>
+  <url>
+    <loc>/articles/devcon2024-setup.html</loc>
+  </url>
+  <url>
+    <loc>/articles/devcon2024-tutorial.html</loc>
   </url>
   <url>
     <loc>/articles/hf_dm.html</loc>
@@ -61,6 +76,21 @@
     <loc>/index.html</loc>
   </url>
   <url>
+    <loc>/reference/add_parameters.html</loc>
+  </url>
+  <url>
+    <loc>/reference/append_style.html</loc>
+  </url>
+  <url>
+    <loc>/reference/area_length_filter.html</loc>
+  </url>
+  <url>
+    <loc>/reference/as_sqlite.html</loc>
+  </url>
+  <url>
+    <loc>/reference/create_style_row.html</loc>
+  </url>
+  <url>
     <loc>/reference/cs_dm.html</loc>
   </url>
   <url>
@@ -70,6 +100,9 @@
     <loc>/reference/hf_dm.html</loc>
   </url>
   <url>
+    <loc>/reference/hydrofabric-package.html</loc>
+  </url>
+  <url>
     <loc>/reference/hydrofabric_conflicts.html</loc>
   </url>
   <url>
@@ -77,6 +110,24 @@
   </url>
   <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/input_to_reference_feature.html</loc>
+  </url>
+  <url>
+    <loc>/reference/is.url.html</loc>
+  </url>
+  <url>
+    <loc>/reference/read_qml.html</loc>
+  </url>
+  <url>
+    <loc>/reference/read_sf_dataset_sqlite.html</loc>
+  </url>
+  <url>
+    <loc>/reference/reexports.html</loc>
+  </url>
+  <url>
+    <loc>/reference/subset_bbox.html</loc>
   </url>
   <url>
     <loc>/reference/subset_network.html</loc>

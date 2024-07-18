@@ -25,7 +25,7 @@ path_df <- align_files_by_vpu(
                 )
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
-for(i in 1:nrow(path_df)) {
+for(i in 2:nrow(path_df)) {
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
