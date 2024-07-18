@@ -26,7 +26,7 @@ path_df <- align_files_by_vpu(
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
 for(i in 1:nrow(path_df)) {
-   # i = 8
+  
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(nextgen_dir, nextgen_file)
@@ -34,17 +34,12 @@ for(i in 1:nrow(path_df)) {
   vpu <- path_df$vpu[i]
 
   # Get FEMA by VPU directory and files for current VPU 
-  fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))], "/merged")
+  fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))])
   # fema_vpu_dir <- paste0(FEMA_VPU_SUBFOLDERS[grepl(paste0("VPU_", vpu), basename(FEMA_VPU_SUBFOLDERS))], "/merged")
 
   vpu_fema_files <- list.files(fema_vpu_dir, full.names = TRUE)
-  vpu_fema_file <- vpu_fema_files[grepl(paste0(vpu, "_output.gpkg"), vpu_fema_files)]
+  vpu_fema_file  <- vpu_fema_files[grepl(paste0(vpu, "_output.gpkg"), vpu_fema_files)]
   
-
-  # # model attributes file and full path
-  # model_attr_file <- path_df$y[i]
-  # model_attr_path <- paste0(model_attr_dir, model_attr_file)
-
   message("Creating VPU ", vpu, " transects:", 
           "\n - flowpaths: '",
           nextgen_file, "'",
@@ -57,29 +52,12 @@ for(i in 1:nrow(path_df)) {
   # read in nextgen data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
   
-  # # model attributes
-  # model_attrs <- arrow::read_parquet(model_attr_path)
-
-  # # join flowlines with model atttributes
-  # flines <- dplyr::left_join(
-  #   flines,
-  #   dplyr::select(
-  #     model_attrs,
-  #     id, eTW
-  #   ), by = "id")
-
   # calculate bankfull width
   flines <-
     flines %>%
     dplyr::mutate(
       bf_width = exp(0.700    + 0.365* log(tot_drainage_areasqkm))
     ) %>%
-    # dplyr::mutate( bf_width = 11 * eTW) %>%
-    # dplyr::mutate( # if there are any NAs, use exp(0.700    + 0.365* log(tot_drainage_areasqkm)) equation to calculate bf_width
-    #   bf_width = dplyr::case_when(
-    #     is.na(bf_width) ~ exp(0.700    + 0.365* log(tot_drainage_areasqkm)),
-    #     TRUE            ~ bf_width
-    #   )) %>%
     dplyr::select(
       hy_id = id,
       lengthkm,
@@ -131,6 +109,7 @@ for(i in 1:nrow(path_df)) {
     dplyr::mutate(
       cs_source = net_source
     )
+  
   # ---------------------------------------------------------------------
   # --- Extend transects out to FEMA 100yr floodplains
   # ---------------------------------------------------------------------
@@ -140,28 +119,14 @@ for(i in 1:nrow(path_df)) {
   
   # mapview::npts(fema)
   message("Simplifying FEMA polygons...")
+  
   # TODO: this should be a function argument OR removed, shouldn't probably forcibly and silently simplify the input polygons without user knowing..
-  # keep 10% of the original points for speed
-  # fema <- rmapshaper::ms_simplify(fema, keep_shapes = F, keep = 0.01)
-  fema <- rmapshaper::ms_simplify(fema, keep_shapes = F, keep = 0.01, sys = TRUE, sys_mem = 16)
-
+  # keep 1% of the original points for speed
+  fema <- rmapshaper::ms_simplify(fema, keep_shapes = T, keep = 0.01, sys = TRUE, sys_mem = 16)
+  # fema <- rmapshaper::ms_simplify(fema, keep_shapes = F, keep = 0.1, sys = TRUE, sys_mem = 16)
   # mapview::npts(fema)
-  
-  # # TODO: the flines argument needs the "hy_id" column to be named "id" 
-  # # TODO: probably should fix this in hydrofabric3D::get_transect_extension_distances_to_polygons()
-  # flines <- 
-  #   flines %>% 
-  #   dplyr::rename(id = hy_id)
-  
+
   message("Extending transects out to FEMA 100yr floodplain polygon boundaries - (", Sys.time(), ")")
-  
-  # # TODO: hacky, need to fix the extend-trancterts to polygons function to not need these columns
-  # transects <- 
-  #   transects %>% 
-  #   dplyr::rename(geom = geometry) %>%
-  #   dplyr::mutate(
-  #     is_extended = FALSE
-  #   )
   
   transects <- 
     transects  %>%
@@ -193,8 +158,8 @@ for(i in 1:nrow(path_df)) {
   transects  <- dplyr::select(transects, -tmp_id)
   transects  <- hydrofabric3D::add_tmp_id(transects)
   
-  # transects <- 
-    transects3 %>%  
+  transects <-
+    transects %>%  
     # dplyr::select(-cs_lengthm) %>% 
     # dplyr::mutate(is_fema_extended = left_is_extended | right_is_extended) %>% 
     dplyr::select(
@@ -213,93 +178,6 @@ for(i in 1:nrow(path_df)) {
   gc()
    
   # # ---------------------------------------------------------------------
-  # # ---------------------------------------------------------------------
-  # 
-  # transects <- sf::read_sf(out_path)
-  # 
-  # # flines <-
-  # #   flines %>%
-  # #   dplyr::filter(hy_id %in% transects$hy_id)
-  # #   dplyr::slice(1:1000)
-  # 
-  # flines <-
-  #   flines %>%
-  #   dplyr::slice(seq(1, nrow(flines), 10))
-  # # 
-  # transects <-
-  #   transects %>%
-  #   dplyr::filter(hy_id %in% flines$hy_id)
-  # # 
-  # 
-  # # TODO: the flines argument needs the "hy_id" column to be named "id" 
-  # # TODO: probably should fix this in hydrofabric3D::get_transect_extension_distances_to_polygons()
-  # flines <- 
-  #   flines %>% 
-  #   dplyr::rename(id = hy_id)
-  # 
-  # 
-  #  # fema_keep <- rmapshaper::ms_simplify(fema, keep_shapes = T, keep = 0.01)
-  # 
-  # mapview::mapview(dplyr::filter(fema, fema_id %in% 1:10), col.regions = "red") + 
-  #   mapview::mapview(dplyr::filter(fema_keep, fema_id %in% 1:10), col.regions = "green") 
-  #   # mapview::mapview(dplyr::filter(fema_nokeep, fema_id %in% 1:10), col.regions = "dodgerblue")
-  # transects
-  # 
-  # # system.time({
-  # # profvis::profvis({
-  #   
-  # # TODO: make sure this 3000m extension distance is appropriate across VPUs 
-  # # TODO: also got to make sure that this will be feasible on memory on the larger VPUs...
-  # # transects2 <- hydrofabric3D::get_transect_extension_distances_to_polygons(
-  # #                                                 transect_lines         = transects, 
-  # #                                                 polygons               = fema, 
-  # #                                                 flines                 = flines, 
-  # #                                                 max_extension_distance = 3000 
-  # #                                                 )
-  # transects2 <- hydrofabric3D::extend_transects_to_polygons(
-  #   transect_lines         = transects, 
-  #   polygons               = fema, 
-  #   flowlines              = flines, 
-  #   max_extension_distance = 3000 
-  # )
-  # # })
-  # # })
-  # 
-  # # mapview::mapview(transects2, color = "green") + 
-  # # mapview::mapview(transects, color = "red") + 
-  # #    mapview::mapview(fema_keep, col.regions = "dodgerblue")
-  # # ---------------------------------------------------------------------
-  # # ----------------------------------------------------------------------------------------------------------------
-  # 
-  # transects2 <- dplyr::select(transects2, -tmp_id)
-  # transects2 <- hydrofabric3D::add_tmp_id(transects2)
-  # 
-  # extended_ids <- 
-  #   transects2 %>% 
-  #   dplyr::filter(left_is_extended | right_is_extended) %>% 
-  #   dplyr::pull(hy_id) %>% 
-  #   unique()
-  # 
-  # start_trans <- dplyr::filter(transects, hy_id %in% extended_ids[1:150])
-  #   end_trans <- dplyr::filter(transects2, hy_id %in% extended_ids[1:150])
-  # mapview::mapview(start_trans, color = "red")  + 
-  #   mapview::mapview(end_trans, color = "green")
-  # transects <- 
-  #   transects %>%  
-  #   dplyr::select(-cs_lengthm) %>% 
-  #   # dplyr::mutate(is_fema_extended = left_is_extended | right_is_extended) %>% 
-  #   dplyr::select(
-  #     hy_id, 
-  #     cs_id, 
-  #     # cs_lengthm,
-  #     cs_lengthm = new_cs_lengthm, 
-  #     cs_source,
-  #     cs_measure,
-  #     # is_extended,
-  #     # is_fema_extended,
-  #     geometry = geom
-  #   )
-  
   message("Saving transects to:\n - filepath: '", out_path, "'")
   
   # save transects with only columns to be uploaded to S3 (lynker-spatial/01_transects/transects_<VPU num>.gpkg)
