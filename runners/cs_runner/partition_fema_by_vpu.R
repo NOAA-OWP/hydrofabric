@@ -341,7 +341,8 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
 
 for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
   # for (i in 1:4) {
-  # vpu_dir = FEMA_VPU_SUBFOLDERS2[12]
+  # i = 1
+  # vpu_dir = FEMA_VPU_SUBFOLDERS2[i]
   message("Merging files in '", basename(vpu_dir), "' directory...")
   # }
   
@@ -352,25 +353,31 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
   master_gpkg_name  <- paste0(master_name, ".gpkg")
   master_filepath   <- paste0(vpu_dir, "/", master_gpkg_name)
   
+  # if the file already exists, remove it so we dont OVER append data to the "master file"
+  if (file.exists(master_filepath)) {
+    file.remove(master_filepath)
+  }
+  
   # fema state geopackages partioned for the specific VPU
-  fema_state_gpkgs <- list.files(vpu_dir, full.names = TRUE)
+  fema_state_gpkgs        <- list.files(vpu_dir, full.names = TRUE)
+  master_output_filepath  <- paste0(vpu_dir, "/", gsub(".gpkg", "_output.gpkg", master_gpkg_name))
   
   # make sure to ignore the master file if it already exists
-  fema_state_gpkgs <- fema_state_gpkgs[fema_state_gpkgs != master_filepath]
+  fema_state_gpkgs <- fema_state_gpkgs[fema_state_gpkgs != master_filepath & fema_state_gpkgs != master_output_filepath]
   
   for(gpkg_file in fema_state_gpkgs) {
-    # message(" - Appending '", basename(gpkg_file), "' to master FEMA VPU gpkg:\n  >  '", 
-    #         basename(gpkg_file), " > ", basename(master_filepath), 
+    # message(" - Appending '", basename(gpkg_file), "' to master FEMA VPU gpkg:\n  >  '",
+    #         basename(gpkg_file), " > ", basename(master_filepath),
     #         "'")
-    message(" > '", 
-            basename(gpkg_file), " > ", basename(master_filepath), 
+    message(" > '",
+            basename(gpkg_file), " > ", basename(master_filepath),
             "'")
-    
-    ogr2ogr_merge_command <- paste0("ogr2ogr -f 'gpkg' -append -nln ", master_name, " ",   
-                                    master_filepath, 
+
+    ogr2ogr_merge_command <- paste0("ogr2ogr -f 'gpkg' -append -nln ", master_name, " ",
+                                    master_filepath,
                                     " ", gpkg_file
     )
-    
+
     if (OVERWRITE_FEMA_FILES) {
       system(ogr2ogr_merge_command)
     }
@@ -399,15 +406,8 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
 # -------------------------------------------------------------------------------------
 # ---- Union each VPU geopackage (either on state or just touching predicate) ---- 
 # -------------------------------------------------------------------------------------
-# for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
-#   
-#   vpu_dir    <- FEMA_VPU_SUBFOLDERS[i]
-#   VPU        <- basename(vpu_dir)
-#   
-#   message(i, " - Attempting to union FEMA polygons for '", VPU, "'...")
-# }
 
-for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
+for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   
   vpu_dir    <- FEMA_VPU_SUBFOLDERS[i]
   VPU        <- basename(vpu_dir)
@@ -440,6 +440,7 @@ for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
   #   sf::st_make_valid() %>% 
   #   sf::st_geometry_type() %>% 
   #   unique()
+  
   geom_type_counts <- table(sf::st_geometry_type(fema_vpu))
   
   message("Geometry counts before casting all geometries to MULTIPOLYGON:")
@@ -461,10 +462,10 @@ for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
     fema_vpu <- 
       fema_vpu %>% 
       nngeo::st_remove_holes(max_area = 200) %>% 
-      sf::st_make_valid() %>%
+      # sf::st_make_valid() %>%
       # dplyr::filter(sf::st_geometry_type(geom) %in% c("POLYGON", "MULTIPOLYGON")) %>% 
       add_predicate_group_id(sf::st_intersects) %>% 
-      dplyr::group_by(group_id) %>% 
+      dplyr::group_by(group_id) %>%
       rmapshaper::ms_dissolve(sys = TRUE, sys_mem = 16) %>% 
       rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) %>% 
       dplyr::ungroup() %>% 
@@ -497,62 +498,6 @@ for (i in 5:length(FEMA_VPU_SUBFOLDERS)) {
       )
   
     })
-
-  
-  
-  # fema_vpu <- 
-  #   fema_vpu %>% 
-  #   nngeo::st_remove_holes(max_area = 200) %>%
-  #   # dplyr::select(geometry = geom) %>%
-  #   add_predicate_group_id(sf::st_intersects) %>% 
-  #   sf::st_make_valid() %>%
-  #   dplyr::group_by(group_id) %>% 
-  #   dplyr::summarise(
-  #     geometry = sf::st_combine(sf::st_union(geometry))
-  #   ) %>% 
-  #   dplyr::ungroup() %>% 
-  #   dplyr::select(-group_id) %>%
-  #   add_predicate_group_id(sf::st_intersects)
-  # geom_type_counts <- table(sf::st_geometry_type(fema_vpu))
-  # message("Geometry counts before casting all geometries to MULTIPOLYGON:")
-  # for (g in seq_along(geom_type_counts)) {
-  #   message(" > ", names(geom_type_counts[g]), ": ", geom_type_counts[g])
-  # }
-  # message("Keeping only POLYGON and MULTIPOLYGON geometries...")
-  # fema_vpu <- 
-  #   fema_vpu %>%
-  #   dplyr::filter(sf::st_geometry_type(geometry) %in% c("POLYGON", "MULTIPOLYGON")) %>%
-  #   sf::st_cast("MULTIPOLYGON") %>%
-  #   sf::st_make_valid() %>%
-  #   # dplyr::group_by(group_id) %>% 
-  #   rmapshaper::ms_dissolve(sys = TRUE, sys_mem = 16) %>%
-  #   rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) %>%
-  #   nngeo::st_remove_holes(max_area = 200) %>% 
-  #   dplyr::mutate(
-  #     fema_id = as.character(1:dplyr::n())
-  #   ) %>% 
-  #   dplyr::select(fema_id, geometry)
-  
-  # end_geom_type_counts <- table(sf::st_geometry_type(fema_vpu))
-  # message("Geometry counts after all processing steps: ")
-  # for (g in seq_along(end_geom_type_counts)) {
-  #   message(" > ", names(end_geom_type_counts[g]), ": ", end_geom_type_counts[g])
-  # }
-  
-  # fema_vpu2 %>% mapview::npts()
-  # fema_vpu2_subset <- fema_vpu2[lengths(sf::st_intersects(fema_vpu2, fema_vpu[1:100, ]))  > 1, ]
-  # mapview::mapview(fema_vpu, color = 'red', col.regions = 'white') +
-  #       mapview::mapview(fema_vpu2, color = 'green', col.regions = 'white')
-  # fema_vpu <-
-  #   fema_vpu %>%
-  #   # dplyr::group_by(source) %>%
-  #   dplyr::mutate(
-  #     # state    = tolower(gsub("-100yr-flood_valid_clean.gpkg", "", source)),
-  #     vpu      = gsub("VPU_", "", VPU),
-  #     fema_id  = 1:dplyr::n()
-  #   ) %>%
-  #   dplyr::ungroup() %>%
-  #   dplyr::select(vpu, fema_id, geom = geometry)
   
   if (OVERWRITE_FEMA_FILES) {
     
