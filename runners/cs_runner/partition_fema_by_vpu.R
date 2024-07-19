@@ -402,12 +402,14 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
   message("Merged '", basename(vpu_dir), "' FEMA output geopackage:\n --> '", master_filepath, "'")
   message()
 }
-
 # -------------------------------------------------------------------------------------
-# ---- Union each VPU geopackage (either on state or just touching predicate) ---- 
+# ----Apply simplify, dissolve, explode on the MERGED polygons  ---- 
 # -------------------------------------------------------------------------------------
 
+# list.files(FEMA_VPU_SUBFOLDERS, full.names = T)[grepl("_output.gpkg", list.files(FEMA_VPU_SUBFOLDERS, full.names = T))]
 for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
+  # i = 8
+  STAGING_FILES_TO_DELETE <- c()
   
   vpu_dir    <- FEMA_VPU_SUBFOLDERS[i]
   VPU        <- basename(vpu_dir)
@@ -419,10 +421,14 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   master_gpkg_name  <- paste0(master_name, ".gpkg")
   master_filepath   <- paste0(vpu_dir, "/", master_gpkg_name)
   
+  master_geojson_name       <- paste0(master_name, ".geojson")
+  master_geojson_filepath   <- paste0(vpu_dir, "/", master_geojson_name)
+  
   updated_gpkg_name  <- gsub(".gpkg", "_output.gpkg", master_gpkg_name)
   updated_filepath   <- paste0(vpu_dir, "/", updated_gpkg_name)
   
-  message("> Re-unioning and re-exploding geometries in '", basename(master_filepath), "'")
+  message("VPU Merged FEMA filename: '", master_gpkg_name, "'")
+  message("> Simplifying, dissolve, exploding VPU aggregated FEMA polygons... '", basename(master_filepath), "'")
   
   if(!file.exists(master_filepath)) { 
     message("No FEMA geometries in '", VPU, "'")
@@ -430,88 +436,191 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
     next
   }
   
+  message("Converting \n > '", basename(master_filepath), "' to geojson '", master_geojson_name, "'")
   
-  fema_vpu <- sf::read_sf(master_filepath)
+  geojson_exists  <- file.exists(master_geojson_filepath)
   
-  # fema_vpu %>% sf::st_geometry_type() %>% unique()
-  # fema_vpu %>% mapview::npts()
-  # fema_vpu %>% sf::st_is_valid() %>% all()
-  # fema_vpu %>% 
-  #   sf::st_make_valid() %>% 
-  #   sf::st_geometry_type() %>% 
-  #   unique()
+  # message(" >>> '", geojson_filename, "' already exists? ", geojson_exists)
+  # message(" >>> Overwrite? ", OVERWRITE_FEMA_FILES)
   
-  geom_type_counts <- table(sf::st_geometry_type(fema_vpu))
+  gpkg_to_geojson_cmd <- paste0("ogr2ogr ", master_geojson_filepath, " ", master_filepath)
   
-  message("Geometry counts before casting all geometries to MULTIPOLYGON:")
-  for (g in seq_along(geom_type_counts)) {
-    message(" > ", names(geom_type_counts[g]), ": ", geom_type_counts[g])
+  if (OVERWRITE_FEMA_FILES || !geojson_exists) {
+    system(gpkg_to_geojson_cmd)
+    message("Writing '", master_geojson_name, "' to: \n > '", master_geojson_filepath, "'")
+    
+    STAGING_FILES_TO_DELETE <- c(STAGING_FILES_TO_DELETE, master_geojson_filepath)
   }
   
-  # mapview::mapview(fema_vpu, color = 'red', col.regions = 'white') +
-  #       mapview::mapview(fema_union, color = 'green', col.regions = 'white')
+  # Clean GeoJSON
+  message("Simplify, dissolve, explode > '", master_geojson_name, "'")
+  output_clean_filename      <- gsub(".geojson", "_clean.geojson", master_geojson_name)
+  output_clean_geojson_path  <- paste0(vpu_dir, "/", output_clean_filename)
   
-  # fema_vpu %>% 
-  #   sf::st_make_valid() %>% 
-  #   dplyr::filter(sf::st_geometry_type(geom) %in% c("POLYGON", "MULTIPOLYGON")) %>% 
-  #   sf::st_is_valid() %>% 
-  #   all()
+  clean_geojson_exists  <- file.exists(output_clean_geojson_path)
+  message(" >>> '", output_clean_filename, "' already exists? ", clean_geojson_exists)
+  message(" >>> Overwrite? ", OVERWRITE_FEMA_FILES)
   
-  tryCatch({
-    
-    fema_vpu <- 
-      fema_vpu %>% 
-      nngeo::st_remove_holes(max_area = 200) %>% 
-      # sf::st_make_valid() %>%
-      # dplyr::filter(sf::st_geometry_type(geom) %in% c("POLYGON", "MULTIPOLYGON")) %>% 
-      add_predicate_group_id(sf::st_intersects) %>% 
-      dplyr::group_by(group_id) %>%
-      rmapshaper::ms_dissolve(sys = TRUE, sys_mem = 16) %>% 
-      rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) %>% 
-      dplyr::ungroup() %>% 
-      nngeo::st_remove_holes(max_area = 200) %>% 
-      dplyr::mutate(      
-        vpu      = gsub("VPU_", "", VPU),
-        fema_id  = as.character(1:dplyr::n())
-      ) %>% 
-      dplyr::select(
-        vpu, fema_id,
-        # state, 
-        geom = geometry
-      )
-    
-  }, error = function(e) {
-    message(VPU, " threw into the following error \n ", e)
-    message(" > Cleaning ", VPU, " using a backup cleaning strategy...")
-    
-    fema_vpu <- 
-      fema_vpu %>% 
-      sf::st_make_valid() %>% 
-      dplyr::mutate(      
-        vpu      = gsub("VPU_", "", VPU),
-        fema_id  = as.character(1:dplyr::n())
-      ) %>% 
-      dplyr::select(
-        vpu, fema_id,
-        # state, 
-        geom
-      )
+  mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', master_geojson_filepath, 
+                             ' -dissolve2 \\', 
+                             ' -simplify 0.5 visvalingam \\', 
+                             ' -snap \\',
+                             ' -explode \\',
+                             ' -o ', output_clean_geojson_path
+  )
   
-    })
+  system(mapshaper_command)
+  # message("Writing '", master_geojson_name, "' to: \n > '", master_geojson_filepath, "'")
   
-  if (OVERWRITE_FEMA_FILES) {
+  STAGING_FILES_TO_DELETE <- c(STAGING_FILES_TO_DELETE, output_clean_geojson_path)
+  output_clean_gpkg_filename   <- gsub(".geojson", ".gpkg", master_geojson_name)
+  output_clean_gpkg_path       <- paste0(vpu_dir, "/", output_clean_gpkg_filename)
+  
+  # fema_vpu <- sf::read_sf(master_filepath)
+  geojson_to_gpkg_cmd <- paste0("ogr2ogr -nlt MULTIPOLYGON ", updated_filepath, " ", output_clean_geojson_path)
+  updated_gpkg_exists  <- file.exists(updated_filepath)
+  
+  if (OVERWRITE_FEMA_FILES || !updated_gpkg_exists) {
+    system(geojson_to_gpkg_cmd)
+    message("Writing '", updated_gpkg_name, "' to: \n > '", updated_filepath, "'")
     
-    message("> Overwritting '", basename(master_filepath), "' with final clean version...")
-    
-    # union_file_path <- gsub(".gpkg", "_union.gpkg", fema_vpu_file)
-    # message("> writting '", basename(union_file_path), "' (unioned and exploded version)")
-    
-    sf::write_sf(
-      fema_vpu,
-      updated_filepath
-      # master_filepath
-      # union_file_path
+  }
+  
+  fema <- 
+    sf::read_sf(updated_filepath) %>% 
+    rmapshaper::ms_explode(sys=TRUE, sys_mem = 16) %>% 
+    dplyr::mutate(
+      vpu      = gsub("VPU_", "", VPU),
+      fema_id = as.character(1:dplyr::n())
+    ) %>% 
+    dplyr::select(
+      fema_id, 
+      geom
     )
+  
+  sf::write_sf(
+    fema, 
+    updated_filepath
+  )
+  
+  message("Deleting intermediary files\n")
+  for (delete_file in STAGING_FILES_TO_DELETE) {
+    if (file.exists(delete_file)) {
+      message("Deleting >>> '", delete_file, "'")
+      file.remove(delete_file)
+    }
+    
   }
-  message()
 }
+# # -------------------------------------------------------------------------------------
+# # ---- Union each VPU geopackage (either on state or just touching predicate) ---- 
+# # -------------------------------------------------------------------------------------
+# 
+# for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
+#   
+#   vpu_dir    <- FEMA_VPU_SUBFOLDERS[i]
+#   VPU        <- basename(vpu_dir)
+#   
+#   message(i, " - Attempting to union FEMA polygons for '", VPU, "'...")
+#   
+#   # path to the merged directory where the final merged geopackage will end up
+#   master_name       <- paste0("fema_", gsub("VPU", "vpu", basename(vpu_dir)))
+#   master_gpkg_name  <- paste0(master_name, ".gpkg")
+#   master_filepath   <- paste0(vpu_dir, "/", master_gpkg_name)
+#   
+#   updated_gpkg_name  <- gsub(".gpkg", "_output.gpkg", master_gpkg_name)
+#   updated_filepath   <- paste0(vpu_dir, "/", updated_gpkg_name)
+#   
+#   message("> Re-unioning and re-exploding geometries in '", basename(master_filepath), "'")
+#   
+#   if(!file.exists(master_filepath)) { 
+#     message("No FEMA geometries in '", VPU, "'")
+#     message()
+#     next
+#   }
+#   
+#   
+#   fema_vpu <- sf::read_sf(master_filepath)
+#   
+#   # fema_vpu %>% sf::st_geometry_type() %>% unique()
+#   # fema_vpu %>% mapview::npts()
+#   # fema_vpu %>% sf::st_is_valid() %>% all()
+#   # fema_vpu %>% 
+#   #   sf::st_make_valid() %>% 
+#   #   sf::st_geometry_type() %>% 
+#   #   unique()
+#   
+#   geom_type_counts <- table(sf::st_geometry_type(fema_vpu))
+#   
+#   message("Geometry counts before casting all geometries to MULTIPOLYGON:")
+#   for (g in seq_along(geom_type_counts)) {
+#     message(" > ", names(geom_type_counts[g]), ": ", geom_type_counts[g])
+#   }
+#   
+#   # mapview::mapview(fema_vpu, color = 'red', col.regions = 'white') +
+#   #       mapview::mapview(fema_union, color = 'green', col.regions = 'white')
+#   
+#   # fema_vpu %>% 
+#   #   sf::st_make_valid() %>% 
+#   #   dplyr::filter(sf::st_geometry_type(geom) %in% c("POLYGON", "MULTIPOLYGON")) %>% 
+#   #   sf::st_is_valid() %>% 
+#   #   all()
+#   
+#   tryCatch({
+#     
+#     fema_vpu <- 
+#       fema_vpu %>% 
+#       nngeo::st_remove_holes(max_area = 200) %>% 
+#       # sf::st_make_valid() %>%
+#       # dplyr::filter(sf::st_geometry_type(geom) %in% c("POLYGON", "MULTIPOLYGON")) %>% 
+#       add_predicate_group_id(sf::st_intersects) %>% 
+#       dplyr::group_by(group_id) %>%
+#       rmapshaper::ms_dissolve(sys = TRUE, sys_mem = 16) %>% 
+#       rmapshaper::ms_explode(sys = TRUE, sys_mem = 16) %>% 
+#       dplyr::ungroup() %>% 
+#       nngeo::st_remove_holes(max_area = 200) %>% 
+#       dplyr::mutate(      
+#         vpu      = gsub("VPU_", "", VPU),
+#         fema_id  = as.character(1:dplyr::n())
+#       ) %>% 
+#       dplyr::select(
+#         vpu, fema_id,
+#         # state, 
+#         geom = geometry
+#       )
+#     
+#   }, error = function(e) {
+#     message(VPU, " threw into the following error \n ", e)
+#     message(" > Cleaning ", VPU, " using a backup cleaning strategy...")
+#     
+#     fema_vpu <- 
+#       fema_vpu %>% 
+#       sf::st_make_valid() %>% 
+#       dplyr::mutate(      
+#         vpu      = gsub("VPU_", "", VPU),
+#         fema_id  = as.character(1:dplyr::n())
+#       ) %>% 
+#       dplyr::select(
+#         vpu, fema_id,
+#         # state, 
+#         geom
+#       )
+#   
+#     })
+#   
+#   if (OVERWRITE_FEMA_FILES) {
+#     
+#     message("> Overwritting '", basename(master_filepath), "' with final clean version...")
+#     
+#     # union_file_path <- gsub(".gpkg", "_union.gpkg", fema_vpu_file)
+#     # message("> writting '", basename(union_file_path), "' (unioned and exploded version)")
+#     
+#     sf::write_sf(
+#       fema_vpu,
+#       updated_filepath
+#       # master_filepath
+#       # union_file_path
+#     )
+#   }
+#   message()
+# }
