@@ -36,6 +36,7 @@ library(nngeo)
 # Default is TRUE (i.e. a fresh processing run is done from start to finish)
 OVERWRITE_FEMA_FILES  <- TRUE
 DELETE_STAGING_GPKGS  <- TRUE
+Sys.setenv(OGR_GEOJSON_MAX_OBJ_SIZE=0)
 
 # -------------------------------------------------------------------------------------
 # ---- Create directories (if they do NOT exist) ----
@@ -406,7 +407,11 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
 # ----Apply simplify, dissolve, explode on the MERGED polygons  ---- 
 # -------------------------------------------------------------------------------------
 
-# list.files(FEMA_VPU_SUBFOLDERS, full.names = T)[grepl("_output.gpkg", list.files(FEMA_VPU_SUBFOLDERS, full.names = T))]
+# # NOTE: remove past runs for testing...
+# for (i in list.files(FEMA_VPU_SUBFOLDERS, full.names = T)[grepl("_output.gpkg", list.files(FEMA_VPU_SUBFOLDERS, full.names = T))]) {
+#   file.remove(i)
+# }
+
 for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   # i = 8
   STAGING_FILES_TO_DELETE <- c()
@@ -442,8 +447,10 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   
   # message(" >>> '", geojson_filename, "' already exists? ", geojson_exists)
   # message(" >>> Overwrite? ", OVERWRITE_FEMA_FILES)
-  
-  gpkg_to_geojson_cmd <- paste0("ogr2ogr ", master_geojson_filepath, " ", master_filepath)
+  gpkg_to_geojson_cmd <- paste0("ogr2ogr -s_srs EPSG:5070 -t_srs EPSG:5070 ", master_geojson_filepath, " ", master_filepath)
+  # gpkg_to_geojson_cmd <- paste0("ogr2ogr -f GEOJSON -s_srs EPSG:5070 -t_srs EPSG:5070 ", master_geojson_filepath, " ", master_filepath)
+  # gpkg_to_geojson_cmd <- paste0("ogr2ogr ", master_geojson_filepath, " ", master_filepath)
+  # file.remove(master_geojson_filepath)
   
   if (OVERWRITE_FEMA_FILES || !geojson_exists) {
     system(gpkg_to_geojson_cmd)
@@ -452,6 +459,9 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
     STAGING_FILES_TO_DELETE <- c(STAGING_FILES_TO_DELETE, master_geojson_filepath)
   }
   
+  # master_gj <- sf::read_sf(master_geojson_filepath)
+  # master_gpkg <- sf::read_sf(master_filepath)
+
   # Clean GeoJSON
   message("Simplify, dissolve, explode > '", master_geojson_name, "'")
   output_clean_filename      <- gsub(".geojson", "_clean.geojson", master_geojson_name)
@@ -460,12 +470,19 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   clean_geojson_exists  <- file.exists(output_clean_geojson_path)
   message(" >>> '", output_clean_filename, "' already exists? ", clean_geojson_exists)
   message(" >>> Overwrite? ", OVERWRITE_FEMA_FILES)
+
+  # file.remove(output_clean_geojson_path)
   
-  mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ', master_geojson_filepath, 
-                             ' -dissolve2 \\', 
-                             ' -simplify 0.5 visvalingam \\', 
+  mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ',
+                             master_geojson_filepath, 
+                             # ' -clean \\', 
+                             # ' -explode \\',
+                             # ' -dissolve2 \\',
+                             ' -simplify 0.3 visvalingam \\', 
                              ' -snap \\',
                              ' -explode \\',
+                             ' -clean \\',
+                             # ' -proj EPSG:5070 \\',
                              ' -o ', output_clean_geojson_path
   )
   
@@ -477,30 +494,49 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   output_clean_gpkg_path       <- paste0(vpu_dir, "/", output_clean_gpkg_filename)
   
   # fema_vpu <- sf::read_sf(master_filepath)
-  geojson_to_gpkg_cmd <- paste0("ogr2ogr -nlt MULTIPOLYGON ", updated_filepath, " ", output_clean_geojson_path)
+  # geojson_to_gpkg_cmd <- paste0("ogr2ogr -f GPKG ", updated_filepath, " ", output_clean_geojson_path)
+  geojson_to_gpkg_cmd <- paste0("ogr2ogr -nlt MULTIPOLYGON -s_srs EPSG:5070 -t_srs EPSG:5070  ", updated_filepath, " ", output_clean_geojson_path)
+  # geojson_to_gpkg_cmd <- paste0("ogr2ogr ", updated_filepath, " ", output_clean_geojson_path)
+
   updated_gpkg_exists  <- file.exists(updated_filepath)
+  # updated_gpkg_exists
+  # file.remove(updated_filepath)
   
   if (OVERWRITE_FEMA_FILES || !updated_gpkg_exists) {
     system(geojson_to_gpkg_cmd)
     message("Writing '", updated_gpkg_name, "' to: \n > '", updated_filepath, "'")
-    
   }
+
+  # sf::st_layers(updated_filepath)
   
-  fema <- 
-    sf::read_sf(updated_filepath) %>% 
-    rmapshaper::ms_explode(sys=TRUE, sys_mem = 16) %>% 
+  # mapview::npts(fema)
+  
+  fema  <- 
+    sf::read_sf(updated_filepath) %>%
+    # sf::read_sf(output_clean_geojson_path) %>%
+    # rmapshaper::ms_explode(sys=TRUE, sys_mem = 16) %>% 
     dplyr::mutate(
       vpu      = gsub("VPU_", "", VPU),
       fema_id = as.character(1:dplyr::n())
     ) %>% 
     dplyr::select(
+      vpu,
       fema_id, 
       geom
     )
   
+  # fema %>% 
+  #   rmapshaper::ms_simplify(keep = 0.5, keep_shapes = T) %>% 
+  #   dplyr::group_by(fema_id) %>% 
+  #   dplyr::mutate(pts = mapview::npts(geom)) %>% 
+  #   dplyr::arrange(-pts) 
+  
+  file.remove(updated_filepath)
+  
   sf::write_sf(
     fema, 
-    updated_filepath
+    updated_filepath, 
+    append = FALSE
   )
   
   message("Deleting intermediary files\n")

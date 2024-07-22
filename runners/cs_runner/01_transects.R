@@ -25,7 +25,8 @@ path_df <- align_files_by_vpu(
                 )
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
-for(i in 2:nrow(path_df)) {
+for(i in 1:nrow(path_df)) {
+  # i = 8
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
@@ -114,10 +115,11 @@ for(i in 2:nrow(path_df)) {
   # --- Extend transects out to FEMA 100yr floodplains
   # ---------------------------------------------------------------------
   message("Reading in FEMA polygons...") 
+  
   # fema polygons and transect lines
   fema <- sf::read_sf(vpu_fema_file)
   
-  # mapview::npts(fema)
+  mapview::npts(fema)
   message("Simplifying FEMA polygons...")
   
   # TODO: this should be a function argument OR removed, shouldn't probably forcibly and silently simplify the input polygons without user knowing..
