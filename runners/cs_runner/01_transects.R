@@ -25,9 +25,8 @@ path_df <- align_files_by_vpu(
                 )
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
-for(i in 4:nrow(path_df)) {
-  # i = 2
-  # i = 4
+for(i in 1:nrow(path_df)) {
+  
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(nextgen_dir, nextgen_file)
@@ -49,6 +48,10 @@ for(i in 4:nrow(path_df)) {
           )
   
   # message("Creating VPU ", path_df$vpu[i], " transects:\n - flowpaths: '", nextgen_file, "'\n - model attributes: '", model_attr_file, "'")
+  # sf::write_sf(
+  #   dplyr::slice(dplyr::filter(flines, order == 2), 2), 
+  #   "/Users/anguswatters/Desktop/example_flowline.gpkg"
+  #   )
   
   # read in nextgen data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
@@ -118,51 +121,15 @@ for(i in 4:nrow(path_df)) {
   # fema polygons and transect lines
   fema <- sf::read_sf(vpu_fema_file)
   
-  # mapview::npts(fema)
-  
-  # mapview::npts(fema)
   message("Simplifying FEMA polygons...")
-  message(" - Number of points BEFORE simplifying: ", mapview::npts(fema))
   message(" - Number of geoms BEFORE simplifying: ", nrow(fema))
   
   # TODO: this should be a function argument OR removed, shouldn't probably forcibly and silently simplify the input polygons without user knowing..
   # keep 1% of the original points for speed
-  fema <- rmapshaper::ms_simplify(fema, keep_shapes = T, keep = 0.02, sys = TRUE, sys_mem = 16)
+  fema <- rmapshaper::ms_simplify(fema, keep_shapes = T, keep = 0.01, sys = TRUE, sys_mem = 16)
+  # fema <- rmapshaper::ms_simplify(fema, keep_shapes = T, keep = 0.1, sys = TRUE, sys_mem = 16)
   
-  message(" - Number of points AFTER simplifying: ", mapview::npts(fema))
   message(" - Number of geoms AFTER simplifying: ", nrow(fema))
-  # fema_keep <- rmapshaper::ms_simplify(fema, keep_shapes = T, explode = TRUE, keep = 0.05, snap = F, sys = TRUE, sys_mem = 16)
-  # fema_nokeep <- rmapshaper::ms_simplify(fema, keep_shapes = F, keep = 0.05, sys = TRUE, sys_mem = 16)
-   # mapview::npts(fema, by_feature = F)
- #  mapview::npts(fema_keep, by_feature = F)
- #  mapview::npts(fema_keep, by_feature = T)
- # 
- #  mapview::npts(fema_nokeep, by_feature = F)
- #  mapview::npts(fema_nokeep, by_feature = T)
- # 
- # fema_keep <- 
- #    fema_keep %>% 
- #    dplyr::mutate(nid = 1:dplyr::n()) %>% 
- #    dplyr::group_by(nid) %>% 
- #    dplyr::mutate(npts = mapview::npts(geom)) %>% 
- #    dplyr::arrange(-npts)
- #  
- #  fema_nokeep <- 
- #    fema_nokeep %>% 
- #    dplyr::mutate(nid = 1:dplyr::n()) %>% 
- #    dplyr::group_by(nid) %>% 
- #    dplyr::mutate(npts = mapview::npts(geom)) %>% 
- #    dplyr::arrange(-npts)
-  
-  # fema <- rmapshaper::ms_simplify(fema, keep_shapes = F, keep = 0.1, sys = TRUE, sys_mem = 16)
-  
-  # mapview::npts(fema_nokeep, by_feature = T)
-  
-  # fema <-
-  #   fema %>% 
-  #   sf::st_make_valid()
-  # fema %>% sf::st_is_valid() %>% all()
-  
   message("Extending transects out to FEMA 100yr floodplain polygon boundaries - (", Sys.time(), ")")
   
   transects <- 
@@ -175,15 +142,6 @@ for(i in 4:nrow(path_df)) {
       by = "hy_id" 
     )
   
-  # TODO: TESTING DATA
-  # sf::write_sf(transects2, "/Users/anguswatters/Desktop/test_transects_02.gpkg")
-  # sf::write_sf(flines, "/Users/anguswatters/Desktop/test_flines_02.gpkg")
-  # fema <- sf::read_sf("/Users/anguswatters/Desktop/lynker-spatial/FEMA_BY_VPU/VPU_02/fema_vpu_02_output.gpkg")
-  # transects3 <- sf::read_sf("/Users/anguswatters/Desktop/test_transects_02.gpkg")
-  # flines2 <- sf::read_sf("/Users/anguswatters/Desktop/test_flines_02.gpkg")
- 
-  # system.time({
-    
   # TODO: make sure this 3000m extension distance is appropriate across VPUs 
   # TODO: also got to make sure that this will be feasible on memory on the larger VPUs...
   transects <- hydrofabric3D::extend_transects_to_polygons(
@@ -191,11 +149,9 @@ for(i in 4:nrow(path_df)) {
     polygons               = fema, 
     flowlines              = flines, 
     crosswalk_id           = "hy_id",
-    intersect_group_id     = "mainstem", 
+    grouping_id     = "mainstem", 
     max_extension_distance = 3000 
   )
-  
-  # })
   
   message("FEMA extensions complete! - ( ", Sys.time(), " )")
   
