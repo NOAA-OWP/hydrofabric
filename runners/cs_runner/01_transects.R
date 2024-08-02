@@ -8,8 +8,8 @@ source("runners/cs_runner/utils.R")
 # library(sf)
 # install.packages("devtools")
 
-# transect bucket prefix
-S3_TRANSECTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
+# # transect bucket prefix
+# S3_TRANSECTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
 
 # paths to nextgen datasets and model attribute parquet files
 NEXTGEN_FILES    <- list.files(NEXTGEN_DIR, full.names = FALSE)
