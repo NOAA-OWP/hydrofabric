@@ -2,38 +2,129 @@
 pacman::p_load(
   archive,
   hydrofabric,
-  terrainSliceR
+  hydrofabric3D
 )
+
+# # install.packages("devtools")
+# devtools::install_github("anguswg-ucsb/hydrofabric3D")
 
 # load root directory 
 source("runners/cs_runner/config_vars.R")
+source("runners/cs_runner/utils.R")
 
 sf::sf_use_s2(FALSE)
 
-# name of bucket with nextgen data
-nextgen_bucket <- "lynker-spatial"
+### Cross section point
 
-# directory to copy nextgen bucket data too
-nextgen_dir <- paste0(base_dir, "/pre-release/")
+# # -------------------------------------------------------------------------------------
+# # ----- S3 names ------
+# # -------------------------------------------------------------------------------------
 
-# model attributes directory
-model_attr_dir <- paste0(base_dir, "/model_attributes/")
+# # AWS S3 bucket URI 
+# S3_BUCKET_URI <- "s3://lynker-spatial/"
 
-# cross-section data model data directories
-transects_dir <- paste0(base_dir, "/01_transects/")
-cs_pts_dir <- paste0(base_dir, "/02_cs_pts/")
+# # name of bucket with nextgen data
+# S3_BUCKET_NAME <- "lynker-spatial"
 
-# final output directory with geopackages per VPU
-final_dir <- paste0(base_dir, "/cross_sections/")
+# # the name of the folder in the S3 bucket with the nextgen data
+# S3_BUCKET_NEXTGEN_DIR <- "v20.1/gpkg/"
 
+# # full URI to the S3 bucket folder with the nextgen data 
+# S3_BUCKET_NEXTGEN_DIR_URI  <- paste0(S3_BUCKET_URI, S3_BUCKET_NEXTGEN_DIR)
+
+# # reference features S3 bucket prefix
+# S3_BUCKET_REF_FEATURES_URI <- "s3://lynker-spatial/00_reference_features/gpkg/"
+
+# # S3 prefix/folder of version run
+# VERSION <- "v20.1"
+
+# # -------------------------------------------------------------------------------------
+
+# # -------------------------------------------------------------------------------------
+# # ----- Local directories ------
+# # -------------------------------------------------------------------------------------
+
+# ### LOCAL DIRS
+
+# # directory to copy nextgen bucket data too
+# NEXTGEN_DIR      <- paste0(BASE_DIR, "/", S3_BUCKET_NEXTGEN_DIR)
+# # NEXTGEN_DIR <- paste0(BASE_DIR, "/pre-release/")
+
+# # model attributes directory
+# MODEL_ATTR_DIR   <- paste0(BASE_DIR, "/model_attributes/")
+
+# # cross-section data model data directories
+# TRANSECTS_DIR    <- paste0(BASE_DIR, "/01_transects/")
+# CS_PTS_DIR       <- paste0(BASE_DIR, "/02_cs_pts/")
+
+# # final output directory with geopackages per VPU
+# CS_OUTPUT_DIR    <- paste0(BASE_DIR, "/cross_sections/")
+
+# # directory to copy nextgen bucket data too
+# REF_FEATURES_DIR <- paste0(BASE_DIR, "/00_reference_features/")
+
+# # make a directory for the ML outputs data
+# ML_OUTPUTS_DIR   <- paste0(BASE_DIR, "/ml-outputs/")
+
+# -------------------------------------------------------------------------------------
+# ----- Create local directories ------
+# -------------------------------------------------------------------------------------
 # create directories 
-dir.create(transects_dir, showWarnings = FALSE)
-dir.create(cs_pts_dir,    showWarnings = FALSE)
-dir.create(final_dir,     showWarnings = FALSE)
-# dir.create(model_attr_dir,  showWarnings = FALSE)
+dir.create(TRANSECTS_DIR, showWarnings = FALSE)
+dir.create(CS_PTS_DIR,    showWarnings = FALSE)
+dir.create(REF_FEATURES_DIR,     showWarnings = FALSE)
+dir.create(paste0(REF_FEATURES_DIR, "gpkg/"),     showWarnings = FALSE)
+dir.create(CS_OUTPUT_DIR,     showWarnings = FALSE)
+dir.create(ML_OUTPUTS_DIR,     showWarnings = FALSE)
 
+# create the directory if it does NOT exist
+if(!dir.exists(NEXTGEN_DIR)) {
+  message("Directory does not exist at: \n\t'", NEXTGEN_DIR, "'\nCreating directory at: \n\t'", NEXTGEN_DIR, "'")
+  
+  dir.create(NEXTGEN_DIR)
+}
 
-##### UTILITY FUNCTION FOR MATCHING FILES BASED ON VPU STRING ######
+# # create the directory if it does NOT exist
+# if(!dir.exists(MODEL_ATTR_DIR)) {
+#   message("Directory does not exist at: \n\t'", MODEL_ATTR_DIR, "'\nCreating directory at: \n\t'", MODEL_ATTR_DIR, "'")
+#   dir.create(MODEL_ATTR_DIR)
+# }
+# dir.create(MODEL_ATTR_DIR,  showWarnings = FALSE)
+
+# -------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------
+# ----- Get the paths / locations of reference_features data ------
+# -------------------------------------------------------------------------------------
+
+## Go get a list of the reference features geopackages from S3 and create a save path using the S3 file names to save reference features to local directory
+
+# list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
+list_ref_features <- paste0('#!/bin/bash
+            # AWS S3 Bucket and Directory information
+            S3_BUCKET="', S3_BUCKET_REF_FEATURES_URI , '"
+            
+            # Regular expression pattern to match object keys
+            PATTERN="reference_features.gpkg"
+
+            S3_OBJECTS=$(aws s3 ls "$S3_BUCKET" | awk \'{print $4}\' | grep -E "$PATTERN")
+            
+            echo "$S3_OBJECTS"'
+)
+
+# ---- Get a list of reference features geopackages ----
+
+# Run the script to get a list of the nextgen geopackages that matched the regular expression above
+ref_features <- system(list_ref_features, intern = TRUE)
+
+# ref features datasets
+ref_features_keys  <- paste0(S3_BUCKET_REF_FEATURES_URI, ref_features)
+ref_features_files <- paste0(REF_FEATURES_DIR, "gpkg/", ref_features)
+
+###
+### UTILITY FUNCTION FOR MATCHING FILES BASED ON VPU STRING ###
+###
+
 # Given 2 character vectors of filenames both including VPU strings after a "nextgen_" string, match them together to
 # make sure they are aligned and in the same order
 # x is a character vector of file paths with a VPU ID preceeded by a "nextgen_" string 
@@ -75,4 +166,182 @@ align_files_by_vpu <- function(
   
   return(matched_paths)
   
+}
+
+# Update flowlines and transects to remove flowlines and transects that intersect with reference_features waterbodies
+# flowlines: flowlines linestring sf object
+# trans: transects linestring sf object
+# waterbodies: waterbodies polygon sf object
+# Returns a list of length 2 with logical vectors that subsets the "flowlines" and "transects" sf objects to remove flowlines and transects that intersect waterbodies
+### Returns a list of length 2 with updated "flowlines" and "transects" sf objects
+wb_intersects <- function(flowlines, trans, waterbodies) {
+  
+  ########  ########  ########  ########  ########  ########
+  
+  flowlines_geos <- geos::as_geos_geometry(flowlines)
+  wbs_geos <- geos::as_geos_geometry(waterbodies)
+  
+  # temporary ID for transects that is the "hy_id", underscore, "cs_id", used for subsetting in future steps
+  trans$tmp_id <- paste0(trans$hy_id, "_", trans$cs_id)
+  
+  message("Checking flowlines against waterbodies...")
+  
+  # create an index between flowlines and waterbodies 
+  wb_index <- geos::geos_intersects_matrix(flowlines_geos, wbs_geos)
+  
+  # remove any flowlines that cross more than 1 waterbody
+  to_keep  <- flowlines[lengths(wb_index) == 0, ]
+  to_check <- flowlines[lengths(wb_index) != 0, ]
+  
+  # subset transects to the hy_ids in "to_check" set of flowlines
+  trans_check <- trans[trans$hy_id %in% unique(to_check$id), ]
+  # trans_check <- trans_geos[trans$hy_id %in% unique(to_check$id)]
+  
+  # check where the transects linestrings intersect with the waterbodies
+  trans_geos_check <- geos::as_geos_geometry(trans_check)
+  
+  message("Checking transects against waterbodies (v2) ...")
+  wb_trans_index <- geos::geos_intersects_matrix(trans_geos_check, wbs_geos)                    # (NEW METHOD)
+  # wb_trans_index <- geos::geos_intersects_any(trans_geos_check, wbs_geos[unlist(wb_index)])   # (OLD METHOD)
+  
+  # sum(lengths(wb_trans_index) == 0)
+  # length(wb_trans_index)
+  
+  # within the transects lines that are on a flowline that crosses a waterbody, 
+  # check if any of these transects line DO NOT CROSS A WATERBODY AT ALL
+  trans_keep <- trans_check[lengths(wb_trans_index) == 0, ]                       # (NEW METHOD)
+  # trans_keep <- trans_check[!wb_trans_index, ]                                  # (OLD METHOD)
+  
+  # preserve any flowlines that CROSS A WATERBODY BUT ALSO HAVE A TRANSECT LINE that does NOT cross any waterbodies
+  to_check <- to_check[to_check$id %in% unique(trans_keep$hy_id), ]
+  
+  # update flowlines to keep with flowlines that intersect a waterbody BUT STILL,
+  # have transects that are NOT in the waterbody
+  to_keep <- dplyr::bind_rows(to_keep, to_check)
+  
+  # 'tmp_ids' of transects that are being checked and also the transects within trans_check 
+  # that were determined to be valid (are being kept)
+  check_ids <- unique(trans_check$tmp_id)
+  keep_ids <- unique(trans_keep$tmp_id)
+  
+  # logical vectors of which flowlines/transects to keep (KEEP == TRUE)
+  # - Remove any transects that are on flowlines that cross a waterbody AND the transect crosses the waterbody too.
+  # - Keep original transects that are not on flowlines that intersect waterbodies AND 
+  # also the transects that do NOT intersect waterbodies but are on a flowline that DOES intersect a waterbody
+  valid_flowlines <- flowlines$id %in% to_keep$id
+  valid_transects <- trans$tmp_id %in% dplyr::filter(trans,
+                                                     !tmp_id %in% check_ids[!check_ids %in% keep_ids])$tmp_id
+  
+  # return alist of updated flowlines and transects 
+  return(
+    list(
+      "valid_flowlines" =  valid_flowlines,
+      "valid_transects" =  valid_transects
+    )
+  )
+  
+  # # within the transects lines that are on a flowline that crosses a waterbody, 
+  # # check if any of these transects line DO NOT CROSS A WATERBODY AT ALL
+  # trans_keep <- trans_check[!trans_wb_index, ]
+  # # trans_keep <- trans_check[lengths(trans_wb_index2) == 0, ]
+  # 
+  # # preserve any flowlines that CROSS A WATERBODY BUT ALSO HAVE A TRANSECT LINE that does NOT cross any waterbodies
+  # to_check <- to_check[to_check$id %in% unique(trans_keep$hy_id), ]
+  # 
+  # # update flowlines to keep with flowlines that intersect a waterbody BUT STILL,
+  # # have transects that are NOT in the waterbody
+  # to_keep <- dplyr::bind_rows(to_keep, to_check)
+  # 
+  # # 'tmp_ids' of transects that are being checked and also the transects within trans_check 
+  # # that were determined to be valid (are being kept)
+  # check_ids <- unique(trans_check$tmp_id)
+  # keep_ids <- unique(trans_keep$tmp_id)
+  # 
+  # # logical vectors of which flowlines/transects to keep (KEEP == TRUE)
+  # # - Remove any transects that are on flowlines that cross a waterbody AND the transect crosses the waterbody too.
+  # # - Keep original transects that are not on flowlines that intersect waterbodies AND 
+  # # also the transects that do NOT intersect waterbodies but are on a flowline that DOES intersect a waterbody
+  # valid_flowlines <- flowlines$id %in% to_keep$id
+  # valid_transects <- trans$tmp_id %in% dplyr::filter(trans,
+  #                                                    !tmp_id %in% check_ids[!check_ids %in% keep_ids])$tmp_id
+  # 
+  # # return alist of updated flowlines and transects 
+  # return(
+  #   list(
+  #     "valid_flowlines" =  valid_flowlines,
+  #     "valid_transects" =  valid_transects
+  #   )
+  # )
+}
+
+# Update flowlines and transects to remove flowlines and transects that intersect with reference_features waterbodies
+# flowlines: flowlines linestring sf object
+# trans: transects linestring sf object
+# waterbodies: waterbodies polygon sf object
+# Returns a list of length 2 with logical vectors that subsets the "flowlines" and "transects" sf objects to remove flowlines and transects that intersect waterbodies
+### Returns a list of length 2 with updated "flowlines" and "transects" sf objects
+wb_intersects_v1 <- function(flowlines, trans, waterbodies) {
+  
+  ########  ########  ########  ########  ########  ########
+  
+  flowlines_geos <- geos::as_geos_geometry(flowlines)
+  wbs_geos <- geos::as_geos_geometry(waterbodies)
+  
+  # temporary ID for transects that is the "hy_id", underscore, "cs_id", used for subsetting in future steps
+  trans$tmp_id <- paste0(trans$hy_id, "_", trans$cs_id)
+  
+  message("Checking flowlines against waterbodies...")
+  
+  # create an index between flowlines and waterbodies 
+  wb_index <- geos::geos_intersects_matrix(flowlines_geos, wbs_geos)
+  
+  # remove any flowlines that cross more than 1 waterbody
+  to_keep  <- flowlines[lengths(wb_index) == 0, ]
+  to_check <- flowlines[lengths(wb_index) != 0, ]
+  
+  # subset transects to the hy_ids in "to_check" set of flowlines
+  trans_check <- trans[trans$hy_id %in% unique(to_check$id), ]
+  # trans_check <- trans_geos[trans$hy_id %in% unique(to_check$id)]
+  
+  # check where the transects linestrings intersect with the waterbodies
+  trans_geos_check <- geos::as_geos_geometry(trans_check)
+  
+  message("Checking transects against waterbodies...")
+  trans_wb_index <- geos::geos_intersects_any(
+    trans_geos_check,  
+    wbs_geos[unlist(wb_index)]
+  )
+  
+  # within the transects lines that are on a flowline that crosses a waterbody, 
+  # check if any of these transects line DO NOT CROSS A WATERBODY AT ALL
+  trans_keep <- trans_check[!trans_wb_index, ]
+  # trans_keep <- trans_check[lengths(trans_wb_index2) == 0, ]
+  
+  # preserve any flowlines that CROSS A WATERBODY BUT ALSO HAVE A TRANSECT LINE that does NOT cross any waterbodies
+  to_check <- to_check[to_check$id %in% unique(trans_keep$hy_id), ]
+  
+  # update flowlines to keep with flowlines that intersect a waterbody BUT STILL,
+  # have transects that are NOT in the waterbody
+  to_keep <- dplyr::bind_rows(to_keep, to_check)
+  
+  # 'tmp_ids' of transects that are being checked and also the transects within trans_check 
+  # that were determined to be valid (are being kept)
+  check_ids <- unique(trans_check$tmp_id)
+  keep_ids <- unique(trans_keep$tmp_id)
+  
+  # logical vectors of which flowlines/transects to keep (KEEP == TRUE)
+  # - Remove any transects that are on flowlines that cross a waterbody AND the transect crosses the waterbody too.
+  # - Keep original transects that are not on flowlines that intersect waterbodies AND 
+  # also the transects that do NOT intersect waterbodies but are on a flowline that DOES intersect a waterbody
+  valid_flowlines <- flowlines$id %in% to_keep$id
+  valid_transects <- trans$tmp_id %in% dplyr::filter(trans,
+                                                     !tmp_id %in% check_ids[!check_ids %in% keep_ids])$tmp_id
+  
+  # return alist of updated flowlines and transects 
+  return(
+    list(
+      "valid_flowlines" =  valid_flowlines,
+      "valid_transects" =  valid_transects
+    )
+  )
 }
