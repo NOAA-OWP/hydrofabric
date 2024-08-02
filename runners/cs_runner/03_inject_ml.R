@@ -8,24 +8,25 @@ library(patchwork)
 
 # Generate the flowlines layer for the final cross_sections_<VPU>.gpkg for each VPU
 source("runners/cs_runner/config.R")
+source("runners/cs_runner/utils.R")
 
 # cross section bucket prefix
-CS_ML_PTS_S3_PREFIX <- paste0(s3_bucket, version_prefix, "/3D/cross-sections/")
-# cs_pts_prefix <- paste0(s3_bucket, "v20/3D/dem-cross-sections/")
+S3_CS_ML_PTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/cross-sections/")
+# S3_CS_PTS_DIR <- paste0(S3_BUCKET_URI, "v20/3D/dem-cross-sections/")
 
 ML_OUTPUTS_PATH <- list.files(ML_OUTPUTS_DIR, full.names = TRUE)
 
 # paths to nextgen datasets
-nextgen_files <- list.files(nextgen_dir, full.names = FALSE)
+NEXTGEN_FILES   <- list.files(NEXTGEN_DIR, full.names = FALSE)
 
 # paths to nextgen datasets
-cs_files <- list.files(cs_pts_dir, full.names = FALSE)
+cs_files        <- list.files(CS_PTS_DIR, full.names = FALSE)
 
 # ensure the files are in the same order and matched up by VPU
 path_df <- align_files_by_vpu(
-  x    = nextgen_files,
+  x    = NEXTGEN_FILES,
   y    = cs_files,
-  base = base_dir
+  base = BASE_DIR
 ) 
 # dplyr::left_join(
 #   ref_df,
@@ -44,11 +45,11 @@ for (i in 1:nrow(path_df)) {
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
-  nextgen_path <- paste0(nextgen_dir, nextgen_file)
+  nextgen_path <- paste0(NEXTGEN_DIR, nextgen_file)
   
   # model attributes file and full path
   cs_file      <- path_df$y[i]
-  cs_pts_path  <- paste0(cs_pts_dir, cs_file)
+  cs_pts_path  <- paste0(CS_PTS_DIR, cs_file)
   
   # current VPU being processed
   VPU = path_df$vpu[i]
@@ -56,8 +57,8 @@ for (i in 1:nrow(path_df)) {
   message("Augmenting DEM cross sections with ML estimated widths/depths: ", VPU, 
           " cross section points:",
           "'\n - cross section points: '", cs_file, "'", 
-          "'\n - ML estimated widths/depths: '", ML_OUTPUTS_FILE, "'", 
-          # "'\n - ML estimated widths/depths: '", ML_OUTPUTS_URI, "'", 
+          "'\n - ML estimated widths/depths: '", ML_OUTPUTS_S3_FILE, "'", 
+          # "'\n - ML estimated widths/depths: '", ML_OUTPUTS_S3_URI, "'", 
           "\n - CONUS network file: '", CONUS_NETWORK_URI, "'",
           "\n - flowpaths: '", nextgen_file,
           # "\n - waterbodies: '", ref_file, "'",
@@ -326,21 +327,21 @@ for (i in 1:nrow(path_df)) {
 
   # name of file and path to save transects gpkg too
   out_file <- paste0("nextgen_", path_df$vpu[i], "_cross_sections.parquet")
-  out_path <- paste0(final_dir, out_file)
+  out_path <- paste0(CS_OUTPUT_DIR, out_file)
   
   message(round(Sys.time()), " - Saving ML augmented cross section points to:\n - filepath: '", out_path, "'")
   
   # save cross section points as a parquet to out_path (lynker-spatial/02_cs_pts/cs_pts_<VPU num>.parquet)
   arrow::write_parquet(final_cs, out_path)
   
-  s3_save_uri <- paste0(CS_ML_PTS_S3_PREFIX, out_file)
+  s3_save_uri <- paste0(S3_CS_ML_PTS_DIR, out_file)
   
   # command to copy cross section points parquet to S3
   copy_cs_pts_to_s3 <- paste0("aws s3 cp ", 
                               out_path,
                               " ", 
                               s3_save_uri,
-                              ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile))
+                              ifelse(is.null(AWS_PROFILE), "", paste0(" --profile ", AWS_PROFILE))
                               )
   
   message(

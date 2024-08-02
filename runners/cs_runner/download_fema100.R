@@ -1,5 +1,5 @@
-# Running this script goes and pulls the desired FEMA100 flood fgb datasets from the lynker-hydrofabric S3 bucket then saves them into a directory within "base_dir"
-# base_dir is defined within runners/workflow/root_dir.R
+# Running this script goes and pulls the desired FEMA100 flood fgb datasets from the lynker-hydrofabric S3 bucket then saves them into a directory within "BASE_DIR"
+# BASE_DIR is defined within runners/workflow/root_dir.R
 
 # NOTE: The lynker-hydrofabric S3 bucket is private at the moment
 
@@ -75,7 +75,7 @@ fema_list_command <- paste0('#!/bin/bash
             PATTERN=".fgb$"
             
             # AWS CLI command to list objects in the S3 bucket and use grep to filter them
-            S3_OBJECTS=$(aws s3 ls "$S3_BUCKET" --profile ', aws_profile, ' | awk \'{print $4}\' | grep -E "$PATTERN")
+            S3_OBJECTS=$(aws s3 ls "$S3_BUCKET" --profile ', AWS_PROFILE, ' | awk \'{print $4}\' | grep -E "$PATTERN")
             
             echo "$S3_OBJECTS"'
 )
@@ -99,7 +99,7 @@ for (key in FEMA_BUCKET_KEYS) {
   local_save_path <- paste0(FEMA_FGB_PATH, "/", key)
   
   if(!file.exists(local_save_path)) {
-    copy_cmd <- paste0('aws s3 cp ', FEMA_S3_BUCKET, FEMA_S3_BUCKET_PREFIX, key, " ", local_save_path, " --profile ", aws_profile)
+    copy_cmd <- paste0('aws s3 cp ', FEMA_S3_BUCKET, FEMA_S3_BUCKET_PREFIX, key, " ", local_save_path, " --profile ", AWS_PROFILE)
     
     message("S3 object:\n > '", FEMA_S3_BUCKET, FEMA_S3_BUCKET_PREFIX, key, "'")
     message("Downloading S3 object to:\n > '", local_save_path, "'")

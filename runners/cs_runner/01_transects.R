@@ -1,5 +1,6 @@
 # Generate the flowlines layer for the final cross_sections_<VPU>.gpkg for each VPU
 source("runners/cs_runner/config.R")
+source("runners/cs_runner/utils.R")
 
 # # # # load libraries
 # library(hydrofabric3D)
@@ -8,20 +9,17 @@ source("runners/cs_runner/config.R")
 # install.packages("devtools")
 
 # transect bucket prefix
-transects_prefix <- paste0(s3_bucket, version_prefix, "/3D/transects/")
+S3_TRANSECTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
 
 # paths to nextgen datasets and model attribute parquet files
-nextgen_files    <- list.files(nextgen_dir, full.names = FALSE)
-model_attr_files <- list.files(model_attr_dir, full.names = FALSE)
-
-# string to fill in "cs_source" column in output datasets
-net_source <- "hydrofabric3D"
+NEXTGEN_FILES    <- list.files(NEXTGEN_DIR, full.names = FALSE)
+# model_attr_files <- list.files(MODEL_ATTR_DIR, full.names = FALSE)
 
 # ensure the files are in the same order and matched up by VPU
 path_df <- align_files_by_vpu(
-                x    = nextgen_files,
-                y    = model_attr_files,
-                base = base_dir
+                x    = NEXTGEN_FILES,
+                y    = NEXTGEN_FILES,
+                base = BASE_DIR
                 )
 
 # loop over each VPU and generate cross sections, then save locally and upload to S3 bucket
@@ -29,7 +27,7 @@ for(i in 1:nrow(path_df)) {
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
-  nextgen_path <- paste0(nextgen_dir, nextgen_file)
+  nextgen_path <- paste0(NEXTGEN_DIR, nextgen_file)
   
   vpu <- path_df$vpu[i]
 
@@ -104,13 +102,13 @@ for(i in 1:nrow(path_df)) {
   
   # name of file and path to save transects gpkg too
   out_file <- paste0("nextgen_", path_df$vpu[i], "_transects.gpkg")
-  out_path <- paste0(transects_dir, out_file)
+  out_path <- paste0(TRANSECTS_DIR, out_file)
   
   # add cs_source column and rename cs_widths to cs_lengthm
   transects <- 
     transects %>%
     dplyr::mutate(
-      cs_source = net_source
+      cs_source = CS_SOURCE
     )
   
   # ---------------------------------------------------------------------
@@ -196,8 +194,8 @@ for(i in 1:nrow(path_df)) {
     )
   
   # command to copy transects geopackage to S3
-  copy_to_s3 <- paste0("aws s3 cp ", out_path, " ", transects_prefix, out_file, 
-                   ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile))
+  copy_to_s3 <- paste0("aws s3 cp ", out_path, " ", S3_TRANSECTS_DIR, out_file, 
+                   ifelse(is.null(AWS_PROFILE), "", paste0(" --profile ", AWS_PROFILE))
                    )
   
   message("Copy VPU ", path_df$vpu[i], " transects to S3:\n - S3 copy command:\n'", 

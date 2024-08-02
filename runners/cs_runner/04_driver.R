@@ -3,10 +3,14 @@
 # downloads nextgen datasets 
 source("runners/cs_runner/config.R")
 
-# downloads nextgen datasets 
+# downloads datasets
+# - Nextgen data
+# - Reference features (for waterbody filtering)
+# - ML outputs
+# - FEMA 100 year floodplain polygons (FGBs)
 source("runners/cs_runner/download_nextgen.R")
-
-# download FEMA100 year FGBs
+source("runners/cs_runner/download_ref_features.R")
+source("runners/cs_runner/download_ml_outputs.R")
 source("runners/cs_runner/download_fema100.R")
 
 # simplify, dissolve, FEMA polygons and partition FEMA polygons by VPU 
@@ -19,4 +23,4 @@ source("runners/cs_runner/01_transects.R")
 source("runners/cs_runner/02_cs_pts.R")
 
 # Apply machine learning topwidths and depths estimates to DEM cross section points
-source("runners/cs_runner/02_cs_pts.R")
+source("runners/cs_runner/03_inject_ml.R")

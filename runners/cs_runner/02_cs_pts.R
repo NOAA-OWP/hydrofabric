@@ -11,33 +11,32 @@ library(hydrofabric3D)
 library(dplyr)
 library(sf)
 
-# cross section bucket prefix
-cs_pts_prefix <- paste0(s3_bucket, version_prefix, "/3D/dem-cross-sections/")
-
-# transect bucket prefix
-transects_prefix <- paste0(s3_bucket, version_prefix, "/3D/transects/")
-
-# paths to nextgen datasets
-nextgen_files <- list.files(nextgen_dir, full.names = FALSE)
+# # cross section bucket prefix
+# S3_CS_PTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/dem-cross-sections/")
+# 
+# # transect bucket prefix
+# S3_TRANSECTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
 
 # paths to nextgen datasets
-transect_files <- list.files(transects_dir, full.names = FALSE)
+NEXTGEN_FILES <- list.files(NEXTGEN_DIR, full.names = FALSE)
+
+# paths to nextgen datasets
+transect_files <- list.files(TRANSECTS_DIR, full.names = FALSE)
 transect_files <- transect_files[!grepl("updated_", transect_files)]
 
-# string to fill in "cs_source" column in output datasets
-cs_source <- "hydrofabric3D"
+REF_FEATURES <- list.files(REF_FEATURES_GPKG_DIR, full.names = FALSE)
 
 # reference features dataframe
 ref_df <- data.frame(
-  vpu      = sapply(strsplit(ref_features, "_", fixed = TRUE), function(i) { i[1] }), 
-  ref_file = ref_features
+  vpu      = sapply(strsplit(REF_FEATURES, "_", fixed = TRUE), function(i) { i[1] }), 
+  ref_file = REF_FEATURES
 )
 
 # ensure the files are in the same order and matched up by VPU
 path_df <- align_files_by_vpu(
-  x    = nextgen_files,
+  x    = NEXTGEN_FILES,
   y    = transect_files,
-  base = base_dir
+  base = BASE_DIR
 ) %>% 
   dplyr::left_join(
     ref_df,
@@ -48,21 +47,21 @@ path_df <- align_files_by_vpu(
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
 for (i in 1:nrow(path_df)) {
-
+  # i = 8
   
   start <- Sys.time()
   
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
-  nextgen_path <- paste0(nextgen_dir, nextgen_file)
+  nextgen_path <- paste0(NEXTGEN_DIR, nextgen_file)
   
   # model attributes file and full path
   transect_file <- path_df$y[i]
-  transect_path <- paste0(transects_dir, transect_file)
+  transect_path <- paste0(TRANSECTS_DIR, transect_file)
   
   # model attributes file and full path
   ref_file <- path_df$ref_file[i]
-  ref_path <- paste0(ref_features_dir, "gpkg/", ref_file)
+  ref_path <- paste0(REF_FEATURES_DIR, "gpkg/", ref_file)
   
   # current VPU being processed
   VPU = path_df$vpu[i]
@@ -75,6 +74,7 @@ for (i in 1:nrow(path_df)) {
   )
   
   ################### 
+  
   
   # read in transects data
   transects <- sf::read_sf(transect_path)
@@ -339,7 +339,7 @@ for (i in 1:nrow(path_df)) {
   fixed_pts <-
     fixed_pts %>%
     dplyr::mutate(
-      Z_source = cs_source
+      Z_source = CS_SOURCE
     ) %>%
     dplyr::relocate(hy_id, cs_id, pt_id, cs_lengthm, relative_distance, X, Y, Z, Z_source, 
                     class, point_type, 
@@ -399,8 +399,8 @@ for (i in 1:nrow(path_df)) {
   )
   
   # command to copy transects geopackage to S3
-  trans_to_s3 <- paste0("aws s3 cp ", updated_path, " ", transects_prefix, transect_file, 
-                        ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile)))
+  trans_to_s3 <- paste0("aws s3 cp ", updated_path, " ", S3_TRANSECTS_DIR, transect_file, 
+                        ifelse(is.null(AWS_PROFILE), "", paste0(" --profile ", AWS_PROFILE)))
   
   message("Copy VPU ", path_df$vpu[i], " transects to S3:\n - S3 copy command:\n'", 
           trans_to_s3, 
@@ -416,7 +416,7 @@ for (i in 1:nrow(path_df)) {
   
   # name of file and path to save transects gpkg too
   out_file <- paste0("nextgen_", path_df$vpu[i], "_cross_sections.parquet")
-  out_path <- paste0(cs_pts_dir, out_file)
+  out_path <- paste0(CS_PTS_DIR, out_file)
   
   message("Saving cross section points to:\n - filepath: '", out_path, "'")
   
@@ -424,12 +424,12 @@ for (i in 1:nrow(path_df)) {
   arrow::write_parquet(fixed_pts, out_path)
   
   # command to copy cross section points parquet to S3
-  copy_cs_pts_to_s3 <- paste0("aws s3 cp ", out_path, " ", cs_pts_prefix, out_file,
-                              ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile)))
+  copy_cs_pts_to_s3 <- paste0("aws s3 cp ", out_path, " ", S3_CS_PTS_DIR, out_file,
+                              ifelse(is.null(AWS_PROFILE), "", paste0(" --profile ", AWS_PROFILE)))
   
   message("Copy VPU ", path_df$vpu[i], " cross sections to S3:\n - S3 copy command:\n'", 
-          paste0("aws s3 cp ", out_path, " ", cs_pts_prefix, out_file,
-                 ifelse(is.null(aws_profile), "", paste0(" --profile ", aws_profile))), 
+          paste0("aws s3 cp ", out_path, " ", S3_CS_PTS_DIR, out_file,
+                 ifelse(is.null(AWS_PROFILE), "", paste0(" --profile ", AWS_PROFILE))), 
           "'\n==========================")
   
   system(copy_cs_pts_to_s3, intern = TRUE)

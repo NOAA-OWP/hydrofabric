@@ -261,8 +261,8 @@ for (file_path in FEMA_gpkg_paths) {
 FEMA_CLEAN_GPKG_PATHS      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
 
 # paths to nextgen datasets and model attribute parquet files
-NEXTGEN_FILENAMES    <- list.files(nextgen_dir, full.names = FALSE)
-NEXTGEN_FILE_PATHS   <- paste0(nextgen_dir, NEXTGEN_FILENAMES)
+NEXTGEN_FILENAMES    <- list.files(NEXTGEN_DIR, full.names = FALSE)
+NEXTGEN_FILE_PATHS   <- paste0(NEXTGEN_DIR, NEXTGEN_FILENAMES)
 
 for (file_path in FEMA_CLEAN_GPKG_PATHS) {
   

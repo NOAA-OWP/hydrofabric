@@ -10,69 +10,99 @@ pacman::p_load(
 
 # load root directory 
 source("runners/cs_runner/config_vars.R")
+source("runners/cs_runner/utils.R")
 
 sf::sf_use_s2(FALSE)
 
-### Cross section point 
+### Cross section point
 
-### S3 names
+# # -------------------------------------------------------------------------------------
+# # ----- S3 names ------
+# # -------------------------------------------------------------------------------------
 
-# name of S3 bucket
-s3_bucket <- "s3://lynker-spatial/"
+# # AWS S3 bucket URI 
+# S3_BUCKET_URI <- "s3://lynker-spatial/"
 
-# name of bucket with nextgen data
-nextgen_bucket <- "lynker-spatial"
+# # name of bucket with nextgen data
+# S3_BUCKET_NAME <- "lynker-spatial"
 
-# nextgen bucket folder name
-nextgen_bucket_folder <- "v20.1/gpkg/"
+# # the name of the folder in the S3 bucket with the nextgen data
+# S3_BUCKET_NEXTGEN_DIR <- "v20.1/gpkg/"
 
-# nextgen bucket name
-nextgen_prefix  <- paste0(s3_bucket, nextgen_bucket_folder)
+# # full URI to the S3 bucket folder with the nextgen data 
+# S3_BUCKET_NEXTGEN_DIR_URI  <- paste0(S3_BUCKET_URI, S3_BUCKET_NEXTGEN_DIR)
 
-# reference features S3 bucket prefix
-ref_features_prefix <- "s3://lynker-spatial/00_reference_features/gpkg/"
+# # reference features S3 bucket prefix
+# S3_BUCKET_REF_FEATURES_URI <- "s3://lynker-spatial/00_reference_features/gpkg/"
 
-# S3 prefix/folder of version run
-version_prefix <- "v20.1"
-# version_prefix <- "v20"
+# # S3 prefix/folder of version run
+# VERSION <- "v20.1"
 
-### LOCAL DIRS
+# # -------------------------------------------------------------------------------------
 
-# directory to copy nextgen bucket data too
-nextgen_dir <- paste0(base_dir, "/", nextgen_bucket_folder)
-# nextgen_dir <- paste0(base_dir, "/pre-release/")
+# # -------------------------------------------------------------------------------------
+# # ----- Local directories ------
+# # -------------------------------------------------------------------------------------
 
-# model attributes directory
-model_attr_dir <- paste0(base_dir, "/model_attributes/")
+# ### LOCAL DIRS
 
-# cross-section data model data directories
-transects_dir <- paste0(base_dir, "/01_transects/")
-cs_pts_dir <- paste0(base_dir, "/02_cs_pts/")
+# # directory to copy nextgen bucket data too
+# NEXTGEN_DIR      <- paste0(BASE_DIR, "/", S3_BUCKET_NEXTGEN_DIR)
+# # NEXTGEN_DIR <- paste0(BASE_DIR, "/pre-release/")
 
-# final output directory with geopackages per VPU
-final_dir <- paste0(base_dir, "/cross_sections/")
+# # model attributes directory
+# MODEL_ATTR_DIR   <- paste0(BASE_DIR, "/model_attributes/")
 
-# directory to copy nextgen bucket data too
-ref_features_dir <- paste0(base_dir, "/00_reference_features/")
+# # cross-section data model data directories
+# TRANSECTS_DIR    <- paste0(BASE_DIR, "/01_transects/")
+# CS_PTS_DIR       <- paste0(BASE_DIR, "/02_cs_pts/")
 
-# make a directory for the ML outputs data
-ML_OUTPUTS_DIR <- paste0(base_dir, "/ml-outputs/")
+# # final output directory with geopackages per VPU
+# CS_OUTPUT_DIR    <- paste0(BASE_DIR, "/cross_sections/")
 
+# # directory to copy nextgen bucket data too
+# REF_FEATURES_DIR <- paste0(BASE_DIR, "/00_reference_features/")
+
+# # make a directory for the ML outputs data
+# ML_OUTPUTS_DIR   <- paste0(BASE_DIR, "/ml-outputs/")
+
+# -------------------------------------------------------------------------------------
+# ----- Create local directories ------
+# -------------------------------------------------------------------------------------
 # create directories 
-dir.create(transects_dir, showWarnings = FALSE)
-dir.create(cs_pts_dir,    showWarnings = FALSE)
-dir.create(ref_features_dir,     showWarnings = FALSE)
-dir.create(paste0(ref_features_dir, "gpkg/"),     showWarnings = FALSE)
-dir.create(final_dir,     showWarnings = FALSE)
+dir.create(TRANSECTS_DIR, showWarnings = FALSE)
+dir.create(CS_PTS_DIR,    showWarnings = FALSE)
+dir.create(REF_FEATURES_DIR,     showWarnings = FALSE)
+dir.create(paste0(REF_FEATURES_DIR, "gpkg/"),     showWarnings = FALSE)
+dir.create(CS_OUTPUT_DIR,     showWarnings = FALSE)
 dir.create(ML_OUTPUTS_DIR,     showWarnings = FALSE)
-# dir.create(model_attr_dir,  showWarnings = FALSE)
+
+# create the directory if it does NOT exist
+if(!dir.exists(NEXTGEN_DIR)) {
+  message("Directory does not exist at: \n\t'", NEXTGEN_DIR, "'\nCreating directory at: \n\t'", NEXTGEN_DIR, "'")
+  
+  dir.create(NEXTGEN_DIR)
+}
+
+# # create the directory if it does NOT exist
+# if(!dir.exists(MODEL_ATTR_DIR)) {
+#   message("Directory does not exist at: \n\t'", MODEL_ATTR_DIR, "'\nCreating directory at: \n\t'", MODEL_ATTR_DIR, "'")
+#   dir.create(MODEL_ATTR_DIR)
+# }
+# dir.create(MODEL_ATTR_DIR,  showWarnings = FALSE)
+
+# -------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------
+# ----- Get the paths / locations of reference_features data ------
+# -------------------------------------------------------------------------------------
 
 ## Go get a list of the reference features geopackages from S3 and create a save path using the S3 file names to save reference features to local directory
 
 # list objects in S3 bucket, and regular expression match to nextgen_.gpkg pattern
 list_ref_features <- paste0('#!/bin/bash
             # AWS S3 Bucket and Directory information
-            S3_BUCKET="', ref_features_prefix , '"
+            S3_BUCKET="', S3_BUCKET_REF_FEATURES_URI , '"
             
             # Regular expression pattern to match object keys
             PATTERN="reference_features.gpkg"
@@ -88,8 +118,8 @@ list_ref_features <- paste0('#!/bin/bash
 ref_features <- system(list_ref_features, intern = TRUE)
 
 # ref features datasets
-ref_features_keys <- paste0(ref_features_prefix, ref_features)
-ref_features_files <- paste0(ref_features_dir, "gpkg/", ref_features)
+ref_features_keys  <- paste0(S3_BUCKET_REF_FEATURES_URI, ref_features)
+ref_features_files <- paste0(REF_FEATURES_DIR, "gpkg/", ref_features)
 
 ###
 ### UTILITY FUNCTION FOR MATCHING FILES BASED ON VPU STRING ###
