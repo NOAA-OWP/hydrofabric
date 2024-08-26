@@ -225,6 +225,10 @@ for (i in 1:nrow(path_df)) {
       DINGMAN_R = owp_dingman_r
     )
   
+  # bankful_cs %>% 
+  #   dplyr::slice(1000:1200) %>% 
+  #   hydrofabric3D::plot_cs_pts(color = "point_type")
+  
   # sanity check that all rows are accounted for after splitting up data
   split_kept_all_rows <- nrow(cs_pts) == nrow(bankful_cs) + nrow(inchannel_cs) + nrow(missing_cs)
   # split_kept_all_rows <- nrow(cs_pts) == nrow(bankful_cs) + nrow(inchannel_cs)
@@ -242,7 +246,11 @@ for (i in 1:nrow(path_df)) {
   inchannel_cs <- hydrofabric3D::add_cs_bathymetry(
       cross_section_pts = inchannel_cs
     )
-  
+  # arrow::write_parquet(inchannel_cs, "/Users/anguswatters/Desktop/test_ml_cs_pts_06.parquet")
+  # ml_subset %>%
+  #   dplyr::filter(hy_id == "wb-1005207") %>%
+  #   dplyr::select(owp_y_inchan, owp_tw_inchan) %>% 
+  #   .$owp_y_inchan
   message(round(Sys.time()), " - Adding cross section bathymetry using bankful widths/depths estimates...")
 
   # Add bathymetry using "bankful" estimates

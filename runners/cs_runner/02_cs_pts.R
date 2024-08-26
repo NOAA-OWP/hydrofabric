@@ -1,8 +1,3 @@
-
-##############################################################################################################################
-################################################     REDO EVERYTHING   #######################################################
-##############################################################################################################################
-
 # Generate the flowlines layer for the final cross_sections_<VPU>.gpkg for each VPU
 source("runners/cs_runner/config.R")
 
@@ -11,20 +6,14 @@ library(hydrofabric3D)
 library(dplyr)
 library(sf)
 
-# # cross section bucket prefix
-# S3_CS_PTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/dem-cross-sections/")
-# 
-# # transect bucket prefix
-# S3_TRANSECTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
-
 # paths to nextgen datasets
-NEXTGEN_FILES <- list.files(NEXTGEN_DIR, full.names = FALSE)
+NEXTGEN_FILES  <- list.files(NEXTGEN_DIR, full.names = FALSE)
 
 # paths to nextgen datasets
 transect_files <- list.files(TRANSECTS_DIR, full.names = FALSE)
 transect_files <- transect_files[!grepl("updated_", transect_files)]
 
-REF_FEATURES <- list.files(REF_FEATURES_GPKG_DIR, full.names = FALSE)
+REF_FEATURES   <- list.files(REF_FEATURES_GPKG_DIR, full.names = FALSE)
 
 # reference features dataframe
 ref_df <- data.frame(
@@ -46,11 +35,10 @@ path_df <- align_files_by_vpu(
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
-for (i in 1:nrow(path_df)) {
-  # i = 8
-  
+for (i in 11:nrow(path_df)) {
   start <- Sys.time()
-  
+  # i = 8
+  message("Using newest Hydrofabric3D!!!")
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(NEXTGEN_DIR, nextgen_file)
@@ -64,7 +52,9 @@ for (i in 1:nrow(path_df)) {
   ref_path <- paste0(REF_FEATURES_DIR, "gpkg/", ref_file)
   
   # current VPU being processed
-  VPU = path_df$vpu[i]
+  VPU   <- path_df$vpu[i]
+  
+  start <- Sys.time()
   
   message("Creating VPU ", VPU, 
           " cross section points:\n - flowpaths: '", nextgen_file,
@@ -74,7 +64,6 @@ for (i in 1:nrow(path_df)) {
   )
   
   ################### 
-  
   
   # read in transects data
   transects <- sf::read_sf(transect_path)
@@ -96,46 +85,94 @@ for (i in 1:nrow(path_df)) {
   gc()
   
   start_cs_pts <- Sys.time()
+  # # ------------------------------------------------------------------------
+  # # ------ TESTING DATA -------
+  # # ------------------------------------------------------------------------
+  #   flines <-
+  #     flines %>%
+  #     dplyr::slice(1:3500)
+  # 
+  # transects <-
+  #   transects %>%
+  #   dplyr::filter(hy_id %in% flines$id)
+
+  # ------------------------------------------------------------------------
+  
   message("Extracting cross section points (", start_cs_pts, ")")
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 1: Extract cs points from DEM ----
   # ----------------------------------------------------------------------------------------------------------------
-
+  # system.time({
+  
   # get cross section point elevations
   cs_pts <- hydrofabric3D::cross_section_pts(
+    
     cs             = transects,
+    crosswalk_id   = "hy_id",
     points_per_cs  = NULL,
     min_pts_per_cs = 10,
     dem            = DEM_URL
   )
 
+  # })
+  
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points ----
   # ----------------------------------------------------------------------------------------------------------------
 
   # system.time({
-    
+  
   # STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points 
   cs_pts <- 
     cs_pts %>% 
     dplyr::group_by(hy_id, cs_id) %>% 
     dplyr::filter(!any(is.na(Z))) %>% 
     dplyr::ungroup() %>% 
-    hydrofabric3D::classify_points(pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF)  
+    hydrofabric3D::classify_points(
+      crosswalk_id             = "hy_id", 
+      pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF
+      )  
   
   # })
   
   ids_original_cs_pts <- hydrofabric3D::add_tmp_id(cs_pts)$tmp_id
   
+  # sf::write_sf(cs_pts, "/Users/anguswatters/Desktop/test_improve_cs_pts_06.gpkg")
+  # sf::write_sf(flines, "/Users/anguswatters/Desktop/test_improve_flines_06.gpkg")
+  # sf::write_sf(transects, "/Users/anguswatters/Desktop/test_improve_transects_06.gpkg")
+  # # 
+  
+  
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 3: Try to rectify any no relief and invalid banks cross sections ----
   # ----------------------------------------------------------------------------------------------------------------
+  # dplyr::rename(flines, hy_id = id)
+  # profvis::profvis({
   # system.time({
-  # NOTE: new inplace method for improving (rectifying) any invalid cross sections where we dont have banks and relief
-  fixed_pts <- hydrofabric3D::improve_invalid_cs(
+    
+  # # NOTE: new inplace method for improving (rectifying) any invalid cross sections where we dont have banks and relief
+  # fixed_pts <- hydrofabric3D::improve_invalid_cs2(
+  #   cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
+  #   net            = dplyr::rename(flines, hy_id = id),    # original flowline network
+  #   # net            = flines,    # original flowline network
+  #   transects      = transects, # original transect lines
+  #   points_per_cs  = NULL, 
+  #   min_pts_per_cs = 10, # number of points per cross sections
+  #   dem            = DEM_URL, # DEM to extract points from
+  #   scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
+  #   pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
+  #   fix_ids = FALSE,
+  #   verbose = TRUE
+  # )
+  
+  
+  # system.time({
+  fixed_pts <- hydrofabric3D::get_improved_cs_pts(
     cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
-    net            = flines,    # original flowline network
+    net            = dplyr::rename(flines, hy_id = id),    # original flowline network
+    # net            = flines,    # original flowline network
     transects      = transects, # original transect lines
+    crosswalk_id   = "hy_id",
     points_per_cs  = NULL, 
     min_pts_per_cs = 10, # number of points per cross sections
     dem            = DEM_URL, # DEM to extract points from
@@ -145,6 +182,8 @@ for (i in 1:nrow(path_df)) {
     verbose = TRUE
   )
   # })
+  
+  # fixed_pts2$is_extended %>% sum()
   
   ids_after_fixed_pts <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
 
@@ -354,8 +393,9 @@ for (i in 1:nrow(path_df)) {
   
   message("Reclassifying cross section points...")
   fixed_pts <- hydrofabric3D::classify_points(
-                  cs_pts                   = fixed_pts, 
-                  pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF
+                  cs_pts                    = fixed_pts, 
+                  crosswalk_id              = "hy_id",
+                  pct_of_length_for_relief  = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF
                   )
   
   ids_after_reclassify <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
