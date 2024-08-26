@@ -288,7 +288,7 @@ for (i in 1:nrow(path_df)) {
   message(round(Sys.time()), " - Reclassifying cross section point types...")
   
   # reclassify
-  final_cs <- hydrofabric3D::classify_points(final_cs)
+  final_cs <- hydrofabric3D::classify_points(final_cs, crosswalk_id = "hy_id")
 
   # final_uids <- final_cs %>% hydrofabric3D::get_unique_tmp_ids()
   # random_uids <- sample(x=final_uids, size=12)
