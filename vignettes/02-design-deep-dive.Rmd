@@ -182,9 +182,13 @@ This location can be joined to the set of VPU boundaries severed with `nhdplusTo
   select("vpuid", 'hl_reference', "hl_link") %>% 
   filter(hl_link == '06752260') %>% 
   collect())
+
+if(!dir.exists('vignettes/tutorial/')){
+  dir.create('vignettes/tutorial/', recursive = TRUE)
+}
   
 reference_gpkg = get_vpu_fabric(vpu = gage$vpuid[1],
-                                outfile = glue("tutorial/vpu_{gage$vpuid[1]}.gpkg"))
+                                outfile = glue("vignettes/tutorial/vpu_{gage$vpuid[1]}.gpkg"))
 ```
 
 If the requested file already exists, the file path will be returned. 
