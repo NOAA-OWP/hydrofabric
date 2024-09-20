@@ -73,6 +73,10 @@ Additionally it will load key geospatial data science libraries:
 
 ```{r}
 # The output directory
+if(!dir.exists('vignettes/tutorial/')){
+  dir.create('vignettes/tutorial/', recursive = TRUE)
+}
+
 o = "vignettes/tutorial/example.gpkg"
 
 # Build subset
