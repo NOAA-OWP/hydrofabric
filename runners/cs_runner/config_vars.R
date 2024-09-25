@@ -170,4 +170,73 @@ COLLECT_META <- TRUE
 META_PATH    <- '/Users/anguswatters/Desktop/cs_meta/'
 # META_PATH <-  "/local/path/to/save/cross_section_meta_data/"
 
+# -------------------------------------------------------------------------------------
+# ---- (New single domain) Local directory / path variables ----
+# -------------------------------------------------------------------------------------
 
+# directory for new domain data 
+NEW_DOMAIN_DIRNAME  <- "new_domain"
+NEW_DOMAIN_DIR      <- paste0(BASE_DIR, "/", NEW_DOMAIN_DIRNAME)
+
+NEW_DOMAIN_FLOWLINES_DIRNAME <- "flowlines"
+NEW_DOMAIN_FLOWLINES_DIR     <- paste0(NEW_DOMAIN_DIR, "/", NEW_DOMAIN_FLOWLINES_DIRNAME)
+
+NEW_DOMAIN_DEM_DIRNAME <- "dem"
+NEW_DOMAIN_DEM_DIR     <- paste0(NEW_DOMAIN_DIR, "/", NEW_DOMAIN_DEM_DIRNAME)
+
+NEW_DOMAIN_FLOWLINES_FILE  <- "AllDiffusiveCombined.gpkg"
+NEW_DOMAIN_FLOWLINES_PATH  <- paste0(NEW_DOMAIN_FLOWLINES_DIR, "/", NEW_DOMAIN_FLOWLINES_FILE)
+
+# # Local DEM file
+# NEW_DOMAIN_DEM_FILE        <- "hi_dem.tif"
+# NEW_DOMAIN_DEM_PATH        <- paste0(NEW_DOMAIN_DEM_DIR, "/", NEW_DOMAIN_DEM_FILE)
+
+# Remote DEM file
+NEW_DOMAIN_DEM_PATH        <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt"
+
+NEW_DOMAIN_TRANSECTS_DIRNAME         <- "transects"
+NEW_DOMAIN_CS_PTS_DIRNAME            <- "cs_pts"
+NEW_DOMAIN_CROSS_SECTIONS_DIRNAME    <- "cross_sections"
+
+NEW_DOMAIN_TRANSECTS_DIR          <- paste0(NEW_DOMAIN_DIR, "/", NEW_DOMAIN_TRANSECTS_DIRNAME)
+NEW_DOMAIN_CS_PTS_DIR             <- paste0(NEW_DOMAIN_DIR, "/", NEW_DOMAIN_CS_PTS_DIRNAME)
+NEW_DOMAIN_CROSS_SECTIONS_DIR     <- paste0(NEW_DOMAIN_DIR, "/", NEW_DOMAIN_CROSS_SECTIONS_DIRNAME)
+
+# -------------------------------------------------------------------------------------
+# ---- (New single domain) Local directory / path variables ----
+# -------------------------------------------------------------------------------------
+
+# directory for new domain data 
+DOMAIN_WITH_FEMA_DIRNAME  <- "domain_with_fema"
+DOMAIN_WITH_FEMA_DIR      <- paste0(BASE_DIR, "/", DOMAIN_WITH_FEMA_DIRNAME)
+
+DOMAIN_WITH_FEMA_FLOWLINES_DIRNAME <- "flowlines"
+DOMAIN_WITH_FEMA_FLOWLINES_DIR     <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_FLOWLINES_DIRNAME)
+
+DOMAIN_WITH_FEMA_SUBSET_DIRNAME  <- "domain_subset"
+DOMAIN_WITH_FEMA_SUBSET_DIR      <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_SUBSET_DIRNAME)
+
+DOMAIN_WITH_FEMA_DEM_DIRNAME     <- "dem"
+DOMAIN_WITH_FEMA_DEM_DIR         <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_DEM_DIRNAME)
+
+DOMAIN_WITH_FEMA_FLOWLINES_FILE  <- "ls_conus.gpkg"
+DOMAIN_WITH_FEMA_FLOWLINES_PATH  <- paste0(DOMAIN_WITH_FEMA_FLOWLINES_DIR, "/", DOMAIN_WITH_FEMA_FLOWLINES_FILE)
+
+# Geopackage containing area to subset flowlines to before processing
+DOMAIN_WITH_FEMA_SUBSET_FILE     <- "AllDiffusiveCombined.gpkg"
+DOMAIN_WITH_FEMA_SUBSET_PATH     <- paste0(DOMAIN_WITH_FEMA_SUBSET_DIR, "/", DOMAIN_WITH_FEMA_SUBSET_FILE)
+
+# # Local DEM file
+# DOMAIN_WITH_FEMA_DEM_FILE        <- "hi_dem.tif"
+# DOMAIN_WITH_FEMA_DEM_PATH        <- paste0(DOMAIN_WITH_FEMA_DEM_DIR, "/", DOMAIN_WITH_FEMA_DEM_FILE)
+
+# Remote DEM file
+DOMAIN_WITH_FEMA_DEM_PATH        <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt"
+
+DOMAIN_WITH_FEMA_TRANSECTS_DIRNAME         <- "transects"
+DOMAIN_WITH_FEMA_CS_PTS_DIRNAME            <- "cs_pts"
+DOMAIN_WITH_FEMA_CROSS_SECTIONS_DIRNAME    <- "cross_sections"
+
+DOMAIN_WITH_FEMA_TRANSECTS_DIR          <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_TRANSECTS_DIRNAME)
+DOMAIN_WITH_FEMA_CS_PTS_DIR             <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_CS_PTS_DIRNAME)
+DOMAIN_WITH_FEMA_CROSS_SECTIONS_DIR     <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_CROSS_SECTIONS_DIRNAME)

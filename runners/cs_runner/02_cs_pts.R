@@ -35,10 +35,10 @@ path_df <- align_files_by_vpu(
 # loop over the nextgen and transect datasets (by VPU) and extract point elevations across points on each transect line,
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
-for (i in 11:nrow(path_df)) {
+for (i in 20:nrow(path_df)) {
+  
   start <- Sys.time()
-  # i = 8
-  message("Using newest Hydrofabric3D!!!")
+  
   # nextgen file and full path
   nextgen_file <- path_df$x[i]
   nextgen_path <- paste0(NEXTGEN_DIR, nextgen_file)
@@ -64,13 +64,15 @@ for (i in 11:nrow(path_df)) {
   )
   
   ################### 
-  
+  message("Reading in transects...\n > ", transect_file)
   # read in transects data
   transects <- sf::read_sf(transect_path)
   
+  message("Reading in flowlines... \n > ", nextgen_file)
   # read in nextgen data
   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
   
+  message("Reading in waterbodies... \n > ", ref_file)
   # read in waterbodies reference features layer
   waterbodies <- sf::read_sf(ref_path, layer = "waterbodies")
 
@@ -119,15 +121,31 @@ for (i in 11:nrow(path_df)) {
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points ----
   # ----------------------------------------------------------------------------------------------------------------
-
+  
+  # sf::write_sf(cs_pts, "/Users/anguswatters/Desktop/test_improve_cs_pts_11.gpkg")
+  # sf::write_sf(flines, "/Users/anguswatters/Desktop/test_improve_flines_11.gpkg")
+  # sf::write_sf(transects, "/Users/anguswatters/Desktop/test_improve_transects_11.gpkg")
+  
+  # sf::write_sf(flines, "/Users/anguswatters/Desktop/test_improve_flines_11_2.gpkg")
+  # sf::write_sf(transects, "/Users/anguswatters/Desktop/test_improve_transects_11_2.gpkg")
+  # cs_pts %>% 
+  #   dplyr::group_by(hy_id, cs_id) %>% 
+  #   dplyr::filter(!any(is.na(Z))) %>% 
+  #   dplyr::ungroup()
+  # 
+  # cs_pts %>% 
+  #   hydrofabric3D::drop_incomplete_cs_pts("hy_id")
+  
   # system.time({
   
   # STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points 
   cs_pts <- 
+  # cs_pts2 <- 
     cs_pts %>% 
-    dplyr::group_by(hy_id, cs_id) %>% 
-    dplyr::filter(!any(is.na(Z))) %>% 
-    dplyr::ungroup() %>% 
+    # dplyr::group_by(hy_id, cs_id) %>% 
+    # dplyr::filter(!any(is.na(Z))) %>% 
+    # dplyr::ungroup() %>% 
+    hydrofabric3D::drop_incomplete_cs_pts("hy_id") %>% 
     hydrofabric3D::classify_points(
       crosswalk_id             = "hy_id", 
       pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF
@@ -135,12 +153,11 @@ for (i in 11:nrow(path_df)) {
   
   # })
   
-  ids_original_cs_pts <- hydrofabric3D::add_tmp_id(cs_pts)$tmp_id
+  ids_original_cs_pts <- hydrofabric3D::add_tmp_id(cs_pts)$tmp_id  
+  # ids_original_cs_pts <- hydrofabric3D::add_tmp_id(cs_pts2)$tmp_id
   
-  # sf::write_sf(cs_pts, "/Users/anguswatters/Desktop/test_improve_cs_pts_06.gpkg")
-  # sf::write_sf(flines, "/Users/anguswatters/Desktop/test_improve_flines_06.gpkg")
-  # sf::write_sf(transects, "/Users/anguswatters/Desktop/test_improve_transects_06.gpkg")
-  # # 
+  # sf::write_sf(cs_pts2, "/Users/anguswatters/Desktop/test_improve_cs_pts_classified_11.gpkg")
+  # sf::write_sf(cs_pts, "/Users/anguswatters/Desktop/test_improve_cs_pts_classified_11_2.gpkg")
   
   
   # ----------------------------------------------------------------------------------------------------------------
@@ -167,20 +184,20 @@ for (i in 11:nrow(path_df)) {
   
   
   # system.time({
-  fixed_pts <- hydrofabric3D::get_improved_cs_pts(
-    cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
-    net            = dplyr::rename(flines, hy_id = id),    # original flowline network
-    # net            = flines,    # original flowline network
-    transects      = transects, # original transect lines
-    crosswalk_id   = "hy_id",
-    points_per_cs  = NULL, 
-    min_pts_per_cs = 10, # number of points per cross sections
-    dem            = DEM_URL, # DEM to extract points from
-    scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
-    pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
-    fix_ids = FALSE,
-    verbose = TRUE
-  )
+    fixed_pts <- hydrofabric3D::get_improved_cs_pts(
+      cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
+      net            = dplyr::rename(flines, hy_id = id),    # original flowline network
+      # net            = flines,    # original flowline network
+      transects      = transects, # original transect lines
+      crosswalk_id   = "hy_id",
+      points_per_cs  = NULL, 
+      min_pts_per_cs = 10, # number of points per cross sections
+      dem            = DEM_URL, # DEM to extract points from
+      scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
+      pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
+      fix_ids = FALSE,
+      verbose = TRUE
+    )
   # })
   
   # fixed_pts2$is_extended %>% sum()
@@ -219,6 +236,7 @@ for (i in 11:nrow(path_df)) {
   
   # get the counts of each point type to add this data to the transects dataset
   point_type_counts <- hydrofabric3D::get_point_type_counts(fixed_pts)
+  # point_type_counts <- hydrofabric3D::get_point_type_counts(fixed_pts, crosswalk_id = "hy_id")
   
   # # check the number of cross sections that were extended
   # fixed_pts$is_extended %>% table()
@@ -387,7 +405,8 @@ for (i in 11:nrow(path_df)) {
   ids_before_align <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
   
   message("Aligning banks and smoothing bottoms...")
-  fixed_pts <- hydrofabric3D::align_banks_and_bottoms(fixed_pts)
+  fixed_pts <- hydrofabric3D::align_banks_and_bottoms(cs_pts = fixed_pts)
+  # fixed_pts <- hydrofabric3D::align_banks_and_bottoms(cs_pts = fixed_pts, crosswalk_id = "hy_id")
   
   ids_after_align <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
   

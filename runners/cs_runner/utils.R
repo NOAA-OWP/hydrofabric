@@ -1,3 +1,73 @@
+# Create an empty file structure 
+# base_dir: character, top level directory path
+# domain_dirname: character, name of the intended new domain directory, if folder exists, then the required subdirectories are created (if they DO NOT exist)
+
+# Directory tree:
+# base_dir/
+#   └── domain_dirname/
+#     ├── flowlines/
+#     ├── dem/
+#     ├── transects/
+#     ├── cross_sections/
+#     └── cs_pts/
+create_new_domain_dirs <- function(base_dir, domain_dirname) {
+  
+  # build paths
+  domain_dir         <- paste0(base_dir, "/", domain_dirname)
+  flowlines_dir      <- paste0(domain_dir, "/flowlines")
+  domain_subset_dir  <- paste0(domain_dir, "/domain_subset")
+  dem_dir            <- paste0(domain_dir, "/dem")
+  transects_dir      <- paste0(domain_dir, "/transects")
+  cross_sections_dir <- paste0(domain_dir, "/cross_sections")
+  cs_pts_dir         <- paste0(domain_dir, "/cs_pts")
+  
+  create_if_not_exists <- function(dir_path) {
+    if (!dir.exists(dir_path)) {
+      dir.create(dir_path, recursive = TRUE)
+      message("Created directory: '", dir_path, "'\n")
+    }
+  }
+  
+  # create directories
+  create_if_not_exists(domain_dir)
+  create_if_not_exists(flowlines_dir)
+  create_if_not_exists(domain_subset_dir)
+  create_if_not_exists(dem_dir)
+  create_if_not_exists(transects_dir)
+  create_if_not_exists(cross_sections_dir)
+  create_if_not_exists(cs_pts_dir)
+}
+
+# get path strings for a domain dir (based of a base dir and domain dirname)
+# NOTE: this does NOT guarentee that these folders exist, 
+# NOTE: it just gets the paths if they were created by create_new_domain_dirs() 
+get_new_domain_paths <- function(base_dir, domain_dirname) {
+  
+  # build paths
+  domain_dir         <- paste0(base_dir, "/", domain_dirname)
+  flowlines_dir      <- paste0(domain_dir, "/flowlines")
+  domain_subset_dir  <- paste0(domain_dir, "/domain_subset")
+  dem_dir            <- paste0(domain_dir, "/dem")
+  transects_dir      <- paste0(domain_dir, "/transects")
+  cross_sections_dir <- paste0(domain_dir, "/cross_sections")
+  cs_pts_dir         <- paste0(domain_dir, "/cs_pts")
+  
+  # named list of file paths
+  return(
+    list(
+      base_dir           = base_dir, 
+      domain_dir         = domain_dir,
+      flowlines_dir      = flowlines_dir,
+      domain_subset_dir  = domain_subset_dir,
+      dem_dir            = dem_dir,
+      transects_dir      = transects_dir,
+      cross_sections_dir = cross_sections_dir,
+      cs_pts_dir         = cs_pts_dir
+    )
+  )
+  
+}
+
 # Given 2 character vectors of filenames both including VPU strings after a "nextgen_" string, match them together to
 # make sure they are aligned and in the same order
 # x is a character vector of file paths with a VPU ID preceeded by a "nextgen_" string 
@@ -147,6 +217,31 @@ wb_intersects <- function(flowlines, trans, waterbodies) {
   # )
 }
 
+add_intersects_ids <- function(x, y, id_col) {
+  # make sure the crs are tjhe same
+  y <- sf::st_transform(y, sf::st_crs(x))
+  
+  # Perform the intersection
+  intersections <- sf::st_intersects(x, y)
+  
+  # add the intersected values to the first dataframe
+  x[[id_col]] <- unlist(lapply(intersections, function(idx) {
+    if (length(idx) > 0) {
+      paste0(unlist(y[[id_col]][idx]), collapse = ", ")
+    } else {
+      NA
+    }
+  }))
+  
+  return(x)
+}
+
+unnest_ids <- function(ids) {
+  return(
+    unique(unlist(strsplit(unique(ids), ", ")))
+  )
+}
+
 #' Get the polygons that interesect with any of the linestring geometries
 #' This is just a wrapper around geos::geos_intersects_matrix. Takes in sf dataframes, uses geos, then outputs sf dataframes
 #' @param polygons polygon sf object. Default is NULL
@@ -291,4 +386,138 @@ add_predicate_group_id <- function(polys, predicate) {
   return(polys)
   
 }
+
+
+# utility function for getting transects extended and 
+# matching cross section points that went through "get_improved_cs_pts()" and that were extended for improvement
+# returns the extended version of the transects 
+match_transects_to_extended_cs_pts <- function(transect_lines, fixed_cs_pts, crosswalk_id) {
+  # transect_lines = transects
+  # fixed_cs_pts   = fixed_pts
+  # crosswalk_id   = CROSSWALK_ID
+  
+  fixed_cs_pts <- nhdplusTools::rename_geometry(fixed_cs_pts, "geometry")
+  transect_lines    <- nhdplusTools::rename_geometry(transect_lines, "geometry")
+  
+  # get the counts of each point type to add this data to the transect_lines dataset
+  point_type_counts <- hydrofabric3D::get_point_type_counts(classified_pts = fixed_cs_pts, 
+                                                            crosswalk_id = crosswalk_id)
+  
+  # Check the number of cross sections that were extended
+  message("Subsetting cross section points generated after extending transect_lines...")
+  
+  # extract cross section points that have an "is_extended" value of TRUE
+  extended_pts <- 
+    fixed_cs_pts %>%
+    dplyr::filter(is_extended) %>%
+    hydrofabric3D::add_tmp_id(x = crosswalk_id)
+  
+  # extended_pts %>% 
+  #   get_unique_tmp_ids() %>% 
+  #   length()
+  
+  # extract transect_lines that have a "crosswalk_id" in the "extended_pts" dataset
+  update_transect_lines <- 
+    transect_lines %>%
+    hydrofabric3D::add_tmp_id(x = crosswalk_id) %>%
+    dplyr::filter(tmp_id %in% unique(extended_pts$tmp_id))
+  
+  cs_pt_uids    <- unique(hydrofabric3D::add_tmp_id(fixed_cs_pts, x = crosswalk_id)$tmp_id)
+  
+  # If any transect_lines were extended, update the transect_lines dataset, and overwrite local and S3 transect_lines geopackages
+  if (nrow(update_transect_lines) > 0) {
+    message("Updating ", nrow(update_transect_lines), " transect_lines")
+    
+    
+    update_transect_lines <- 
+      update_transect_lines %>% 
+      dplyr::rename(hy_id := !!sym(crosswalk_id)) 
+    
+    update_transect_lines <- 
+      update_transect_lines %>%
+      # apply extend_by_percent function to each transect line:
+      hydrofabric3D:::extend_by_percent(
+        pct        = EXTENSION_PCT,
+        length_col = "cs_lengthm"
+      )
+    
+    update_transect_lines <- 
+      update_transect_lines %>%  
+      dplyr::rename(!!sym(crosswalk_id) := hy_id)
+
+    # cs_pt_uids    <- unique(hydrofabric3D::add_tmp_id(fixed_cs_pts, x = get(crosswalk_id))$tmp_id)
+    # transect_uids <- unique(hydrofabric3D::add_tmp_id(transect_lines, x = get(crosswalk_id))$tmp_id)
+    
+    # Filter down to ONLY points that were finalized and rectified from rectify_cs_pts()
+    # Remove old transect_lines that have "tmp_id" in "extended_pts" (transect_lines that were unchanged and are "good_to_go")
+    # and then replace with old transect_lines with the "update_transect_lines"
+    out_transect_lines <-
+      transect_lines %>%
+      hydrofabric3D::add_tmp_id(x = crosswalk_id) %>%
+      dplyr::filter(tmp_id %in% cs_pt_uids) %>% 
+      dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id)) %>%
+      dplyr::bind_rows(
+        dplyr::mutate(update_transect_lines, is_extended = TRUE)
+      )
+    
+    # transect_lines %>% 
+    #   hydrofabric3D::add_tmp_id(x = "hy_id") %>%
+    #   # dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id)) %>%
+    #   dplyr::filter(tmp_id %in% unique(hydrofabric3D::add_tmp_id(fixed_pts, x = "hy_id")$tmp_id)) %>% # Subset down to the remaining tmp_ids in the fixed points
+    #   dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id)) %>% # remove the tmp_ids that we are going add back in with the extended versions of those tmp_ids
+    #   dplyr::bind_rows( # bring in the new updated extended transect_lines
+    #     dplyr::mutate(
+    #       update_transect_lines,
+    #       is_extended = TRUE
+    #     )
+    #   )  
+  } else {
+    # If no transect_lines were extended
+    out_transect_lines <- 
+      transect_lines %>%
+      hydrofabric3D::add_tmp_id(x = crosswalk_id) %>%
+      dplyr::filter(tmp_id %in% cs_pt_uids) %>% 
+      # dplyr::filter(tmp_id %in% unique(hydrofabric3D::add_tmp_id(fixed_cs_pts, x = get(crosswalk_id))$tmp_id)) %>%
+      dplyr::filter(!tmp_id %in% unique(extended_pts$tmp_id))
+  }
+  
+  # Finalize new transect_lines
+  out_transect_lines <- 
+    out_transect_lines %>%
+    dplyr::left_join(
+      point_type_counts, 
+      by = c(crosswalk_id, "cs_id")
+    ) %>%
+    dplyr::left_join(
+      dplyr::ungroup(
+        dplyr::slice(
+          dplyr::group_by(
+            dplyr::select(sf::st_drop_geometry(fixed_cs_pts),
+                          dplyr::any_of(crosswalk_id), 
+                          cs_id, bottom, left_bank, right_bank, valid_banks, has_relief
+            ),
+            dplyr::across(dplyr::any_of(c(crosswalk_id, "cs_id")))
+          ),
+          1
+        )
+      ),
+      by = c(crosswalk_id, "cs_id")
+    ) %>%
+    dplyr::select(
+      dplyr::any_of(crosswalk_id),
+      cs_source, cs_id, cs_measure, cs_lengthm,
+      # sinuosity,
+      is_extended,
+      left_bank_count, right_bank_count, channel_count, bottom_count,
+      bottom, left_bank, right_bank, valid_banks, has_relief,
+      geometry
+    ) %>% 
+    dplyr::mutate(
+      is_extended = ifelse(is.na(is_extended), FALSE, is_extended)
+    )  
+  
+  return(out_transect_lines)
+}
+
+
 
