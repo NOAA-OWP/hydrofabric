@@ -113,24 +113,6 @@ list_ref_features <- paste0('#!/bin/bash
 )
 
 # --------------------------------------------------------------------------
-# ---- Create empty file structure for a "new_domain" ----
-# --------------------------------------------------------------------------
-
-create_new_domain_dirs(BASE_DIR, NEW_DOMAIN_DIRNAME)
-
-# --------------------------------------------------------------------------
-# ---- Create empty file structure for a "domain_with_fema" ----
-# --------------------------------------------------------------------------
-
-create_new_domain_dirs(BASE_DIR, DOMAIN_WITH_FEMA_DIRNAME)
-
-# --------------------------------------------------------------------------
-# ---- Create empty file structure for a "new_conus_domain" ----
-# --------------------------------------------------------------------------
-
-create_new_domain_dirs(BASE_DIR, NEW_CONUS_DOMAIN_DIRNAME)
-
-# --------------------------------------------------------------------------
 # ---- Get a list of reference features geopackages ----
 # --------------------------------------------------------------------------
 
@@ -140,3 +122,164 @@ ref_features <- system(list_ref_features, intern = TRUE)
 # ref features datasets
 ref_features_keys  <- paste0(S3_BUCKET_REF_FEATURES_URI, ref_features)
 ref_features_files <- paste0(REF_FEATURES_DIR, "gpkg/", ref_features)
+
+# --------------------------------------------------------------------------
+# ---- Create empty file structure for a "new_domain" ----
+# --------------------------------------------------------------------------
+
+create_new_domain_dirs(BASE_DIR, NEW_DOMAIN_DIRNAME, with_output = TRUE)
+
+# --------------------------------------------------------------------------
+# ---- Create empty file structure for a "domain_with_fema" ----
+# --------------------------------------------------------------------------
+
+create_new_domain_dirs(BASE_DIR, DOMAIN_WITH_FEMA_DIRNAME, with_output = TRUE)
+
+# --------------------------------------------------------------------------
+# ---- Get locations of ML parquet files in S3 ---
+# --------------------------------------------------------------------------
+
+VPU_ML_BATHYMETRY_URIS <- unlist(
+  lapply(VPU_ML_BATHYMETRY_S3_DIRS, function(s3_dir) {
+    s3_file <- list_s3_objects(s3_dir, ".parquet$", AWS_PROFILE)
+    paste0(s3_dir, s3_file)
+  })
+)
+
+# -------------------------------------------------------------------------------------
+# ---- Download ML parquets for DOMAIN_WITH_FEMA ----
+# -------------------------------------------------------------------------------------
+
+# Parse the selected S3 objects keys from the FEMA100 bucket directory copy them to the local destination directory if the file does NOT exist yet
+for (s3_uri in VPU_ML_BATHYMETRY_URIS) {
+  # message(s3_uri)
+  # s3_uri <- "s3://lynker-hydrofabric/hydrofabric/nextgen/bathymetry/multisource_river_attributes/vpuid=18/part-0.parquet"
+  # s3_uri <- "s3://lynker-hydrofabric/hydrofabric/nextgen/bathymetry/multisource_river_attributes/vpuid=03W/part-0.parquet"
+  # s3_uri <- "s3://lynker-hydrofabric/hydrofabric/nextgen/bathymetry/multisource_river_attributes/vpuid=21/"
+  
+  is_parquet <- endsWith(s3_uri, ".parquet")
+  vpu_id     <- gsub(".*vpuid=([a-zA-Z0-9]+).*", "\\1", s3_uri)
+  
+  message("Checking S3 bucket for VPU ", vpu_id, " ML data...")
+  
+  if (is_parquet) {
+    s3_file    <- basename(s3_uri)
+    # vpu_id <- gsub(".*vpuid=([a-zA-Z0-9]+).*", "\\1", s3_uri)
+    new_file_name <-     paste0(vpu_id, "_ml.parquet")
+    # new_file_name <- gsub("-", "_", paste0(vpu_id, "_", s3_file))
+    
+    local_save_path <- paste0(DOMAIN_WITH_FEMA_ML_DIR, "/", new_file_name)
+    
+    if(!file.exists(local_save_path)) {
+      copy_cmd <- paste0('aws s3 cp ', s3_uri,
+                         " ", local_save_path, " --profile ", AWS_PROFILE)
+      
+      message("S3 object:\n > '", s3_uri, "'")
+      message("Downloading S3 object to:\n > '", local_save_path, "'")
+      # message("Copy command:\n > '", copy_cmd, "'")
+      
+      system(copy_cmd)
+      
+      message(" > '", new_file_name, "' download complete!")
+      message("----------------------------------")
+    } else {
+      message("File already exists at:\n > '", local_save_path, "'")
+    }
+    
+  } else {
+    message("No S3 bucket ML data for VPU ", vpu_id, "...")
+  }
+
+}
+
+# VPU_ML_BATHYMETRY_PATHS <- list.files(DOMAIN_WITH_FEMA_ML_DIR, full.names = T)
+# 
+# ml_outputs <- lapply(VPU_ML_BATHYMETRY_PATHS, function(prq) {
+#       vpu_id     <- gsub(".*ml/([a-zA-Z0-9]+).*", "\\1", prq)
+#       arrow::read_parquet(prq) %>% 
+#         dplyr::mutate(vpu_id = vpu_id) 
+#       }
+#     ) %>% 
+#   dplyr::bind_rows()
+
+# --------------------------------------------------------------------------
+# ---- Get locations of diffusive domain DEM files in S3 ----
+# --------------------------------------------------------------------------
+
+COASTAL_BATHY_DEM_S3_URIS    <- paste0(COASTAL_BATHY_DEM_S3_DIR_URI, 
+                                       list_s3_objects(COASTAL_BATHY_DEM_S3_DIR_URI, ".tif$", AWS_PROFILE)
+                                       )
+
+# -------------------------------------------------------------------------------------
+# ---- Download diffusive domain DEM files from S3 for DOMAIN_WITH_FEMA ----
+# -------------------------------------------------------------------------------------
+
+# Parse the selected S3 objects keys from the FEMA100 bucket directory copy them to the local destination directory if the file does NOT exist yet
+for (s3_uri in COASTAL_BATHY_DEM_S3_URIS) {
+  message(s3_uri)
+  
+  is_tif <- endsWith(s3_uri, ".tif")
+  # vpu_id     <- gsub(".*vpuid=([a-zA-Z0-9]+).*", "\\1", s3_uri)
+  
+  message("Checking S3 bucket for DEM data...")
+  
+  if (is_tif) {
+    
+    s3_file    <- basename(s3_uri)
+    # vpu_id <- gsub(".*vpuid=([a-zA-Z0-9]+).*", "\\1", s3_uri)
+    # new_file_name <-     paste0(vpu_id, "_ml.parquet")
+    # new_file_name <- gsub("-", "_", paste0(vpu_id, "_", s3_file))
+    
+    local_save_path <- paste0(DOMAIN_WITH_FEMA_DEM_DIR, "/", s3_file)
+    
+    if (!file.exists(local_save_path)) {
+      copy_cmd <- paste0('aws s3 cp ', s3_uri,
+                         " ", local_save_path, " --profile ", AWS_PROFILE)
+      
+      message("S3 object:\n > '", s3_uri, "'")
+      message("Downloading S3 object to:\n > '", local_save_path, "'")
+      # message("Copy command:\n > '", copy_cmd, "'")
+      
+      system(copy_cmd)
+      
+      message(" > '", s3_file, "' download complete!")
+      message("----------------------------------")
+    } else {
+      message("File already exists at:\n > '", local_save_path, "'")
+    }
+    
+  } else {
+    message("No S3 bucket DEM data... ")
+  }
+  
+}
+
+COASTAL_BATHY_DEM_PATHS <- list.files(DOMAIN_WITH_FEMA_DEM_DIR, full.names = TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

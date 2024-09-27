@@ -296,8 +296,8 @@ for (i in 1:nrow(path_df)) {
                         # tmp_id %in% random_uids) 
   # hydrofabric3D::classify_points(cs_subset) %>%  hydrofabric3D::plot_cs_pts(color = "point_type")
   
-  starting_uids <- hydrofabric3D::get_unique_tmp_ids(cs_pts)
-  ending_uids   <- hydrofabric3D::get_unique_tmp_ids(final_cs)
+  starting_uids <- hydrofabric3D::get_unique_tmp_ids(cs_pts, x = "hy_id")
+  ending_uids   <- hydrofabric3D::get_unique_tmp_ids(final_cs, x = "hy_id")
 
   has_same_number_of_uids          <- length(starting_uids) == length(ending_uids)
   all_starting_uids_in_ending_uids <- all(starting_uids %in% ending_uids)
@@ -374,5 +374,6 @@ for (i in 1:nrow(path_df)) {
   
 }
   
+
     
   

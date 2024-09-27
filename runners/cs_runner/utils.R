@@ -10,7 +10,7 @@
 #     ├── transects/
 #     ├── cross_sections/
 #     └── cs_pts/
-create_new_domain_dirs <- function(base_dir, domain_dirname) {
+create_new_domain_dirs <- function(base_dir, domain_dirname, with_output = FALSE) {
   
   # build paths
   domain_dir         <- paste0(base_dir, "/", domain_dirname)
@@ -20,6 +20,11 @@ create_new_domain_dirs <- function(base_dir, domain_dirname) {
   transects_dir      <- paste0(domain_dir, "/transects")
   cross_sections_dir <- paste0(domain_dir, "/cross_sections")
   cs_pts_dir         <- paste0(domain_dir, "/cs_pts")
+  vpu_subsets_dir    <- paste0(domain_dir, "/vpu-subsets")
+  
+  if(with_output) {
+    output_dir       <- paste0(domain_dir, "/outputs")
+  }
   
   create_if_not_exists <- function(dir_path) {
     if (!dir.exists(dir_path)) {
@@ -36,12 +41,18 @@ create_new_domain_dirs <- function(base_dir, domain_dirname) {
   create_if_not_exists(transects_dir)
   create_if_not_exists(cross_sections_dir)
   create_if_not_exists(cs_pts_dir)
+  create_if_not_exists(vpu_subsets_dir)
+  
+  if(with_output) {
+    create_if_not_exists(output_dir)
+  }
+  
 }
 
 # get path strings for a domain dir (based of a base dir and domain dirname)
 # NOTE: this does NOT guarentee that these folders exist, 
 # NOTE: it just gets the paths if they were created by create_new_domain_dirs() 
-get_new_domain_paths <- function(base_dir, domain_dirname) {
+get_new_domain_paths <- function(base_dir, domain_dirname, with_output = FALSE) {
   
   # build paths
   domain_dir         <- paste0(base_dir, "/", domain_dirname)
@@ -51,6 +62,9 @@ get_new_domain_paths <- function(base_dir, domain_dirname) {
   transects_dir      <- paste0(domain_dir, "/transects")
   cross_sections_dir <- paste0(domain_dir, "/cross_sections")
   cs_pts_dir         <- paste0(domain_dir, "/cs_pts")
+  vpu_subsets_dir    <- paste0(domain_dir, "/vpu-subsets")
+  output_dir         <- ifelse(with_output, paste0(domain_dir, "/outputs"), NA)
+
   
   # named list of file paths
   return(
@@ -62,10 +76,39 @@ get_new_domain_paths <- function(base_dir, domain_dirname) {
       dem_dir            = dem_dir,
       transects_dir      = transects_dir,
       cross_sections_dir = cross_sections_dir,
-      cs_pts_dir         = cs_pts_dir
+      cs_pts_dir         = cs_pts_dir,
+      vpu_subsets_dir    = vpu_subsets_dir,
+      output_dir         = output_dir
     )
   )
   
+}
+
+list_s3_objects <- function(s3_bucket, pattern = NULL, aws_profile = NULL) {
+  
+  profile_option <- if (!is.null(aws_profile)) paste0("--profile ", aws_profile) else ""
+  
+  if (is.null(pattern) || pattern == "") {
+    grep_command <- ""  # no filtering if empty or NULL
+  } else {
+    grep_command <- paste0(" | grep -E \"", pattern, "\"")  # grep if a pattern is given
+  }
+  
+  cmd <- paste0(
+    '#!/bin/bash\n',
+    'S3_BUCKET="', s3_bucket, '"\n',
+    'PATTERN="', pattern, '"\n',
+    'S3_OBJECTS=$(aws s3 ls "$S3_BUCKET" ', profile_option, ' | awk \'{print $4}\' | grep -E "$PATTERN")\n',
+    'echo "$S3_OBJECTS"'
+  )
+  # cmd <- paste0(
+  #   '#!/bin/bash\n',
+  #   'S3_BUCKET="', s3_bucket, '"\n',
+  #   'S3_OBJECTS=$(aws s3 ls "$S3_BUCKET" ', profile_option, ' | awk \'{print $4}\'', grep_command, ')\n',
+  #   'echo "$S3_OBJECTS"'
+  # )
+  ls_output <- system(cmd, intern = TRUE)
+  return(ls_output)
 }
 
 # Given 2 character vectors of filenames both including VPU strings after a "nextgen_" string, match them together to
@@ -392,6 +435,7 @@ add_predicate_group_id <- function(polys, predicate) {
 # matching cross section points that went through "get_improved_cs_pts()" and that were extended for improvement
 # returns the extended version of the transects 
 match_transects_to_extended_cs_pts <- function(transect_lines, fixed_cs_pts, crosswalk_id) {
+  
   # transect_lines = transects
   # fixed_cs_pts   = fixed_pts
   # crosswalk_id   = CROSSWALK_ID
@@ -402,7 +446,6 @@ match_transects_to_extended_cs_pts <- function(transect_lines, fixed_cs_pts, cro
   # get the counts of each point type to add this data to the transect_lines dataset
   point_type_counts <- hydrofabric3D::get_point_type_counts(classified_pts = fixed_cs_pts, 
                                                             crosswalk_id = crosswalk_id)
-  
   # Check the number of cross sections that were extended
   message("Subsetting cross section points generated after extending transect_lines...")
   
@@ -440,6 +483,8 @@ match_transects_to_extended_cs_pts <- function(transect_lines, fixed_cs_pts, cro
         pct        = EXTENSION_PCT,
         length_col = "cs_lengthm"
       )
+    
+    update_transect_lines <- hydroloom::rename_geometry(update_transect_lines, "geometry")
     
     update_transect_lines <- 
       update_transect_lines %>%  

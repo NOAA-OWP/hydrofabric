@@ -105,7 +105,7 @@ for (key in FEMA_BUCKET_KEYS) {
     message("Downloading S3 object to:\n > '", local_save_path, "'")
     # message("Copy command:\n > '", copy_cmd, "'")
     
-    # system(copy_cmd)
+    system(copy_cmd)
     
     message(" > '", key, "' download complete!")
     message("----------------------------------")

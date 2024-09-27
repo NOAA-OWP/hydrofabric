@@ -236,7 +236,50 @@ DOMAIN_WITH_FEMA_DEM_PATH        <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/S
 DOMAIN_WITH_FEMA_TRANSECTS_DIRNAME         <- "transects"
 DOMAIN_WITH_FEMA_CS_PTS_DIRNAME            <- "cs_pts"
 DOMAIN_WITH_FEMA_CROSS_SECTIONS_DIRNAME    <- "cross_sections"
+DOMAIN_WITH_FEMA_OUTPUT_DIRNAME            <- "outputs"
+DOMAIN_WITH_FEMA_VPU_SUBSETS_DIRNAME       <- "vpu-subsets"
+DOMAIN_WITH_FEMA_ML_DIRNAME                <- "ml"
 
 DOMAIN_WITH_FEMA_TRANSECTS_DIR          <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_TRANSECTS_DIRNAME)
 DOMAIN_WITH_FEMA_CS_PTS_DIR             <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_CS_PTS_DIRNAME)
 DOMAIN_WITH_FEMA_CROSS_SECTIONS_DIR     <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_CROSS_SECTIONS_DIRNAME)
+DOMAIN_WITH_FEMA_OUTPUT_DIR             <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_OUTPUT_DIRNAME)
+DOMAIN_WITH_FEMA_VPU_SUBSETS_DIR        <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_VPU_SUBSETS_DIRNAME)
+DOMAIN_WITH_FEMA_ML_DIR                 <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_ML_DIRNAME)
+
+ML_AUXILIARY_DATA_S3_URI <- paste0(S3_BUCKET_BASE_URI, "bathymetry/ml_auxiliary_data")
+S3_BUCKET_BASE_URI
+
+LYNKER_HYDROFABRIC_S3_BUCKET_BASE_URI   <- "s3://lynker-hydrofabric/"
+ML_BATHYMETRY_S3_DATA_DIR               <- "hydrofabric/nextgen/bathymetry/multisource_river_attributes/"
+ML_BATHYMETRY_S3_URI                    <- paste0(LYNKER_HYDROFABRIC_S3_BUCKET_BASE_URI, ML_BATHYMETRY_S3_DATA_DIR)
+VPU_ML_BATHYMETRY_S3_DIRS               <- paste0(ML_BATHYMETRY_S3_URI, "vpuid=", nhdplusTools::vpu_boundaries$VPUID, "/")
+
+COASTAL_BATHY_DEM_S3_DIR     <- "coastal_bathy/diffusive_domain/"
+COASTAL_BATHY_DEM_S3_DIR_URI <- paste0(LYNKER_HYDROFABRIC_S3_BUCKET_BASE_URI, COASTAL_BATHY_DEM_S3_DIR)
+# COASTAL_BATHY_DEM_S3_URIS    <- paste0(COASTAL_BATHY_DEM_S3_DIR_URI, list_s3_objects(COASTAL_BATHY_DEM_S3_DIR_URI, ".tif$", AWS_PROFILE))
+
+
+# # # --------------------------------------------------------------------------
+# # # ---- Get locations of diffusive domain DEM files in S3 ----
+# # # --------------------------------------------------------------------------
+# COASTAL_BATHY_DEM_S3_URIS    <- paste0(COASTAL_BATHY_DEM_S3_DIR_URI, list_s3_objects(COASTAL_BATHY_DEM_S3_DIR_URI, ".tif$", AWS_PROFILE))
+# 
+# # COASTAL_BATHY_DEM_S3_URIS    <- paste0(COASTAL_BATHY_DEM_S3_DIR_URI, 
+# #                                        list_s3_objects(COASTAL_BATHY_DEM_S3_DIR_URI, ".tif$", AWS_PROFILE)
+# #                                        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
