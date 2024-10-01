@@ -200,8 +200,10 @@ for (i in 20:nrow(path_df)) {
     )
   # })
   
+  # transects %>% 
+  #   sf::st_drop_geometry() %>% 
+  #   dplyr::group_by(id, cs_id)
   # fixed_pts2$is_extended %>% sum()
-  
   ids_after_fixed_pts <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
 
   # # TODO: This is taking A LOT time to process as inputs get larger, an improvement should be looked into more

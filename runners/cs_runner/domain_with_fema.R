@@ -533,32 +533,63 @@ VPU_ML_BATHYMETRY_PATHS <- list.files(DOMAIN_WITH_FEMA_ML_DIR, full.names = T)
 
 ML_CROSSWALK_ID <- "id"
 
-ml_outputs <- lapply(VPU_ML_BATHYMETRY_PATHS, function(prq) {
-  vpu_id     <- gsub(".*ml/([a-zA-Z0-9]+).*", "\\1", prq)
-  arrow::read_parquet(prq) %>% 
-    dplyr::mutate(vpu_id = vpu_id) 
-}
-) %>% 
-  dplyr::bind_rows() %>% 
-  dplyr::select(
-    dplyr::any_of(ML_CROSSWALK_ID),
-    vpu_id,
-    owp_y_bf, owp_y_inchan, 
-    owp_tw_bf, owp_tw_inchan,
-    owp_dingman_r
-                )
+# ml_outputs <- lapply(VPU_ML_BATHYMETRY_PATHS, function(prq) {
+#   vpu_id     <- gsub(".*ml/([a-zA-Z0-9]+).*", "\\1", prq)
+#   arrow::read_parquet(prq) %>% 
+#     dplyr::mutate(vpu_id = vpu_id) 
+# }
+# ) %>% 
+#   dplyr::bind_rows() %>% 
+#   dplyr::select(
+#     dplyr::any_of(ML_CROSSWALK_ID),
+#     vpu_id,
+#     owp_y_bf, owp_y_inchan, 
+#     owp_tw_bf, owp_tw_inchan,
+#     owp_dingman_r
+#                 )
+# 
+# # rename ML_CROSSWALK_ID (unique ID) to match the CROSSWALK_ID in CS PTS
+# # TODO: This assumes the IDs do correspond with eachother... (built from same flowlines network)
+# names(ml_outputs)[names(ml_outputs) == ML_CROSSWALK_ID] = CROSSWALK_ID
+# 
+# # Keep only distinct ID rows
+# ml_outputs <- 
+  # ml_outputs %>%
+  # dplyr::distinct(
+  #   dplyr::across(dplyr::any_of(CROSSWALK_ID)),
+  #   vpu_id,
+  #   owp_y_bf, owp_y_inchan,
+  #   owp_tw_bf, owp_tw_inchan,
+  #   owp_dingman_r
+  # )
 
-# rename ML_CROSSWALK_ID (unique ID) to match the CROSSWALK_ID in CS PTS
-# TODO: This assumes the IDs do correspond with eachother... (built from same flowlines network)
-names(ml_outputs)[names(ml_outputs) == ML_CROSSWALK_ID] = CROSSWALK_ID
+# sf::st_layers(DOMAIN_WITH_FEMA_FLOWLINES_PATH)
+# rm(ml_outputs, ml)
+ml_outputs <- sf::read_sf(DOMAIN_WITH_FEMA_FLOWLINES_PATH, layer = "flowpath-attributes-ml")
 
-# Keep only distinct ID rows
 ml_outputs <- 
   ml_outputs %>% 
+  dplyr::select(
+    dplyr::any_of(ML_CROSSWALK_ID),
+    vpuid,
+    owp_y_bf = YCC, 
+    owp_y_inchan = Y,
+    owp_tw_bf = TopWdthCC, 
+    owp_tw_inchan = TopWdth,
+    owp_dingman_r = dingman_r
+                )
+# 
+# # rename ML_CROSSWALK_ID (unique ID) to match the CROSSWALK_ID in CS PTS
+# # TODO: This assumes the IDs do correspond with eachother... (built from same flowlines network)
+names(ml_outputs)[names(ml_outputs) == ML_CROSSWALK_ID] = CROSSWALK_ID
+# 
+# # Keep only distinct ID rows
+ml_outputs <-
+  ml_outputs %>%
   dplyr::distinct(
     dplyr::across(dplyr::any_of(CROSSWALK_ID)),
-    vpu_id, 
-    owp_y_bf, owp_y_inchan, 
+    vpu_id,
+    owp_y_bf, owp_y_inchan,
     owp_tw_bf, owp_tw_inchan,
     owp_dingman_r
   )
@@ -699,6 +730,8 @@ inchannel_cs <- hydrofabric3D::add_cs_bathymetry(
 
 })
 
+
+
 # arrow::write_parquet(inchannel_cs, "/Users/anguswatters/Desktop/test_ml_cs_pts_06.parquet")
 # ml_subset %>%
 #   dplyr::filter(hy_id == "wb-1005207") %>%
@@ -802,6 +835,19 @@ if (!all_starting_uids_in_ending_uids) {
   #          "is missing from the output cross section points"))
   
 }
+
+# tmp_path <-   paste0(DOMAIN_WITH_FEMA_OUTPUT_DIR, "/final_cs2.parquet")
+# message("saving file", tmp_path)
+# 
+# final_cs <- arrow::read_parquet(tmp_path)
+# 
+# # save cross section points as a parquet to out_path (domain/outputs/cross_sections.parquet)
+# arrow::write_parquet(
+#   dplyr::select(final_cs, 
+#                 -is_dem_point
+#   ), 
+#   paste0(DOMAIN_WITH_FEMA_OUTPUT_DIR, "/final_cs2.parquet")
+# )
 
 # ---------------------------------------------------------------------------------
 # ---- Write final cross section points data ----

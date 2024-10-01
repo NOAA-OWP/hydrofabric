@@ -248,8 +248,7 @@ DOMAIN_WITH_FEMA_VPU_SUBSETS_DIR        <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOM
 DOMAIN_WITH_FEMA_ML_DIR                 <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_ML_DIRNAME)
 
 ML_AUXILIARY_DATA_S3_URI <- paste0(S3_BUCKET_BASE_URI, "bathymetry/ml_auxiliary_data")
-S3_BUCKET_BASE_URI
-
+# S3_BUCKET_BASE_URI
 LYNKER_HYDROFABRIC_S3_BUCKET_BASE_URI   <- "s3://lynker-hydrofabric/"
 ML_BATHYMETRY_S3_DATA_DIR               <- "hydrofabric/nextgen/bathymetry/multisource_river_attributes/"
 ML_BATHYMETRY_S3_URI                    <- paste0(LYNKER_HYDROFABRIC_S3_BUCKET_BASE_URI, ML_BATHYMETRY_S3_DATA_DIR)
