@@ -40,7 +40,7 @@ ml_output <- arrow::read_parquet(ML_OUTPUTS_PATH)
 # then classify the points, and create a parquet file with hy_id, cs_id, pt_id, X, Y, Z data.
 # Save parquet locally and upload to specified S3 bucket
 for (i in 1:nrow(path_df)) {
-  
+  # i = 8
   start <- round(Sys.time())
   
   # nextgen file and full path
@@ -157,7 +157,7 @@ for (i in 1:nrow(path_df)) {
   
   message(round(Sys.time()), " - Replacing any negative width/depth estimates with cross section bottom lengths...")
   
-  cs_bottom_lengths <- hydrofabric3D::get_cs_bottom_length(cs_pts)
+  cs_bottom_lengths <- hydrofabric3D::get_cs_bottom_length(cross_section_pts = cs_pts, crosswalk_id = "hy_id")
   
   # TODO: for now we replace any negative TW values with the length of the bottom of the cross section
   # TODO: This method + the negative model output values both need to be looked into (04/05/2024)
@@ -241,23 +241,31 @@ for (i in 1:nrow(path_df)) {
     )
   }
   message(round(Sys.time()), " - Adding cross section bathymetry using inchannel widths/depths estimates...")
-
-  # Add bathymetry using "inchannel" estimates
-  inchannel_cs <- hydrofabric3D::add_cs_bathymetry(
-      cross_section_pts = inchannel_cs
-    )
+  
+  # system.time({
+    
+    # Add bathymetry using "inchannel" estimates
+    inchannel_cs <- hydrofabric3D::add_cs_bathymetry(
+        cross_section_pts = inchannel_cs,
+        crosswalk_id = "hy_id"
+      )
+    
+  # })
   # arrow::write_parquet(inchannel_cs, "/Users/anguswatters/Desktop/test_ml_cs_pts_06.parquet")
   # ml_subset %>%
   #   dplyr::filter(hy_id == "wb-1005207") %>%
   #   dplyr::select(owp_y_inchan, owp_tw_inchan) %>% 
   #   .$owp_y_inchan
   message(round(Sys.time()), " - Adding cross section bathymetry using bankful widths/depths estimates...")
-
+  
+  # system.time({
   # Add bathymetry using "bankful" estimates
   bankful_cs <- hydrofabric3D::add_cs_bathymetry(
-    cross_section_pts = bankful_cs
+    cross_section_pts = bankful_cs,
+    crosswalk_id = "hy_id"
   )
-    
+  # })
+  
   # combine the inchannel and bankful cross section points back together, fill out missing values and reclassify the points
   final_cs <- dplyr::bind_rows(
                 dplyr::select(
@@ -287,9 +295,12 @@ for (i in 1:nrow(path_df)) {
   
   message(round(Sys.time()), " - Reclassifying cross section point types...")
   
+  # system.time({
   # reclassify
-  final_cs <- hydrofabric3D::classify_points(final_cs, crosswalk_id = "hy_id")
-
+  final_cs <- hydrofabric3D::classify_points(cs_pts = final_cs, 
+                                             crosswalk_id = "hy_id")
+  # })
+  
   # final_uids <- final_cs %>% hydrofabric3D::get_unique_tmp_ids()
   # random_uids <- sample(x=final_uids, size=12)
   # cs_subset <-  dplyr::filter(hydrofabric3D::add_tmp_id(final_cs), 
