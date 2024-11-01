@@ -1,0 +1,188 @@
+---
+title: "Hydrofabric v2.2 Data Model"
+output: html_document
+knit: (function(inputFile) {
+  rmarkdown::render(inputFile, output_dir = "/Users/mikejohnson/hydrofabric/CONUS/v2.2/nextgen") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dm)
+
+
+# rmarkdown::render(inputFile, output_dir "/Users/mikejohnson/hydrofabric/CONUS/v2.2/nextgen")
+
+```
+
+## Hydrofabric
+
+```{r dm, echo = FALSE}
+gpkg = '/Users/mikejohnson/hydrofabric/CONUS/v2.2/nextgen/ls_conus.gpkg'
+
+
+
+
+con = DBI::dbConnect(RSQLite::SQLite(), gpkg)
+
+lyrs = sf::st_layers(gpkg)$name
+lyrs = lyrs[!grepl("flowpath-attributes", lyrs)]
+
+dm::dm_from_con(con, table_names = lyrs, learn_keys = FALSE) |> 
+  dm_set_colors("dodgerblue" = "flowpaths",
+                "red"        = "divides",
+                "gray10"     = "nexus",
+                # "darkgreen"  = "flowpath-attributes",
+                # "darkgreen"  = "flowpath-attributes-ml",
+                "navy"       = "lakes",
+                "#F0A0FF"    = "hydrolocations",
+                "pink"       = "pois",
+                "orange"     = "network") |> 
+  dm_draw(view_type = 'all')
+```
+
+```{r, echo = FALSE}
+dm = tibble::tribble(
+  ~attribute, ~description,
+  "id",  "Unique flowpath identifier",                       
+  "toid", "Flowpath id where water flows",                         
+  "mainstem", "Persisitent Levelpath Mainstem Identifier", 
+  "nex_id",                       "Unique nexus ID",   
+  "divide_id",  "Unique divide identifier",             
+  "poi_id", "Unique Point of Interest identifier",                       
+  "vpuid", "Vector Processing Unite ID",  
+  "domain",     'Domain of Hydrofabric (conus, hi, gl, ak, prvi)',  
+  
+  "order", "Stream order (Strahler)",                    
+  "hydroseq", "Hydrologic Sequence",                    
+  "lengthkm", "Length in kilometers of Flowpath",                  
+  "areasqkm", "Incremental Areas of Divide",                    
+  "tot_drainage_areasqkm", "Total Upstream Drainage Area",        
+  "has_divide", "Does Flowpath ID have an assocated divide",  
+  "has_flowline", "Does divide have an assocated flowpath", 
+  "type", "Divide Type, one of coastal, internal, network",                         
+  "ds_id", "Most Downstream flowpath element adjacent to internal divides.", 
+                      
+  "lake_id", "Unique NWS Lake ID (taken from NHDPlus)",  
+  "res_id",  "Unique Reservoir Identifier",  
+  "LkArea", "Area associate with lake_id, Sqaure Kilometers",                       
+  "LkMxE",  "Maximum lake elevation (meters above sea level)",                      
+  "WeirC",  "Weir coefficient",                   
+  "WeirL",  "Weir length (meters)",                  
+  "OrificeC", "Orifice coefficient",                  
+  "OrificeA", "Orifice cross-sectional area, Square meters",                   
+  "OrificeE", "Orifice elevation (meters above sea level)",                   
+  "lake_y",  'Y coordinate of the lake centroid',
+  "lake_x", 'X coordinate of the lake centroid',
+  "time",  'Time of measurement. Assocaited with lakes',                       
+  "WeirE",  'Weir elevation (meters above sea level)',                    
+  "ifd",        'Initial fraction water depth',                   
+  "Dam_Length", 'Length of the dam in meters',                  
+  "reservoir_index_AnA",          "Classification of reservoir release data type for AnA configuration; Level pool = 1, USGS-persistence = 2, USACE-persistence = 3, RFC-forecasts = 4",        
+  "reservoir_index_Extended_AnA", "Classification of reservoir release data type for extended AnA configuration; Level pool = 1, USGS-persistence = 2, USACE-persistence = 3, RFC-forecasts = 4",
+  "reservoir_index_GDL_AK",       "Classification of reservoir release data type for Alaska domain; Level pool = 1, USGS-persistence = 2, USACE-persistence = 3, RFC-forecasts = 4, APRFC-GDL = 5",    
+  "reservoir_index_Medium_Range", "Classification of reservoir release data type for extended medium range configuration; Level pool = 1, USGS-persistence = 2, USACE-persistence = 3, RFC-forecasts = 4",
+  "reservoir_index_Short_Range",  "Classification of reservoir release data type for extended shirt range configuration; Level pool = 1, USGS-persistence = 2, USACE-persistence = 3, RFC-forecasts = 4",
+
+  "hf_source",                    "Source of the reference hydrofabric",                    
+  "hf_id",     "Unique ID of the sourve (hf_sourcre) reference hydrofabric",  
+  "hf_hydroseq",  "Source hydrofabric hydrosequence",
+  "hf_lenghtkm",  "Source hydrofabric length in kilometers",
+  "hf_mainstem", "Source hydrofabric mainstem",
+  
+  "hl_link",   "Unique ID of the hydrolocations in the reference dataset",        
+  "hl_reference", "Native dataset that hydrolocation was extracted from",         
+  "hl_uri", "Concatination of hl_reference and hl_link",                    
+  "hl_source", "Where is the data source from? USGS-NOAA Reference Fabric, or, NOAA-OWP",        
+  "hl_x", "X coordinate of the hydrolocation",                        
+  "hl_y", "Y coordinate of the hydrolocation",  
+  
+  "n", "Manning's in channel roughness",                         
+  "link",      "Idential to id,   but naming needed for t-route",                      
+  "to",        "Idential to toid, but naming needed for t-route",                    
+  "Length_m",  "Length of flowpath id (meters)",                     
+  "nCC",       "Compound Channel Top Width (meters)" ,                        
+  "BtmWdth",   "Bottom width of channel (meters)" ,                     
+  "TopWdth",   "Top Width (meters)",                      
+  "TopWdthCC", "Compound Channel Top Width (meters)",          
+  "ChSlp",     "Channel side slope",                      
+  "alt",       "Elevation in meters, at the headwater node, taken from the 3DEP 10m DEM",                          
+  "So",        'Slope (meters/meters), computed from the 3DEP 10m DEM',            
+  "MusX", 'Channel side slope',                         
+  "MusK", 'Muskingum routing time (seconds)',                        
+  "gage", "If there is a gage, the hl_link is stored" ,                        
+  "gage_nex_id", "The downstream nexus assocaited with the gage",                  
+  "WaterbodyID",      "If there is a waterbody, the hl_link is stored",                  
+  "waterbody_nex_id", "The downstream nexus assocaited with the gage",
+  "Y", "Estimated depth (m) associated with TopWdth",
+  "YCC", "Estimated depth (m) associated with TopWdthCC",
+  "dingman_r", "Estimated channel shape",
+  
+  "geom", "Spatial Geometry WKT"
+  )  
+
+dt = lapply(1:length(lyrs), function(x){ 
+  tmp = colnames(hydrofabric::as_sqlite(gpkg, lyrs[x]))
+  data.frame(
+    attribute = tmp,
+    layer = rep(lyrs[x], length(tmp))
+  )
+  }) |> 
+  dplyr::bind_rows() |> 
+  filter(attribute != "fid") |> 
+  group_by(attribute) |> 
+  mutate(layers = paste(layer, collapse = ", "),
+         layer = NULL) |>
+  dplyr::slice(1) |> 
+  ungroup() |> 
+  left_join(dm, by = 'attribute') 
+  
+dt[ order(dt$attribute),] |> 
+  select(attribute,description,layers) |> 
+  DT::datatable(options = list(pageLength = 100, dom = 't'), rownames = FALSE)
+  
+```
+
+# Flowpath Attributes
+
+```{r, echo = FALSE}
+lyrs = sf::st_layers(gpkg)$name
+lyrs = lyrs[grepl("flowpath", lyrs)]
+
+dm::dm_from_con(con, table_names = lyrs, learn_keys = FALSE) |> 
+  dm_set_colors("dodgerblue" = "flowpaths",
+                # "red"        = "divides",
+                # "gray10"     = "nexus",
+                "lightgreen"  = "flowpath-attributes",
+                "darkgreen"  = "flowpath-attributes-ml",
+                # "navy"       = "lakes",
+                # "#F0A0FF"    = "hydrolocations",
+                # "pink"       = "pois",
+                # "orange"     = "network"
+                ) |> 
+  dm_draw(view_type = 'all')
+
+lyrs = lyrs[2:3]
+dt = lapply(1:length(lyrs[2:3]), function(x){ 
+  tmp = colnames(hydrofabric::as_sqlite(gpkg, lyrs[x]))
+  data.frame(
+    attribute = tmp,
+    layer = rep(lyrs[x], length(tmp))
+  )
+  }) |> 
+  dplyr::bind_rows() |> 
+  filter(attribute != "fid") |> 
+  group_by(attribute) |> 
+  mutate(layers = paste(layer, collapse = ", "),
+         layer = NULL) |>
+  dplyr::slice(1) |> 
+  ungroup() |> 
+  left_join(dm, by = 'attribute') 
+  
+dt[ order(dt$attribute),] |> 
+  select(attribute,description,layers) |> 
+  DT::datatable(options = list(pageLength = 100, dom = 't'), rownames = FALSE)
+  
+```
+
+# Divide Attributes
+

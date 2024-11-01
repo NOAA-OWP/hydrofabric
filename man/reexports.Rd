@@ -3,9 +3,6 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
-\alias{read_parquet}
-\alias{write_parquet}
-\alias{open_dataset}
 \alias{glue}
 \title{Objects exported from other packages}
 \keyword{internal}
@@ -14,8 +11,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{arrow}{\code{\link[arrow]{open_dataset}}, \code{\link[arrow]{read_parquet}}, \code{\link[arrow]{write_parquet}}}
-
   \item{glue}{\code{\link[glue]{glue}}}
 }}
 

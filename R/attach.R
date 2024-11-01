@@ -1,6 +1,7 @@
 core <- c("dplyr", "climateR", 
-          "nhdplusTools",  "hydrofab", "zonal", "hfsubsetR", 'ngen.hydrofab',
-          "sf", "terra")
+          "hydroloom",  "hydrofab", "zonal", "hfsubsetR", 
+          "sf", "terra") |> 
+  sort()
 
 core_unloaded <- function() {
   search <- paste0("package:", core)
@@ -32,6 +33,7 @@ hydrofabric_attach <- function() {
   )
 
   versions <- vapply(to_load, package_version, character(1))
+  
   packages <- paste0(
     crayon::green(cli::symbol$tick), " ", crayon::blue(format(to_load)), " ",
     crayon::col_align(versions, max(crayon::col_nchar(versions)))
@@ -40,6 +42,7 @@ hydrofabric_attach <- function() {
   if (length(packages) %% 2 == 1) {
     packages <- append(packages, "")
   }
+  
   col1 <- seq_len(length(packages) / 2)
   info <- paste0(packages[col1], "     ", packages[-col1])
   

@@ -2,14 +2,14 @@ Package: hydrofabric
 Type: Package
 Title: Easily Install and Load 'hydrofabric' tools
 Description: The 'hydrofabric' meta package loads a set of packages that work in harmony to complete hydroscience tasks. 
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
              role = c("aut", "cre"),
              email = "jjohnson@lynker.com"),
       person("NOAA", role = c("fnd")),
-      person("USGS", role = c("fnd")),
+      person("USGS", role = c("ctb")),
       person("Lynker", role = c("fnd")))
 Maintainer: Mike Johnson <jjohnson@lynker.com>
 BugReports: https://github.com/NOAA-OWP/hydrofabric
@@ -21,17 +21,14 @@ Imports:
     cli (>= 3.6.1),
     climateR,
     crayon (>= 1.4.1),
-    DBI,
     dplyr,
     glue,
     grDevices,
     hydrofab,
     hfsubsetR,
     jsonlite,
-    ngen.hydrofab,
     nhdplusTools,
     purrr,
-    RSQLite,
     rstudioapi,
     sf,
     terra,
@@ -44,10 +41,9 @@ RoxygenNote: 7.3.1
 Suggests: 
     testthat (>= 3.0.0),
 Remotes: 
-    mikejohnson51/hydrofab,
+    NOAA-OWP/hydrofab,
     mikejohnson51/zonal,
     mikejohnson51/climateR,
-    mikejohnson51/ngen.hydrofab,
     lynker-spatial/hfsubsetR
 Config/testthat/edition: 3
 VignetteBuilder: knitr

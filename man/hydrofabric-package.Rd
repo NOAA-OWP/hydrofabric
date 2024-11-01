@@ -22,7 +22,7 @@ Useful links:
 Other contributors:
 \itemize{
   \item NOAA [funder]
-  \item USGS [funder]
+  \item USGS [contributor]
   \item Lynker [funder]
 }
 

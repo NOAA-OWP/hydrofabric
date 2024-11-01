@@ -1,7 +1,7 @@
 library(dm)
 
 hf_dm = list(
-  flowlines = data.frame(
+  flowpaths = data.frame(
     id = integer(1L),
     toid = integer(1L),
     mainstem = integer(1L),
