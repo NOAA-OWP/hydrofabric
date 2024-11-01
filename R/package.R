@@ -12,11 +12,9 @@ NULL
 #' @rawNamespace import(dplyr, except = c(intersect, union))
 
 #' @import hydrofab
-#' @import ngen.hydrofab
-#' @import nhdplusTools
+#' @import hydroloom
 #' @import zonal
 #' @import terra
 #' @import sf
 
-#' @export
-glue::glue
+#' @export glue::glue
