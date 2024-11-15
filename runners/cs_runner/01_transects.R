@@ -9,7 +9,7 @@ source("runners/cs_runner/utils.R")
 # install.packages("devtools")
 
 # # transect bucket prefix
-# S3_TRANSECTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
+# S3_TRANSECTS_DIR <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/3D/transects/")
 
 # paths to nextgen datasets and model attribute parquet files
 NEXTGEN_FILES    <- list.files(NEXTGEN_DIR, full.names = FALSE)
@@ -57,9 +57,10 @@ for(i in 1:nrow(path_df)) {
   # calculate bankfull width
   flines <-
     flines %>%
-    dplyr::mutate(
-      bf_width = exp(0.700    + 0.365* log(tot_drainage_areasqkm))
-    ) %>%
+    hydrofabric3D::add_powerlaw_bankful_width(
+      total_drainage_area_sqkm_col = "tot_drainage_areasqkm", 
+      min_bf_width = 50
+      ) %>% 
     dplyr::select(
       hy_id = id,
       lengthkm,
@@ -68,6 +69,17 @@ for(i in 1:nrow(path_df)) {
       mainstem,
       geometry = geom
     )
+    # dplyr::mutate(
+    #   bf_width = exp(0.700    + 0.365* log(tot_drainage_areasqkm))
+    # ) %>%
+    # dplyr::select(
+    #   hy_id = id,
+    #   lengthkm,
+    #   tot_drainage_areasqkm,
+    #   bf_width,
+    #   mainstem,
+    #   geometry = geom
+    # )
 
   # flines$bf_width <- ifelse(is.na(flines$bf_width),  exp(0.700    + 0.365* log(flines$tot_drainage_areasqkm)), flines$bf_width)
 
@@ -76,8 +88,9 @@ for(i in 1:nrow(path_df)) {
   # create transect lines
   transects <- hydrofabric3D::cut_cross_sections(
     net               = flines,                        # flowlines network
-    id                = "hy_id",                       # Unique feature ID
-    cs_widths         = pmax(50, flines$bf_width * 11),     # cross section width of each "id" linestring ("hy_id")
+    crosswalk_id      = "hy_id",                       # Unique feature ID
+    cs_widths         = flines$bf_width,     # cross section width of each "id" linestring ("hy_id")
+    # cs_widths         = pmax(50, flines$bf_width * 11),     # cross section width of each "id" linestring ("hy_id")
     # cs_widths         = pmax(50, flines$bf_width),     # cross section width of each "id" linestring ("hy_id")
     num               = 10,                            # number of cross sections per "id" linestring ("hy_id")
     smooth            = TRUE,                          # smooth lines

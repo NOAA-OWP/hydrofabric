@@ -83,9 +83,13 @@ flines <-
       TRUE              ~ VPUID
     )
   ) 
+# rm(flines2)
+# unnest_ids(flines2$VPUID2)
 
 # set of unique VPUs
+
 VPU_IDS <- unnest_ids(flines$VPUID)
+# VPU_IDS <- unnest_ids(flines2$VPUID2)
 VPU_IDS
 
 # all possible FEMA dirs
@@ -98,13 +102,9 @@ flines %>%
 # unique(flines$VPUID)
 
 # calculate bankfull width
-flines <-
-  flines %>%
-  dplyr::mutate(
-    bf_width = hydrofabric3D::calc_powerlaw_bankful_width(tot_drainage_areasqkm)
-    # bf_width = exp(0.700    + 0.365* log(tot_drainage_areasqkm))
-  ) %>%
-  # hydrofabric3D::add_powerlaw_bankful_width("tot_drainage_areasqkm", 50) %>% 
+flines <- 
+  flines %>% 
+  hydrofabric3D::add_powerlaw_bankful_width("tot_drainage_areasqkm", 50) %>% 
   dplyr::select(
     dplyr::any_of(CROSSWALK_ID),
     VPUID,
@@ -116,8 +116,309 @@ flines <-
   ) %>% 
   hydroloom::rename_geometry("geometry")
 
+transects <- hydrofabric3D::cut_cross_sections(
+  net               = flines,                        # flowlines network
+  crosswalk_id      = CROSSWALK_ID,                     # Unique feature ID
+  cs_widths         = flines$bf_width,
+  # cs_widths         = pmax(50, flowlines$bf_width * 11),     # cross section width of each "id" linestring ("hy_id")
+  # cs_widths         = pmax(50, flowlines$bf_width),     # cross section width of each "id" linestring ("hy_id")
+  num               = 10,                            # number of cross sections per "id" linestring ("hy_id")
+  smooth            = TRUE,                          # smooth lines
+  densify           = 3,                             # densify linestring points
+  rm_self_intersect = TRUE,                          # remove self intersecting transects
+  fix_braids        = FALSE,                         # whether to fix braided flowlines or not
+  #### Arguments used for when fix_braids = TRUE     # TODO: these methods need revision in hydrofabric3D to allow for more flexible processing for data that is NOT COMID based (i.e. hy_id)    
+  # terminal_id       = NULL,
+  # braid_threshold   = NULL,
+  # version           = 2,
+  # braid_method      = "comid",
+  # precision         = 1,
+  add               = TRUE                           # whether to add back the original data
+)
+
+sf::write_sf(
+  transects,
+  "/Users/anguswatters/Desktop/tmp.gpkg"
+)
+
+`# flines <-
+#   flines %>%
+#   dplyr::mutate(
+#     bf_width = hydrofabric3D::calc_powerlaw_bankful_width(tot_drainage_areasqkm)
+#     # bf_width = exp(0.700    + 0.365* log(tot_drainage_areasqkm))
+#   ) %>%
+#   # hydrofabric3D::add_powerlaw_bankful_width("tot_drainage_areasqkm", 50) %>% 
+#   dplyr::select(
+#     dplyr::any_of(CROSSWALK_ID),
+#     VPUID,
+#     # hy_id = id,
+#     lengthkm,
+#     tot_drainage_areasqkm,
+#     bf_width,
+#     mainstem
+#   ) %>% 
+#   hydroloom::rename_geometry("geometry")
+
+
+transects <- 
+  transects %>% 
+  dplyr::left_join(
+    flines %>% 
+      dplyr::select(id, VPUID, tot_drainage_areasqkm) %>% 
+      sf::st_drop_geometry(),
+    by = "id"
+  )
+
+# read each FEMA geopackage into a list 
+fema <- lapply(GROUP_FEMA_FILES, function(gpkg) sf::read_sf(gpkg))
+transects$VPUID %>% unique()
+
+GROUP_VPU_IDS <- unnest_ids(transects$VPUID)
+
+# all FEMA dirs for the current area
+GROUP_FEMA_DIRS  <- FEMA_VPU_SUBFOLDERS[basename(FEMA_VPU_SUBFOLDERS) %in% paste0("VPU_", GROUP_VPU_IDS) ]
+GROUP_FEMA_FILES <- list.files(GROUP_FEMA_DIRS, full.names = T)[grepl("_output.gpkg", list.files(GROUP_FEMA_DIRS, full.names = T))]
+
+fema <- lapply(GROUP_FEMA_FILES, function(gpkg) sf::read_sf(gpkg))
+
+fema <- 
+  fema %>% 
+  dplyr::bind_rows() %>% 
+  dplyr::mutate(
+    fema_id = 1:dplyr::n()
+  ) 
+
+message("Simplifying FEMA polygons...")
+message(" - Number of geoms BEFORE simplifying: ", nrow(fema))
+
+# TODO: this should be a function argument OR removed, shouldn't probably forcibly and silently simplify the input polygons without user knowing..
+# keep 1% of the original points for speed
+fema <- rmapshaper::ms_simplify(fema, keep_shapes = T, keep = 0.01, sys = TRUE, sys_mem = 16)
+# fema <- rmapshaper::ms_simplify(fema, keep_shapes = T, keep = 0.1, sys = TRUE, sys_mem = 16)
+
+message(" - Number of geoms AFTER simplifying: ", nrow(fema))
+message("Extending transects out to FEMA 100yr floodplain polygon boundaries - (", Sys.time(), ")")
+
+transects <- 
+  transects  %>%
+  dplyr::left_join(
+    dplyr::select(sf::st_drop_geometry(flines),
+                  dplyr::any_of(CROSSWALK_ID),
+                  mainstem
+    ),
+    by = CROSSWALK_ID
+  )
+
+# TODO: make sure this 3000m extension distance is appropriate across VPUs 
+# TODO: also got to make sure that this will be feasible on memory on the larger VPUs...
+ext_transects <- hydrofabric3D::extend_transects_to_polygons(
+  transect_lines         = transects, 
+  polygons               = fema, 
+  flowlines              = flines, 
+  crosswalk_id           = CROSSWALK_ID,
+  grouping_id            = "mainstem", 
+  max_extension_distance = 3000 
+)
+
+sf::write_sf(
+  ext_transects,
+  "/Users/anguswatters/Desktop/tmp_ext.gpkg"
+)
+
+ext_transects <- 
+  ext_transects %>% 
+  dplyr::select(id, cs_id, cs_lengthm, cs_measure, ds_distance, lengthm, sinuosity, geometry)
+
+# get cross section point elevations
+cs_pts <- hydrofabric3D::cross_section_pts(
+  cs             = ext_transects,
+  crosswalk_id   = CROSSWALK_ID,
+  points_per_cs  = NULL,
+  min_pts_per_cs = 10,
+  dem            = DEM_PATH
+)
+
+sf::write_sf(
+  cs_pts,
+  "/Users/anguswatters/Desktop/tmp_cs_pts.gpkg"
+)
+# ----------------------------------------------------------------------------------------------------------------
+# ---- STEP 2: Remove any cross section that has ANY missing (NA) Z values, and classify the points  ----
+# ----------------------------------------------------------------------------------------------------------------
+# cs_pts2 %>% 
+#   dplyr::slice(1:200) %>% 
+#   dplyr::rename(hy_id = id) %>% 
+#   hydrofabric3D::plot_cs_pts(x = "pt_id", color = "point_type")
+
+cs_pts <- 
+  # cs_pts2 <- 
+  cs_pts %>% 
+  hydrofabric3D::drop_incomplete_cs_pts(CROSSWALK_ID) %>% 
+  hydrofabric3D::classify_points(
+    crosswalk_id             = CROSSWALK_ID, 
+    pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF
+  )  
+
+# })
+
+ids_original_cs_pts <- hydrofabric3D::add_tmp_id(cs_pts, x = CROSSWALK_ID)$tmp_id  
+# ids_original_cs_pts <- hydrofabric3D::add_tmp_id(cs_pts2)$tmp_id
+
+# sf::write_sf(cs_pts2, "/Users/anguswatters/Desktop/test_improve_cs_pts_classified_11.gpkg")
+# sf::write_sf(cs_pts, "/Users/anguswatters/Desktop/test_improve_cs_pts_classified_11_2.gpkg")
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# ---- STEP 3: Try to rectify any no relief and invalid banks cross sections ----
+# ----------------------------------------------------------------------------------------------------------------
+
+# system.time({
+fixed_pts <- hydrofabric3D::get_improved_cs_pts(
+  cs_pts         = cs_pts,    # cross section points generated from hydrofabric3D::cross_section_pts()
+  net            = flines,    # original flowline network
+  # net            = flowlines,    # original flowline network
+  transects      = ext_transects, # original transect lines
+  crosswalk_id   = CROSSWALK_ID,
+  points_per_cs  = NULL, 
+  min_pts_per_cs = 10, # number of points per cross sections
+  dem            = DEM_PATH, # DEM to extract points from
+  scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
+  pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
+  fix_ids = FALSE,
+  verbose = TRUE
+)
+# })
+
+ids_after_fixed_pts <- hydrofabric3D::add_tmp_id(cs_pts, x = CROSSWALK_ID)$tmp_id  
+
+# ----------------------------------------------------------------------------------------------------------------
+# ---- Update transects with extended transects (if exists) ----
+# ----------------------------------------------------------------------------------------------------------------
+ext_transects <- 
+  ext_transects %>% 
+  dplyr::mutate(cs_source = CS_SOURCE)
+
+out_transects <- match_transects_to_extended_cs_pts(
+  transect_lines = ext_transects, 
+  fixed_cs_pts   = fixed_pts, 
+  crosswalk_id   = CROSSWALK_ID,
+  extension_pct  = EXTENSION_PCT
+)
+
+sf::write_sf(
+  out_transects,
+  "/Users/anguswatters/Desktop/tmp_trans_improved.gpkg"
+)
+
+trans_uids <- hydrofabric3D::get_unique_tmp_ids(out_transects, "id")
+ext_trans_uids <- hydrofabric3D::get_unique_tmp_ids(ext_transects, "id")
+fixed_pts_uids <- hydrofabric3D::get_unique_tmp_ids(fixed_pts, "id")
+
+all(trans_uids %in% ext_trans_uids)
+all(ext_trans_uids %in% trans_uids)
+
+all(trans_uids %in% fixed_pts_uids)
+all(fixed_pts_uids %in% trans_uids)
+
+all(ext_trans_uids %in% fixed_pts_uids)
+all(fixed_pts_uids %in% ext_trans_uids)
+
+# ----------------------------------------------------------------------------------------------------------------
+# ---- Re enumerate the transects & cross section points "cs_id" ----
+# ----------------------------------------------------------------------------------------------------------------
+
+# fixed_pts      <- hydrofabric3D:::renumber_cs_ids(df = fixed_pts, crosswalk_id = "hy_id")
+# out_transects  <- hydrofabric3D:::renumber_cs_ids(
+#                                                   df            = dplyr::mutate(out_transects, pt_id = 1), 
+#                                                   crosswalk_id  = "hy_id"
+#                                                   ) %>% 
+#                                                   dplyr::select(-pt_id)
+
+fixed_pts2      <- hydrofabric3D:::renumber_cs_ids(df = fixed_pts, crosswalk_id = CROSSWALK_ID)
+out_transects2  <- hydrofabric3D:::renumber_cs_ids(df = out_transects, crosswalk_id = CROSSWALK_ID)
+sf::write_sf(
+  out_transects2,
+  "/Users/anguswatters/Desktop/tmp_trans_improved2.gpkg"
+)
+object.size(out_transects2)
+# classify the cross section points
+fixed_pts <-
+  fixed_pts %>% 
+  dplyr::mutate(
+    X = sf::st_coordinates(.)[,1],
+    Y = sf::st_coordinates(.)[,2]
+  ) %>%
+  sf::st_drop_geometry() %>% 
+  dplyr::select(
+    dplyr::any_of(CROSSWALK_ID),
+    cs_id, 
+    pt_id,
+    cs_lengthm,
+    relative_distance,
+    X, Y, Z,
+    class, point_type,
+    bottom, left_bank, right_bank, valid_banks, has_relief # newly added columns (03/06/2024)
+  )
+
+# add Z_source column for source of elevation data
+fixed_pts <-
+  fixed_pts %>%
+  dplyr::mutate(
+    Z_source = CS_SOURCE
+  ) %>%
+  dplyr::relocate(
+    dplyr::any_of(CROSSWALK_ID),
+    cs_id, pt_id, cs_lengthm, relative_distance, X, Y, Z, Z_source, 
+    class, point_type, 
+    bottom, left_bank, right_bank, valid_banks, has_relief)
+
+ids_before_align <- hydrofabric3D::add_tmp_id(fixed_pts, x = CROSSWALK_ID)$tmp_id
+
+message("Aligning banks and smoothing bottoms...")
+fixed_pts <- hydrofabric3D::align_banks_and_bottoms(cs_pts = fixed_pts, crosswalk_id = CROSSWALK_ID)
+
+ids_after_align <- hydrofabric3D::add_tmp_id(fixed_pts, x = CROSSWALK_ID)$tmp_id
+
+message("Reclassifying cross section points...")
+
+fixed_pts <- hydrofabric3D::classify_points(
+  cs_pts                    = fixed_pts, 
+  crosswalk_id              = CROSSWALK_ID,
+  pct_of_length_for_relief  = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF
+)
+
+ids_after_reclassify <- hydrofabric3D::add_tmp_id(fixed_pts, x = CROSSWALK_ID)$tmp_id
+
+if(all(ids_original_cs_pts %in% ids_after_fixed_pts)) {
+  message("All hy_id/cs_ids in ORIGINAL DEM point extraction were found in the FIXED points")
+} else {
+  message(" >>> Missing hy_id/cs_ids in ORIGINAL DEM point extraction compared to the FIXED points")
+}
+
+if(all(ids_before_align %in% ids_after_align)) {
+  message("All hy_id/cs_ids are kept in tact after bank alignment and bottom smoothing")
+} else {
+  message(" >>> Missing hy_id/cs_ids after bank alignment and bottom smoothing")
+}
+
+if(all(ids_after_align %in% ids_after_reclassify)) {
+  message("All hy_id/cs_ids are kept in tact after RECLASSIFICATION")
+} else {
+  message(" >>> Missing hy_id/cs_ids after RECLASSIFICATION")
+}
+
+sf::write_sf(
+  out_transects,
+  paste0(DOMAIN_WITH_FEMA_VPU_SUBSETS_DIR, "/", VPU, "_transects.gpkg") 
+)
+
+arrow::write_parquet(
+  fixed_pts,
+  paste0(DOMAIN_WITH_FEMA_VPU_SUBSETS_DIR, "/", VPU, "_cs_pts.parquet") 
+)
 # save the flowlines subset 
 DOMAIN_WITH_FEMA_FLOWLINE_SUBSET_PATH <- paste0(DOMAIN_WITH_FEMA_FLOWLINES_DIR, "/flowlines_subset.gpkg")
+
 sf::write_sf(
   flines, 
   DOMAIN_WITH_FEMA_FLOWLINE_SUBSET_PATH
@@ -142,7 +443,8 @@ for (i in seq_along(fline_groups)) {
 }
 
 for (i in seq_along(fline_groups)) {
-
+  
+  # i = 3
   flowlines  <- fline_groups[[i]]
   VPU        <-  unique(flowlines$VPUID)
   
@@ -158,11 +460,14 @@ for (i in seq_along(fline_groups)) {
   # GROUP_FEMA_FILES <- list.files(GROUP_FEMA_DIRS, full.names = T)
   # GROUP_FEMA_FILES <- GROUP_FEMA_FILES[grepl("_output.gpkg", GROUP_FEMA_FILES)]
   
+  # ((flowlines$bf_width) / 11)[1] * 11
+  
   # create transect lines
   transects <- hydrofabric3D::cut_cross_sections(
     net               = flowlines,                        # flowlines network
-    id                = CROSSWALK_ID,                     # Unique feature ID
-    cs_widths         = pmax(50, flowlines$bf_width * 11),     # cross section width of each "id" linestring ("hy_id")
+    crosswalk_id      = CROSSWALK_ID,                     # Unique feature ID
+    cs_widths         = flowlines$bf_width,
+    # cs_widths         = pmax(50, flowlines$bf_width * 11),     # cross section width of each "id" linestring ("hy_id")
     # cs_widths         = pmax(50, flowlines$bf_width),     # cross section width of each "id" linestring ("hy_id")
     num               = 10,                            # number of cross sections per "id" linestring ("hy_id")
     smooth            = TRUE,                          # smooth lines
@@ -229,7 +534,7 @@ for (i in seq_along(fline_groups)) {
   
   # TODO: make sure this 3000m extension distance is appropriate across VPUs 
   # TODO: also got to make sure that this will be feasible on memory on the larger VPUs...
-  transects <- hydrofabric3D::extend_transects_to_polygons(
+  ext_transects <- hydrofabric3D::extend_transects_to_polygons(
     transect_lines         = transects, 
     polygons               = fema, 
     flowlines              = flowlines, 
@@ -241,8 +546,10 @@ for (i in seq_along(fline_groups)) {
   # mapview::mapview(transects, color = "green") + 
    # mapview::mapview(transects2, color = "red")
   
-  transects <- 
-    transects %>% 
+  # transects <- 
+  #   transects %>% 
+  ext_transects <- 
+    ext_transects %>% 
     hydrofabric3D::add_tmp_id(x = CROSSWALK_ID) %>% 
     dplyr::mutate(is_extended = FALSE) %>%
     dplyr::select(
@@ -259,10 +566,28 @@ for (i in seq_along(fline_groups)) {
                      paste(GROUP_VPU_IDS, collapse = "_"), "_transects.gpkg" 
                      )
   
+  # ext_transects %>%
+  #   dplyr::filter(id == "wb-2414904") %>%
+  #   .$geometry %>% 
+  #   mapview::mapview()
+  
+  # ext_transects %>%
+  #   dplyr::slice(90000:100000) %>% 
+  #   .$geometry %>% 
+  #   mapview::mapview()
+  
+  # wb-2414904
+  
+  # length_data <- 
+  #   ext_transects %>% 
+  #   dplyr::mutate(
+  #     line_len = as.numeric(sf::st_length(geometry))
+  #   )
+  
   message("Writting transect lines for VPU group: '", VPU, "'",
           "\n > '", out_path, "'")
   
-  sf::write_sf(transects, out_path)
+  sf::write_sf(ext_transects, out_path)
   
   message("Finished writting transects!")
   
@@ -293,6 +618,7 @@ paths_df <- data.frame(
   )
 
 for (i in 1:nrow(paths_df)) {
+  # i =3
   # i = 2
   VPU     <- paths_df$vpu[i]
   t_path  <- paths_df$t[i]
@@ -324,7 +650,7 @@ for (i in 1:nrow(paths_df)) {
     crosswalk_id   = CROSSWALK_ID,
     points_per_cs  = NULL,
     min_pts_per_cs = 10,
-    dem            = DEM_URL
+    dem            = DEM_PATH
   )
   
   # ----------------------------------------------------------------------------------------------------------------
@@ -366,7 +692,7 @@ for (i in 1:nrow(paths_df)) {
       crosswalk_id   = CROSSWALK_ID,
       points_per_cs  = NULL, 
       min_pts_per_cs = 10, # number of points per cross sections
-      dem            = DEM_URL, # DEM to extract points from
+      dem            = DEM_PATH, # DEM to extract points from
       scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
       pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
       fix_ids = FALSE,
@@ -383,7 +709,8 @@ for (i in 1:nrow(paths_df)) {
   out_transects <- match_transects_to_extended_cs_pts(
     transect_lines = transects, 
     fixed_cs_pts   = fixed_pts, 
-    crosswalk_id   = CROSSWALK_ID
+    crosswalk_id   = CROSSWALK_ID,
+    extension_pct = EXTENSION_PCT
   )
   
   # ----------------------------------------------------------------------------------------------------------------
@@ -400,6 +727,8 @@ for (i in 1:nrow(paths_df)) {
   fixed_pts      <- hydrofabric3D:::renumber_cs_ids(df = fixed_pts, crosswalk_id = CROSSWALK_ID)
   out_transects  <- hydrofabric3D:::renumber_cs_ids(df = out_transects, crosswalk_id = CROSSWALK_ID)
   
+  # out_transects %>% 
+    # dplyr::filter(id == "wb-2425607") %>% .$geometry %>% plot()
   # ----------------------------------------------------------------------------------------------------------------
   # ---- STEP 4: Update transects with extended transects (if exists) ----
   # ----------------------------------------------------------------------------------------------------------------

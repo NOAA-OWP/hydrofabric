@@ -1,4 +1,4 @@
-### EDIT BASE_DIR, AWS_PROFILE, and DEM_URL ###
+### EDIT BASE_DIR, AWS_PROFILE, and DEM_PATH ###
 
 # ---------------------------------------------------------------------------------
 # ---- General paths and constants variables ----
@@ -7,7 +7,6 @@
 # - AWS_PROFILE: AWS profile to run CLI commands
 # - VERSION: S3 prefix/folder of version to run / generate hydrofabric data for
 # ---------------------------------------------------------------------------------
-
 # Base directory for local file storage
 BASE_DIR           <- '/Users/anguswatters/Desktop/lynker-spatial'
 
@@ -18,16 +17,16 @@ AWS_PROFILE        <- "angus-lynker"
 VERSION            <- "v20.1"
 
 # string to fill in "CS_SOURCE" column in output datasets
-CS_SOURCE <- "hydrofabric3D"
+CS_SOURCE          <- "hydrofabric3D"
 
 # name of bucket with nextgen data
-S3_BUCKET_NAME     <- "lynker-spatial"
-S3_BUCKET_SUBDIR   <- "hydrofabric"
+LYNKER_SPATIAL_S3_BUCKET_NAME     <- "lynker-spatial"
+LYNKER_SPATIAL_HF_S3_PREFIX   <- "hydrofabric"
 
 # AWS S3 bucket URI 
-S3_BUCKET_BASE_URI <- paste0("s3://", S3_BUCKET_NAME, "/")
-S3_BUCKET_URI      <- paste0(S3_BUCKET_BASE_URI, S3_BUCKET_SUBDIR, "/")
-# S3_BUCKET_URI      <- "s3://lynker-spatial/"
+LYNKER_SPATIAL_BASE_S3_URI <- paste0("s3://", LYNKER_SPATIAL_S3_BUCKET_NAME, "/")
+LYNKER_SPATIAL_HF_S3_URI      <- paste0(LYNKER_SPATIAL_BASE_S3_URI, LYNKER_SPATIAL_HF_S3_PREFIX, "/")
+# LYNKER_SPATIAL_HF_S3_URI      <- "s3://lynker-spatial/"
 
 # -------------------------------------------------------------------------------------
 # ---- S3 output directories -----
@@ -37,13 +36,13 @@ S3_BUCKET_URI      <- paste0(S3_BUCKET_BASE_URI, S3_BUCKET_SUBDIR, "/")
 # -------------------------------------------------------------------------------------
 
 # transect bucket prefix
-S3_TRANSECTS_DIR   <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
+S3_TRANSECTS_DIR   <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/3D/transects/")
 
 # cross section bucket prefix
-S3_CS_PTS_DIR      <- paste0(S3_BUCKET_URI, VERSION, "/3D/dem-cross-sections/")
+S3_CS_PTS_DIR      <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/3D/dem-cross-sections/")
 
 # cross section bucket prefix
-S3_CS_ML_PTS_DIR   <- paste0(S3_BUCKET_URI, VERSION, "/3D/cross-sections/")
+S3_CS_ML_PTS_DIR   <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/3D/cross-sections/")
 
 # -------------------------------------------------------------------------------------
 # ---- S3 nextgen data paths / directories -----
@@ -54,10 +53,10 @@ S3_BUCKET_NEXTGEN_DIR       <- paste0(VERSION, "/gpkg/")
 # S3_BUCKET_NEXTGEN_DIR <- "v20.1/gpkg/"
 
 # full URI to the S3 bucket folder with the nextgen data 
-S3_BUCKET_NEXTGEN_DIR_URI   <- paste0(S3_BUCKET_URI, S3_BUCKET_NEXTGEN_DIR)
+S3_BUCKET_NEXTGEN_DIR_URI   <- paste0(LYNKER_SPATIAL_HF_S3_URI, S3_BUCKET_NEXTGEN_DIR)
 
 # reference features S3 bucket prefix
-S3_BUCKET_REF_FEATURES_URI  <- paste0("s3://", S3_BUCKET_NAME, "/00_reference_features/gpkg/")
+S3_BUCKET_REF_FEATURES_URI  <- paste0("s3://", LYNKER_SPATIAL_S3_BUCKET_NAME, "/00_reference_features/gpkg/")
 # S3_BUCKET_REF_FEATURES_URI  <- "s3://lynker-spatial/00_reference_features/gpkg/"
 
 # ----------------------------------------------------------------------------
@@ -69,16 +68,18 @@ ML_OUTPUTS_S3_FILE   <- "channel_ml_outputs.parquet"
 # ML_OUTPUTS_S3_DIR    <- paste0(VERSION, "/3D/ml-outputs/")
 # ML_OUTPUTS_S3_DIR  <- "v20.1/3D/ml-outputs/"
 
-ML_OUTPUTS_S3_URI      <- paste0(S3_BUCKET_URI, VERSION, "/3D/ml-outputs/", ML_OUTPUTS_S3_FILE)
-# ML_OUTPUTS_S3_URI    <- paste0(S3_BUCKET_URI, ML_OUTPUTS_S3_DIR, ML_OUTPUTS_S3_FILE)
+ML_OUTPUTS_S3_URI      <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/3D/ml-outputs/", ML_OUTPUTS_S3_FILE)
+# ML_OUTPUTS_S3_URI    <- paste0(LYNKER_SPATIAL_HF_S3_URI, ML_OUTPUTS_S3_DIR, ML_OUTPUTS_S3_FILE)
 
 ML_OUTPUTS_PATH      <- paste0(BASE_DIR, "/ml-outputs/", ML_OUTPUTS_S3_FILE)
 
 # path to the remote CONUS net parquet file
 CONUS_NETWORK_FILE   <- "conus_net.parquet"
-CONUS_NETWORK_URI    <- paste0(S3_BUCKET_URI, VERSION, "/", CONUS_NETWORK_FILE)
+CONUS_NETWORK_URI    <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/", CONUS_NETWORK_FILE)
 
 # ----------------------------------------------------------------------------
+
+
 # -------------------------------------------------------------------------------------
 # ---- Local directory / path variables ----
 # -------------------------------------------------------------------------------------
@@ -104,14 +105,18 @@ REF_FEATURES_GPKG_DIR <- paste0(REF_FEATURES_DIR, "gpkg/")
 # make a directory for the ML outputs data
 ML_OUTPUTS_DIR   <- paste0(BASE_DIR, "/ml-outputs/")
 
+DEM_DIR      <- paste0(BASE_DIR, "/dem")
+DEM_VRT_DIR  <- paste0(DEM_DIR, "/vrt")
+DEM_TIF_DIR  <- paste0(DEM_DIR, "/tif")
+
 # -------------------------------------------------------------------------------------
 # ---- Create local directory / path variables (FEMA data) ----
 # -------------------------------------------------------------------------------------
 
 # location of FEMA 100 year flood plain FGB files
 FEMA_S3_BUCKET         <- "s3://lynker-hydrofabric/"
-FEMA_S3_BUCKET_PREFIX  <- "FEMA100/"
-FEMA_S3_DIR            <- paste0(FEMA_S3_BUCKET, FEMA_S3_BUCKET_PREFIX)
+LYNKER_HF_FEMA_S3_PREFIX  <- "FEMA100/"
+LYNKER_HF_FEMA_S3_URI            <- paste0(FEMA_S3_BUCKET, LYNKER_HF_FEMA_S3_PREFIX)
 
 # FEMA100 year flood map FGB save location (temporary, will be deleted after processing)
 FEMA_FGB_PATH        <- paste0(BASE_DIR, "/FEMA100")
@@ -132,6 +137,10 @@ FEMA_VPU_SUBFOLDERS  <- paste0(FEMA_BY_VPU_PATH, "/VPU_", VPU_IDS)
 #                           )
 #                         )
 
+CS_EXTENSION_POLYGONS_DIR <- paste0(BASE_DIR, "/cs-extension-polygons")
+CONUS_FEMA_GPKG_PATH      <- file.path(CS_EXTENSION_POLYGONS_DIR, 'conus_fema.gpkg')
+
+# paste0(BASE_DIR/ 
 # -------------------------------------------------------------------------------------
 # ---- OVERWRITE_FEMA_FILES constant logicals----
 # ---- > if TRUE, processing steps will be run again 
@@ -148,7 +157,7 @@ DELETE_STAGING_GPKGS  <- TRUE # remove intermediary files from the main output f
 # ----------------------------------------------------------------------------
 
 # DEM URL
-DEM_URL        <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt"
+DEM_PATH        <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt"
 
 # scale argument for cross_section_pts() function. 
 # The percentage of the length of the transect line to try and extend a transect to see if viable Z values can be found by extending transect line
@@ -247,8 +256,8 @@ DOMAIN_WITH_FEMA_OUTPUT_DIR             <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOM
 DOMAIN_WITH_FEMA_VPU_SUBSETS_DIR        <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_VPU_SUBSETS_DIRNAME)
 DOMAIN_WITH_FEMA_ML_DIR                 <- paste0(DOMAIN_WITH_FEMA_DIR, "/", DOMAIN_WITH_FEMA_ML_DIRNAME)
 
-ML_AUXILIARY_DATA_S3_URI <- paste0(S3_BUCKET_BASE_URI, "bathymetry/ml_auxiliary_data")
-# S3_BUCKET_BASE_URI
+ML_AUXILIARY_DATA_S3_URI <- paste0(LYNKER_SPATIAL_BASE_S3_URI, "bathymetry/ml_auxiliary_data")
+# LYNKER_SPATIAL_BASE_S3_URI
 LYNKER_HYDROFABRIC_S3_BUCKET_BASE_URI   <- "s3://lynker-hydrofabric/"
 ML_BATHYMETRY_S3_DATA_DIR               <- "hydrofabric/nextgen/bathymetry/multisource_river_attributes/"
 ML_BATHYMETRY_S3_URI                    <- paste0(LYNKER_HYDROFABRIC_S3_BUCKET_BASE_URI, ML_BATHYMETRY_S3_DATA_DIR)

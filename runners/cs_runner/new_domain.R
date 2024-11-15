@@ -9,7 +9,7 @@ source("runners/cs_runner/utils.R")
 # install.packages("devtools")
 
 # # transect bucket prefix
-# S3_TRANSECTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/transects/")
+# S3_TRANSECTS_DIR <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/3D/transects/")
 
 # paths to NEW DOMAIN datasets 
 # NEW_DOMAIN_FILES    <- list.files(NEW_DOMAIN_FLOWLINES_DIR, full.names = TRUE)

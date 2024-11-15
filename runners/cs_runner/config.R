@@ -21,16 +21,16 @@ sf::sf_use_s2(FALSE)
 # # -------------------------------------------------------------------------------------
 
 # # AWS S3 bucket URI 
-# S3_BUCKET_URI <- "s3://lynker-spatial/"
+# LYNKER_SPATIAL_HF_S3_URI <- "s3://lynker-spatial/"
 
 # # name of bucket with nextgen data
-# S3_BUCKET_NAME <- "lynker-spatial"
+# LYNKER_SPATIAL_S3_BUCKET_NAME <- "lynker-spatial"
 
 # # the name of the folder in the S3 bucket with the nextgen data
 # S3_BUCKET_NEXTGEN_DIR <- "v20.1/gpkg/"
 
 # # full URI to the S3 bucket folder with the nextgen data 
-# S3_BUCKET_NEXTGEN_DIR_URI  <- paste0(S3_BUCKET_URI, S3_BUCKET_NEXTGEN_DIR)
+# S3_BUCKET_NEXTGEN_DIR_URI  <- paste0(LYNKER_SPATIAL_HF_S3_URI, S3_BUCKET_NEXTGEN_DIR)
 
 # # reference features S3 bucket prefix
 # S3_BUCKET_REF_FEATURES_URI <- "s3://lynker-spatial/00_reference_features/gpkg/"

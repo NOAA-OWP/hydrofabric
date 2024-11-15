@@ -113,7 +113,7 @@ for (i in 20:nrow(path_df)) {
     crosswalk_id   = "hy_id",
     points_per_cs  = NULL,
     min_pts_per_cs = 10,
-    dem            = DEM_URL
+    dem            = DEM_PATH
   )
 
   # })
@@ -175,7 +175,7 @@ for (i in 20:nrow(path_df)) {
   #   transects      = transects, # original transect lines
   #   points_per_cs  = NULL, 
   #   min_pts_per_cs = 10, # number of points per cross sections
-  #   dem            = DEM_URL, # DEM to extract points from
+  #   dem            = DEM_PATH, # DEM to extract points from
   #   scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
   #   pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
   #   fix_ids = FALSE,
@@ -192,7 +192,7 @@ for (i in 20:nrow(path_df)) {
       crosswalk_id   = "hy_id",
       points_per_cs  = NULL, 
       min_pts_per_cs = 10, # number of points per cross sections
-      dem            = DEM_URL, # DEM to extract points from
+      dem            = DEM_PATH, # DEM to extract points from
       scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
       pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
       fix_ids = FALSE,
@@ -214,7 +214,7 @@ for (i in 20:nrow(path_df)) {
   #   transects      = transects, # original transect lines
   #   points_per_cs  = NULL, 
   #   min_pts_per_cs = 10, # number of points per cross sections
-  #   dem            = DEM_URL, # DEM to extract points from
+  #   dem            = DEM_PATH, # DEM to extract points from
   #   scale          = EXTENSION_PCT, # How far to extend transects if the points need to be rechecked
   #   pct_of_length_for_relief = PCT_LENGTH_OF_CROSS_SECTION_FOR_RELIEF, # percent of cross sections length to be needed in relief calculation to consider cross section to "have relief"
   #   fix_ids = FALSE,
@@ -407,7 +407,7 @@ for (i in 20:nrow(path_df)) {
   ids_before_align <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id
   
   message("Aligning banks and smoothing bottoms...")
-  fixed_pts <- hydrofabric3D::align_banks_and_bottoms(cs_pts = fixed_pts)
+  fixed_pts <- hydrofabric3D::align_banks_and_bottoms(cs_pts = fixed_pts, crosswalk_id = "hy_id")
   # fixed_pts <- hydrofabric3D::align_banks_and_bottoms(cs_pts = fixed_pts, crosswalk_id = "hy_id")
   
   ids_after_align <- hydrofabric3D::add_tmp_id(fixed_pts)$tmp_id

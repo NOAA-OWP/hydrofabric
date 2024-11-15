@@ -11,8 +11,8 @@ source("runners/cs_runner/config.R")
 source("runners/cs_runner/utils.R")
 
 # cross section bucket prefix
-S3_CS_ML_PTS_DIR <- paste0(S3_BUCKET_URI, VERSION, "/3D/cross-sections/")
-# S3_CS_PTS_DIR <- paste0(S3_BUCKET_URI, "v20/3D/dem-cross-sections/")
+S3_CS_ML_PTS_DIR <- paste0(LYNKER_SPATIAL_HF_S3_URI, VERSION, "/3D/cross-sections/")
+# S3_CS_PTS_DIR <- paste0(LYNKER_SPATIAL_HF_S3_URI, "v20/3D/dem-cross-sections/")
 
 ML_OUTPUTS_PATH <- list.files(ML_OUTPUTS_DIR, full.names = TRUE)
 
