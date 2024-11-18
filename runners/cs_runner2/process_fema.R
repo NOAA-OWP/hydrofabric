@@ -169,10 +169,6 @@ for (file in FEMA_FILENAMES) {
 # -------------------------------------------------------------------------------------------------------------------
 # ---- Apply final dissolve/snap and removal of internal boundaries in FEMA geometries  ----
 # -------------------------------------------------------------------------------------------------------------------
-source sh/create_tfstate_bucket.sh "mros-webapp-tfstate-bucket" 645515465214 "angus-lynker" us-west-1 "false"
-source sh/create_tfstate_bucket.sh "mros-webapp-tfstate-bucket" 645515465214 "angus-lynker" us-west-1 "false"
-
-
 
 # # paths to FEMA 100 year flood plain files
 # FEMA_gpkg_paths      <- list.files(FEMA_GPKG_PATH, full.names = TRUE)
@@ -267,8 +263,8 @@ CONUS_VPU_IDS <-
 
 
 for (file_path in FEMA_CLEAN_GPKG_PATHS) {
-  
-  # file_path = FEMA_CLEAN_GPKG_PATHS[25]
+   # i = 35
+  # file_path = FEMA_CLEAN_GPKG_PATHS[i]
 
   fema_file <- basename(file_path)
   
@@ -278,8 +274,8 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
   fema <- sf::read_sf(file_path)
   
   for (vpu in CONUS_VPU_IDS) {
-
-    # vpu = CONUS_VPU_IDS[12]
+    # j = 8 
+    # vpu = CONUS_VPU_IDS[j]
     
     # nextgen_basename <- basename(nextgen_path)
     # vpu              <- unlist(regmatches(nextgen_basename, gregexpr("\\d+[A-Za-z]*", nextgen_basename)))
@@ -320,8 +316,10 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
       
       # state <- gsub("-100yr-flood_valid_clean.gpkg", "", fema_file)
       
+      # BASE_DIRS_LIST$fema_by_vpu_subsets_dirs
+      
       fema_vpu_filename <- gsub(".gpkg", paste0("_", vpu, ".gpkg"), fema_file)
-      fema_vpu_path     <- paste0(vpu_subfolder_path, "/", fema_vpu_filename)
+      fema_vpu_path     <- paste0(vpu_subfolder_path, "/subsets/", fema_vpu_filename)
       
       
       if (OVERWRITE_FEMA_FILES) {
@@ -337,60 +335,6 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
     }
     message()
   } 
-  # for (nextgen_path in NEXTGEN_FILE_PATHS) {
-  #   nextgen_basename <- basename(nextgen_path)
-  #   vpu              <- unlist(regmatches(nextgen_basename, gregexpr("\\d+[A-Za-z]*", nextgen_basename)))
-    
-  #   message("VPU: ", vpu)   
-  #   message("- nextgen gpkg:\n > '", nextgen_path, "'")   
-  #   message(" > Checking if '", fema_file, "' intersects with '", nextgen_basename, "'")
-    
-  #   # read in nextgen flowlines 
-  #   flines <- sf::read_sf(nextgen_path, layer = "flowpaths")
-    
-  #   # get the FEMA polygons that intersect with the nextgen flowlines
-  #   fema_intersect <- polygons_with_line_intersects(fema, flines)
-    
-  #   fema_in_nextgen <-  nrow(fema_intersect) != 0
-    
-  #   message("FEMA intersects with nextgen flowlines? ", fema_in_nextgen)
-    
-  #   if(fema_in_nextgen) {
-      
-  #     # create filepaths
-  #     vpu_subfolder      <- paste0("VPU_", vpu)
-  #     # vpu_subfolder_path <- paste0(FEMA_BY_VPU_PATH, "/", vpu_subfolder, "/states")
-  #     vpu_subfolder_path <- paste0(FEMA_BY_VPU_PATH, "/", vpu_subfolder)
-      
-  #     # vpu_subfolder_path <- FEMA_VPU_SUBFOLDERS[grepl(vpu_subfolder, FEMA_VPU_SUBFOLDERS)]
-      
-  #     fema_intersect <-
-  #       fema_intersect %>%
-  #       dplyr::mutate(
-  #         vpu = vpu
-  #       ) %>%
-  #       dplyr::select(vpu, fema_id, source, state, geom)
-      
-  #     # state <- gsub("-100yr-flood_valid_clean.gpkg", "", fema_file)
-      
-  #     fema_vpu_filename <- gsub(".gpkg", paste0("_", vpu, ".gpkg"), fema_file)
-  #     fema_vpu_path     <- paste0(vpu_subfolder_path, "/", fema_vpu_filename)
-      
-      
-  #     if (OVERWRITE_FEMA_FILES) {
-  #       message("Writting '", basename(fema_vpu_filename), "' to: \n > '", fema_vpu_path, "'")
-        
-  #       sf::write_sf(
-  #         fema_intersect,
-  #         fema_vpu_path
-  #       )
-  #     }
-      
-      
-  #   }
-  #   message()
-  # }
-  
   
   message(
     "--------------------------------------------------------------\n", 
@@ -400,23 +344,50 @@ for (file_path in FEMA_CLEAN_GPKG_PATHS) {
   
 }
 
+# for (i in seq_along(BASE_DIRS_LIST$fema_by_vpu_subdirs)) {
+#   vpu_subdir <- BASE_DIRS_LIST$fema_by_vpu_subdirs[i]
+#   
+#   message(i, " - ", vpu_subdir)
+#   
+#   files_to_move = list.files(vpu_subdir, pattern = ".gpkg", full.names = T)
+#   
+#   for (file in files_to_move) {
+#     new_path <- paste0(vpu_subdir, "/subsets/",     basename(file))
+#     message(" > ", file, "\n > ", new_path, "\n")
+#     fs::file_move(
+#       file, 
+#       new_path
+#     )
+#   }
+# }
+
 # -------------------------------------------------------------------------------------
 # ---- Loop through each VPU subfolder and merge all of the Geopackages into one---- 
 # -------------------------------------------------------------------------------------
+# BASE_DIRS_LIST$fema_by_vpu_subdirs
+# BASE_DIRS_LIST$fema_by_vpu_subsets_dirs
+# for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
+BASE_DIRS_LIST$fema_by_vpu_subdirs
 
-for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
+for (i in seq_along(BASE_DIRS_LIST$fema_by_vpu_subdirs)) {
   # for (i in 1:4) {
-  # i = 1
-  # vpu_dir = FEMA_VPU_SUBFOLDERS2[i]
-  message("Merging files in '", basename(vpu_dir), "' directory...")
-  # }
+  # i = 8
   
-  vpu_subdirs    <- list.files(vpu_dir, full.names = TRUE)
+  vpu_dir <-  BASE_DIRS_LIST$fema_by_vpu_subdirs[i]
+  # vpu_dir <-  FEMA_VPU_SUBFOLDERS[i]
+  
+  vpu_subset_dir <- BASE_DIRS_LIST$fema_by_vpu_subsets_dirs[i]
+  
+  message("Merging files in '", basename(vpu_dir), "' directory...")
+  vpu_subdirs    <- list.files(vpu_subset_dir, full.names = TRUE)
+  # vpu_subdirs    <- list.files(vpu_dir, full.names = TRUE)
+  
+  # message(paste0("\n > ", basename(vpu_subdirs), collapse = ""))
   
   # path to the merged directory where the final merged geopackge will end up
-  master_name       <- paste0("fema_", gsub("VPU", "vpu", basename(vpu_dir)))
+  master_name       <- paste0("fema-", gsub("VPU", "vpu", basename(vpu_dir)))
   master_gpkg_name  <- paste0(master_name, ".gpkg")
-  master_filepath   <- paste0(vpu_dir, "/", master_gpkg_name)
+  master_filepath   <- paste0(vpu_dir, "/merged/", master_gpkg_name)
   
   # if the file already exists, remove it so we dont OVER append data to the "master file"
   if (file.exists(master_filepath)) {
@@ -424,11 +395,11 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
   }
   
   # fema state geopackages partioned for the specific VPU
-  fema_state_gpkgs        <- list.files(vpu_dir, full.names = TRUE)
-  master_output_filepath  <- paste0(vpu_dir, "/", gsub(".gpkg", "_output.gpkg", master_gpkg_name))
-  
-  # make sure to ignore the master file if it already exists
-  fema_state_gpkgs <- fema_state_gpkgs[fema_state_gpkgs != master_filepath & fema_state_gpkgs != master_output_filepath]
+  fema_state_gpkgs        <- list.files(vpu_subset_dir, full.names = TRUE)
+  # master_output_filepath  <- paste0(vpu_dir, "/", gsub(".gpkg", "_output.gpkg", master_gpkg_name))
+  # 
+  # # make sure to ignore the master file if it already exists
+  # fema_state_gpkgs <- fema_state_gpkgs[fema_state_gpkgs != master_filepath & fema_state_gpkgs != master_output_filepath]
   
   for(gpkg_file in fema_state_gpkgs) {
     # message(" - Appending '", basename(gpkg_file), "' to master FEMA VPU gpkg:\n  >  '",
@@ -443,29 +414,29 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
                                     " ", gpkg_file
     )
 
-    if (OVERWRITE_FEMA_FILES) {
+    # if (OVERWRITE_FEMA_FILES) {
       system(ogr2ogr_merge_command)
-    }
+    # }
+      
   }
   
-  has_fema_state_gpkgs <- length(fema_state_gpkgs) > 0
-  
-  if(DELETE_STAGING_GPKGS && has_fema_state_gpkgs) {
-    message(" - Deleting individual gpkgs from '", vpu_dir, "' directory...")
-    # message("- Deleting individual gpkgs from 'states' directory:\n > '", states_dir, "'")
-    
-    remove_gpkg_cmds <- paste0("rm ", fema_state_gpkgs)
-    
-    for (remove_cmd in remove_gpkg_cmds) {
-      message("  >  '", remove_cmd, "'")
-      system(remove_cmd)
-    }
-  }
+  # has_fema_state_gpkgs <- length(fema_state_gpkgs) > 0
+  # 
+  # if(DELETE_STAGING_GPKGS && has_fema_state_gpkgs) {
+  #   message(" - Deleting individual gpkgs from '", vpu_dir, "' directory...")
+  #   remove_gpkg_cmds <- paste0("rm ", fema_state_gpkgs)
+  #   
+  #   for (remove_cmd in remove_gpkg_cmds) {
+  #     message("  >  '", remove_cmd, "'")
+  #     system(remove_cmd)
+  #   }
+  # }
   
   # message()
   message("Merge complete!")
   message("Merged '", basename(vpu_dir), "' FEMA output geopackage:\n --> '", master_filepath, "'")
   message()
+  
 }
 # -------------------------------------------------------------------------------------
 # ----Apply simplify, dissolve, explode on the MERGED polygons  ---- 
@@ -475,9 +446,13 @@ for (vpu_dir in FEMA_VPU_SUBFOLDERS) {
 # for (i in list.files(FEMA_VPU_SUBFOLDERS, full.names = T)[grepl("_output.gpkg", list.files(FEMA_VPU_SUBFOLDERS, full.names = T))]) {
 #   file.remove(i)
 # }
+# seq_along(BASE_DIRS_LIST$fema_by_vpu_subdirs)
+# rm(STAGING_FILES_TO_DELETE, i, VPU, vpu_dir)
 
 for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
+
   # i = 8
+  # FEMA_VPU_SUBFOLDERS
   STAGING_FILES_TO_DELETE <- c()
   
   vpu_dir    <- FEMA_VPU_SUBFOLDERS[i]
@@ -486,15 +461,23 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   message(i, " - Attempting to union FEMA polygons for '", VPU, "'...")
   
   # path to the merged directory where the final merged geopackage will end up
-  master_name       <- paste0("fema_", gsub("VPU", "vpu", basename(vpu_dir)))
+  master_name       <- paste0("fema-", gsub("VPU", "vpu", basename(vpu_dir)))
   master_gpkg_name  <- paste0(master_name, ".gpkg")
-  master_filepath   <- paste0(vpu_dir, "/", master_gpkg_name)
+  master_filepath   <- paste0(vpu_dir, "/merged/", master_gpkg_name)
   
   master_geojson_name       <- paste0(master_name, ".geojson")
-  master_geojson_filepath   <- paste0(vpu_dir, "/", master_geojson_name)
+  master_geojson_filepath   <- paste0(vpu_dir, "/merged/", master_geojson_name)
   
-  updated_gpkg_name  <- gsub(".gpkg", "_output.gpkg", master_gpkg_name)
-  updated_filepath   <- paste0(vpu_dir, "/", updated_gpkg_name)
+  # updated_gpkg_name  <- gsub(".gpkg", "-output.gpkg", master_gpkg_name)
+  updated_gpkg_name  <- master_gpkg_name
+  updated_filepath   <- paste0(vpu_dir, "/output/", master_gpkg_name)
+  
+  updated_gpkg_exists  <- file.exists(updated_filepath)
+  
+  # remove output file if it already exists
+  if (updated_gpkg_exists) {
+    file.remove(updated_filepath)
+  }
   
   message("VPU Merged FEMA filename: '", master_gpkg_name, "'")
   message("> Simplifying, dissolve, exploding VPU aggregated FEMA polygons... '", basename(master_filepath), "'")
@@ -516,12 +499,12 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   # gpkg_to_geojson_cmd <- paste0("ogr2ogr ", master_geojson_filepath, " ", master_filepath)
   # file.remove(master_geojson_filepath)
   
-  if (OVERWRITE_FEMA_FILES || !geojson_exists) {
-    system(gpkg_to_geojson_cmd)
-    message("Writing '", master_geojson_name, "' to: \n > '", master_geojson_filepath, "'")
-    
-    STAGING_FILES_TO_DELETE <- c(STAGING_FILES_TO_DELETE, master_geojson_filepath)
-  }
+  # if (OVERWRITE_FEMA_FILES || !geojson_exists) {
+  system(gpkg_to_geojson_cmd)
+  message("Writing '", master_geojson_name, "' to: \n > '", master_geojson_filepath, "'")
+  
+  STAGING_FILES_TO_DELETE <- c(STAGING_FILES_TO_DELETE, master_geojson_filepath)
+  # }
   
   # master_gj <- sf::read_sf(master_geojson_filepath)
   # master_gpkg <- sf::read_sf(master_filepath)
@@ -529,13 +512,15 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   # Clean GeoJSON
   message("Simplify, dissolve, explode > '", master_geojson_name, "'")
   output_clean_filename      <- gsub(".geojson", "_clean.geojson", master_geojson_name)
-  output_clean_geojson_path  <- paste0(vpu_dir, "/", output_clean_filename)
+  output_clean_geojson_path  <- paste0(vpu_dir, "/merged/", output_clean_filename)
   
   clean_geojson_exists  <- file.exists(output_clean_geojson_path)
   message(" >>> '", output_clean_filename, "' already exists? ", clean_geojson_exists)
-  message(" >>> Overwrite? ", OVERWRITE_FEMA_FILES)
+  # message(" >>> Overwrite? ", OVERWRITE_FEMA_FILES)
 
-  # file.remove(output_clean_geojson_path)
+  if (clean_geojson_exists) {
+    file.remove(output_clean_geojson_path)
+  }
   
   mapshaper_command = paste0('node  --max-old-space-size=16000 /opt/homebrew/bin/mapshaper ',
                              master_geojson_filepath, 
@@ -554,33 +539,36 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   # message("Writing '", master_geojson_name, "' to: \n > '", master_geojson_filepath, "'")
   
   STAGING_FILES_TO_DELETE <- c(STAGING_FILES_TO_DELETE, output_clean_geojson_path)
-  output_clean_gpkg_filename   <- gsub(".geojson", ".gpkg", master_geojson_name)
-  output_clean_gpkg_path       <- paste0(vpu_dir, "/", output_clean_gpkg_filename)
+  # output_clean_gpkg_filename   <- gsub(".geojson", ".gpkg", master_geojson_name)
+  # output_clean_gpkg_path       <- paste0(vpu_dir, "/merged/", output_clean_gpkg_filename)
   
   # fema_vpu <- sf::read_sf(master_filepath)
   # geojson_to_gpkg_cmd <- paste0("ogr2ogr -f GPKG ", updated_filepath, " ", output_clean_geojson_path)
-  geojson_to_gpkg_cmd <- paste0("ogr2ogr -nlt MULTIPOLYGON -s_srs EPSG:5070 -t_srs EPSG:5070  ", updated_filepath, " ", output_clean_geojson_path)
+  geojson_to_gpkg_cmd <- paste0("ogr2ogr -nlt MULTIPOLYGON -s_srs EPSG:5070 -t_srs EPSG:5070  ", 
+                                updated_filepath, " ", 
+                                output_clean_geojson_path)
   # geojson_to_gpkg_cmd <- paste0("ogr2ogr ", updated_filepath, " ", output_clean_geojson_path)
 
-  updated_gpkg_exists  <- file.exists(updated_filepath)
-  # updated_gpkg_exists
-  # file.remove(updated_filepath)
+  # updated_gpkg_exists  <- file.exists(updated_filepath)
+  # if (updated_gpkg_exists) {
+  #   file.remove(updated_filepath)
+  # }
   
-  if (OVERWRITE_FEMA_FILES || !updated_gpkg_exists) {
-    system(geojson_to_gpkg_cmd)
-    message("Writing '", updated_gpkg_name, "' to: \n > '", updated_filepath, "'")
-  }
+  
+  # if (OVERWRITE_FEMA_FILES || !updated_gpkg_exists) {
+  system(geojson_to_gpkg_cmd)
+  message("Writing '", updated_gpkg_name, "' to: \n > '", updated_filepath, "'")
+  # }
 
   # sf::st_layers(updated_filepath)
   
   # mapview::npts(fema)
-  
   fema  <- 
     sf::read_sf(updated_filepath) %>%
     # sf::read_sf(output_clean_geojson_path) %>%
     # rmapshaper::ms_explode(sys=TRUE, sys_mem = 16) %>% 
     dplyr::mutate(
-      vpu      = gsub("VPU_", "", VPU),
+      vpu      = gsub("vpu-", "", VPU),
       fema_id = as.character(1:dplyr::n())
     ) %>% 
     dplyr::select(
@@ -595,6 +583,7 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
   #   dplyr::mutate(pts = mapview::npts(geom)) %>% 
   #   dplyr::arrange(-pts) 
   
+  # remove before writting updated version
   file.remove(updated_filepath)
   
   sf::write_sf(
@@ -618,47 +607,14 @@ for (i in 1:length(FEMA_VPU_SUBFOLDERS)) {
 # ---- Store all FEMA layers in a single conus_fema.gpkg 
 # -------------------------------------------------------------------------------------
 
-fema_vpu_layers <- list.files(FEMA_VPU_SUBFOLDERS, full.names = T)[grepl("_output.gpkg", list.files(FEMA_VPU_SUBFOLDERS))]
+FEMA_VPU_SUBFOLDERS
 
-combine_gpkg_files(fema_vpu_layers, '/Volumes/T7SSD/lynker-spatial/cs-extension-polygons/conus_fema.gpkg')
+all_fema_vpu_layers <- list.files(BASE_DIRS_LIST$fema_by_vpu_output_dirs, full.names = TRUE)
+
+# fema_vpu_layers <- list.files(FEMA_VPU_SUBFOLDERS, full.names = T)[grepl("_output.gpkg", list.files(FEMA_VPU_SUBFOLDERS))]
+
+combine_gpkg_files(all_fema_vpu_layers, CONUS_FEMA_GPKG_PATH)
   
-
-combine_gpkg_files <- function(gpkg_paths, output_gpkg) {
-  
-  layer_counter <- list()
-    
-  for (gpkg_path in gpkg_paths) {
-    
-    base_name <- tools::file_path_sans_ext(basename(gpkg_path))
-    # base_name <- gsub("_output.gpkg", "", basename(gpkg_path))
-    
-    if (base_name %in% names(layer_counter)) {
-      layer_counter[[base_name]] <- layer_counter[[base_name]] + 1
-      layer_name <- paste0(base_name, "_", layer_counter[[base_name]])
-    } else {
-      
-      layer_counter[[base_name]] <- 1
-      layer_name <- base_name
-    }
-    
-    tryCatch({
-      sf_layer <- st_read(gpkg_path, quiet = TRUE)
-      
-      sf::st_write(sf_layer, 
-               dsn = output_gpkg, 
-               layer = layer_name, 
-               append = TRUE,
-               quiet = TRUE)
-      
-      message("Successfully added '", basename(gpkg_path), "' as layer: '", layer_name, "' to\n > '", output_gpkg, "'")
-      
-    }, error = function(e) {
-      warning("Error processing: ",  basename(gpkg_path))
-      warning(e)
-    })
-  }
-}
-
 
 # # -------------------------------------------------------------------------------------
 # # ---- Union each VPU geopackage (either on state or just touching predicate) ---- 

@@ -99,13 +99,45 @@ CONUS_FEMA_GPKG_PATH       <- file.path(CS_EXTENSION_POLYGONS_DIR, 'conus_fema.g
 # ---- CONUS CS extension polygons ----
 # -------------------------------------------------------------------------------------
 
+# Meta data object of National Elevation Datasets (NED)
+NED_META <- data.frame(rbind(
+  # c(id        = "USGS_1",
+  #   URL       = "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1",
+  #   varname   = "30m elevation",
+  #   long_name = "30m (1 arcsec) National Elevation Dataset",
+  #   units     = "m",
+  #   s3_uri    = "s3://prd-tnm/StagedProducts/Elevation/1/TIFF/",
+  #   vrt_name  = "USGS_Seamless_DEM_1.vrt"
+  # )
+  # 
+  # # c(id        = "USGS_2",
+  # #   URL       = "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/2",
+  # #   varname   = "60m elevation",
+  # #   long_name = "60m (2 arcsec) National Elevation Dataset Alaska",
+  # #   units     = "m",
+  # #   s3_uri    = "s3://prd-tnm/StagedProducts/Elevation/2/TIFF/",
+  # #   vrt_name  = "USGS_Seamless_DEM_2.vrt"
+  # #   ),
+  c(id        = "USGS_13",
+    URL       = "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13",
+    varname   = "10m elevation",
+    long_name = "10m (1/3th arcsec) National Elevation Dataset",
+    units     = "m",
+    s3_uri    = "s3://prd-tnm/StagedProducts/Elevation/13/TIFF/",
+    vrt_name  = "USGS_Seamless_DEM_13.vrt"
+    )
+  )
+)
+
+
 DEM_DIR        <- BASE_DIRS_LIST$dem_dir
 DEM_VRT_DIR    <- BASE_DIRS_LIST$dem_vrt_dir
-DEM_TIF_DIR    <- BASE_DIRS_LIST$dem_tif_dir
+# DEM_TIF_DIR    <- BASE_DIRS_LIST$dem_tif_dir
 
 # DEM URL
 DEM_PATH        <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1/TIFF/USGS_Seamless_DEM_1.vrt"
-
+# DEM_PATH        <- "/vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/USGS_Seamless_DEM_13.vrt"
+# # /vsicurl/https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/current/n70w148/USGS_13_n70w148.tif
 # ----------------------------------------------------------------------------
 # ---- Cross section point extraction constant variables ----
 # ----------------------------------------------------------------------------

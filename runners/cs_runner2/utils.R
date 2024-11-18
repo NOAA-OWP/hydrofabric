@@ -9,7 +9,7 @@
 #         ├── tif/
 #     ├── cs-extension-polygons/
 create_local_hydrofabric_base_dirs <- function(base_dir) {
-  
+  # base_dir <- BASE_DIR
   
   # build paths
   hydrofabric_dir <- paste0(base_dir, "/hydrofabric")
@@ -17,7 +17,7 @@ create_local_hydrofabric_base_dirs <- function(base_dir) {
   # DEM dirs
   dem_dir                    <- file.path(base_dir, "dem")
   dem_vrt_dir                <- file.path(dem_dir, "vrt")
-  dem_tif_dir                <- file.path(dem_dir, "tif")
+  # dem_tif_dir                <- file.path(dem_dir, "tif")
   
   # polygons for transect extensions
   cs_extension_polygons_dir     <- file.path(base_dir, "cs-extension-polygons")
@@ -42,7 +42,7 @@ create_local_hydrofabric_base_dirs <- function(base_dir) {
   # DEM dirs
   create_if_not_exists(dem_dir)
   create_if_not_exists(dem_vrt_dir)
-  create_if_not_exists(dem_tif_dir)
+  # create_if_not_exists(dem_tif_dir)
   
   # extension polygons
   create_if_not_exists(cs_extension_polygons_dir)
@@ -58,6 +58,9 @@ create_local_hydrofabric_base_dirs <- function(base_dir) {
   
   for (path in fema_by_vpu_subdirs) {
     create_if_not_exists(path)
+    create_if_not_exists(file.path(path, "subsets"))
+    create_if_not_exists(file.path(path, "merged"))
+    create_if_not_exists(file.path(path, "output"))
   }
   
 }
@@ -178,7 +181,7 @@ get_base_dir_paths <- function(base_dir) {
   
   dem_dir          <- file.path(base_dir, "dem")
   dem_vrt_dir      <- file.path(base_dir, "dem", "vrt")
-  dem_tif_dir      <- file.path(base_dir, "dem", "tif")
+  # dem_tif_dir      <- file.path(base_dir, "dem", "tif")
   
   cs_extension_polygons_dir <- file.path(base_dir, "cs-extension-polygons")
   
@@ -196,12 +199,16 @@ get_base_dir_paths <- function(base_dir) {
   fema_by_vpu_dir       <- file.path(fema_dir, "fema-by-vpu")
   fema_by_vpu_subdirs   <- paste0(fema_by_vpu_dir, "/vpu-", VPU_IDS)
   
+  fema_by_vpu_subsets_dirs <- file.path(fema_by_vpu_subdirs, "subsets")
+  fema_by_vpu_merged_dirs  <- file.path(fema_by_vpu_subdirs, "merged")
+  fema_by_vpu_output_dirs  <- file.path(fema_by_vpu_subdirs, "output")
+  
   return(
       list(
       hydrofabric_dir = hydrofabric_dir,
       dem_dir = dem_dir,
       dem_vrt_dir = dem_vrt_dir, 
-      dem_tif_dir = dem_tif_dir,
+      # dem_tif_dir = dem_tif_dir,
       cs_extension_polygons_dir = cs_extension_polygons_dir,
       fema_dir = fema_dir,
       fema_fgb_dir = fema_fgb_dir,
@@ -209,7 +216,10 @@ get_base_dir_paths <- function(base_dir) {
       fema_clean_dir = fema_clean_dir,
       fema_gpkg_dir = fema_gpkg_dir,
       fema_by_vpu_dir = fema_by_vpu_dir,
-      fema_by_vpu_subdirs = fema_by_vpu_subdirs
+      fema_by_vpu_subdirs = fema_by_vpu_subdirs,
+      fema_by_vpu_subsets_dirs = fema_by_vpu_subsets_dirs,
+      fema_by_vpu_merged_dirs = fema_by_vpu_merged_dirs,
+      fema_by_vpu_output_dirs = fema_by_vpu_output_dirs
     )
   )
 }
@@ -257,6 +267,42 @@ get_version_base_dir_paths <- function(base_dir, version) {
       cross_sections_coastal_bathy_dir = cross_sections_coastal_bathy_dir
     )
   )
+}
+
+combine_gpkg_files <- function(gpkg_paths, output_gpkg) {
+  
+  layer_counter <- list()
+  
+  for (gpkg_path in gpkg_paths) {
+    
+    base_name <- tools::file_path_sans_ext(basename(gpkg_path))
+    # base_name <- gsub("_output.gpkg", "", basename(gpkg_path))
+    
+    if (base_name %in% names(layer_counter)) {
+      layer_counter[[base_name]] <- layer_counter[[base_name]] + 1
+      layer_name <- paste0(base_name, "_", layer_counter[[base_name]])
+    } else {
+      
+      layer_counter[[base_name]] <- 1
+      layer_name <- base_name
+    }
+    
+    tryCatch({
+      sf_layer <- st_read(gpkg_path, quiet = TRUE)
+      
+      sf::st_write(sf_layer, 
+                   dsn = output_gpkg, 
+                   layer = layer_name, 
+                   append = TRUE,
+                   quiet = TRUE)
+      
+      message("Successfully added '", basename(gpkg_path), "' as layer: '", layer_name, "' to\n > '", output_gpkg, "'")
+      
+    }, error = function(e) {
+      warning("Error processing: ",  basename(gpkg_path))
+      warning(e)
+    })
+  }
 }
 
 list_s3_objects <- function(s3_bucket, pattern = NULL, aws_profile = NULL) {
