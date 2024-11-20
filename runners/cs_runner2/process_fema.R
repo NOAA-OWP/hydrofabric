@@ -23,11 +23,9 @@ library(geos)
 library(fastmap)
 library(nngeo)
 
-# devtools::install_github("anguswg-ucsb/hydrofabric3D")
-
-# TODO: Steps that converts FGB to geojson and then geojson to gpkg can be put into a single loop
-# TODO: Delete old files as needed
-
+# ONLY runs if the main CONUS FEMA gpkg hasnt been created yet
+if (!file.exists(CONUS_FEMA_GPKG_PATH)) {
+  
 # -------------------------------------------------------------------------------------
 # ---- OVERWRITE_FEMA_FILES constant logical ----
 # ---- > if TRUE, processing steps will be run again 
@@ -615,6 +613,15 @@ all_fema_vpu_layers <- list.files(BASE_DIRS_LIST$fema_by_vpu_output_dirs, full.n
 
 combine_gpkg_files(all_fema_vpu_layers, CONUS_FEMA_GPKG_PATH)
   
+
+# -------------------------------------------------------------------------------------
+
+} else {
+  message("'", basename(CONUS_FEMA_GPKG_PATH), "'already exists at \n> ", CONUS_FEMA_GPKG_PATH)
+}
+
+# -------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------
 
 # # -------------------------------------------------------------------------------------
 # # ---- Union each VPU geopackage (either on state or just touching predicate) ---- 

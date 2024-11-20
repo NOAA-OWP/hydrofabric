@@ -121,7 +121,11 @@ create_new_version_dirs <- function(base_dir, version, with_output = FALSE) {
   network_dir                <- paste0(version_base_dir, "/network")
   
   # transects
-  transects_dir              <- paste0(version_base_dir, "/transects")
+  transects_dir                  <- paste0(version_base_dir, "/transects")
+  transects_base_dir             <- paste0(transects_dir, "/base")
+  transects_fema_extended_dir    <- paste0(transects_dir, "/extended-by-fema")
+  transects_cs_extended_dir      <- paste0(transects_dir, "/extended-by-cs-attributes")
+  transects_output_dir           <- paste0(transects_dir, "/output")
   
   # cross sections dirs
   cross_sections_dir                 <- paste0(version_base_dir, "/cross-sections")
@@ -129,7 +133,9 @@ create_new_version_dirs <- function(base_dir, version, with_output = FALSE) {
   cross_sections_ml_dir              <- paste0(cross_sections_dir, "/dem-ml")
   cross_sections_coastal_bathy_dir   <- paste0(cross_sections_dir, "/dem-coastal-bathy")
   cross_sections_dem_pts_dir         <- paste0(cross_sections_dir, "/dem-points")
+  cross_sections_output_dir          <- paste0(cross_sections_dir, "/output")
   
+ 
   if(with_output) {
     output_dir       <- paste0(version_base_dir, "/outputs")
   }
@@ -148,13 +154,19 @@ create_new_version_dirs <- function(base_dir, version, with_output = FALSE) {
   
   # transects
   create_if_not_exists(transects_dir)
-  
+  create_if_not_exists(transects_base_dir)
+  create_if_not_exists(transects_fema_extended_dir)
+  create_if_not_exists(transects_cs_extended_dir)
+  create_if_not_exists(transects_output_dir)
+    
   # CS pts
   create_if_not_exists(cross_sections_dir)
   create_if_not_exists(cross_sections_dem_dir)
   create_if_not_exists(cross_sections_ml_dir)
   create_if_not_exists(cross_sections_coastal_bathy_dir)
   create_if_not_exists(cross_sections_dem_pts_dir)
+  create_if_not_exists(cross_sections_output_dir)
+  
   
   if(with_output) {
     create_if_not_exists(output_dir)
@@ -233,28 +245,44 @@ get_version_base_dir_paths <- function(base_dir, version) {
   network_dir                <- file.path(version_base_dir, "network")
   
   # transects
-  transects_dir              <- file.path(version_base_dir, "transects")
-  
+  transects_dir                  <- file.path(version_base_dir, "transects")
+  transects_base_dir             <- paste0(transects_dir, "/base")
+  transects_fema_extended_dir    <- paste0(transects_dir, "/extended-by-fema")
+  transects_cs_extended_dir      <- paste0(transects_dir, "/extended-by-cs-attributes")
+  transects_output_dir           <- paste0(transects_dir, "/output")
+   
   # cross sections dirs
   cross_sections_dir                 <- file.path(version_base_dir, "cross-sections")
   cross_sections_dem_dir             <- file.path(cross_sections_dir, "dem")
   cross_sections_ml_dir              <- file.path(cross_sections_dir, "dem-ml")
   cross_sections_coastal_bathy_dir   <- file.path(cross_sections_dir, "dem-coastal-bathy")
   cross_sections_dem_pts_dir         <- file.path(cross_sections_dir, "dem-points")
+  cross_sections_output_dir          <- paste0(cross_sections_dir, "/output")
   
   return(
     list(
       hydrofabric_dir    = hydrofabric_dir,
       version_base_dir   = version_base_dir,
+      
       ref_features_dir   = ref_features_dir, 
+      
       network_dir        = network_dir,
+      
       ml_dir = ml_dir,
+      
       transects_dir      = transects_dir,
+      transects_base_dir = transects_base_dir,
+      transects_fema_extended_dir = transects_fema_extended_dir,
+      transects_cs_extended_dir = transects_cs_extended_dir,
+      transects_output_dir = transects_output_dir,
+      
       cross_sections_dir = cross_sections_dir,
       cross_sections_dem_dir     = cross_sections_dem_dir,
       cross_sections_dem_pts_dir = cross_sections_dem_pts_dir,
       cross_sections_ml_dir      = cross_sections_ml_dir,
-      cross_sections_coastal_bathy_dir = cross_sections_coastal_bathy_dir
+      cross_sections_coastal_bathy_dir = cross_sections_coastal_bathy_dir,
+      cross_sections_output_dir = cross_sections_output_dir
+      
     )
   )
 }

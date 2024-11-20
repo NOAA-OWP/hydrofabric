@@ -28,6 +28,13 @@ VERSION_DIRS_LIST            <- get_version_base_dir_paths(BASE_DIR, VERSION)
 CS_SOURCE          <- "hydrofabric3D"
 
 # -------------------------------------------------------------------------------------
+# ---- Processing flags (cache data) ----
+# -------------------------------------------------------------------------------------
+
+# cache transects by setting REGENERATE_TRANSECTS to FALSE
+REGENERATE_TRANSECTS      <- TRUE
+
+# -------------------------------------------------------------------------------------
 # ---- S3 BUCKET NAMES ----
 # -------------------------------------------------------------------------------------
 
