@@ -2,16 +2,16 @@ Package: hydrofabric
 Type: Package
 Title: Easily Install and Load 'hydrofabric' tools
 Description: The 'hydrofabric' meta package loads a set of packages that work in harmony to complete hydroscience tasks. 
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: 
     c(person(given = "Mike",
              family = "Johnson",
              role = c("aut", "cre"),
-             email = "jjohnson@lynker.com"),
+             email = "mike.johnson@noaa.gov"),
       person("NOAA", role = c("fnd")),
       person("USGS", role = c("ctb")),
       person("Lynker", role = c("fnd")))
-Maintainer: Mike Johnson <jjohnson@lynker.com>
+Maintainer: Mike Johnson <mike.johnson@noaa.gov>
 BugReports: https://github.com/NOAA-OWP/hydrofabric
 URL: https://github.com/NOAA-OWP/hydrofabric  
 Depends: 
@@ -34,12 +34,20 @@ Imports:
     terra,
     utils,
     zonal
-License: MIT + file LICENSE
+License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Suggests: 
     testthat (>= 3.0.0),
+    mapview, 
+    ggplot2, 
+    DBI, 
+    RSQLite, 
+    dm, 
+    leaflet, 
+    DT,
+    knitr
 Remotes: 
     NOAA-OWP/hydrofab,
     mikejohnson51/zonal,
