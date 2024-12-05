@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-## Hydrofabric for Next Generation Water Resource Modeling
+# Hydrofabric:<a href="https://github.com/lynker-spatial/hfsubsetR"><img src="man/figures/logo.png" align="right" width="25%"/></a>
 
 <!-- badges: start -->
 
@@ -10,24 +10,29 @@ Check](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yam
 [![Dependencies](https://img.shields.io/badge/dependencies-18/102-red?style=flat)](#)
 <!-- badges: end -->
 
-This development repository serves a few main purposes.
+This repository serves a few main purposes.
 
-1.  Hydrofabric processes are intentionally modular. This package
-    provides a collection of R package that are designed for
-    hydroscience. (e.g. tidyverse for hydrofabric development)
+1.  **Modular Hydrofabric Processes**: This package offers a collection
+    of R packages specifically designed for hydroscience applications,
+    akin to the tidyverse suite for hydrofabric development. It manages
+    dependencies, resolves conflicts, and streamlines the installation
+    process for quick setup.
 
-2.  Contains utilites needed for manipulating and enhancing hydrographic
-    networks.
+2.  **Hydrographic Network Utilities / Geoscience**: The repository
+    includes tools for obtaining, manipulating, and enhancing
+    hydrographic networks.
 
-3.  It provides the utilities to subset the national dataset for regions
-    upstream of a location (XY), hydrofabric ID, indexed hydrolocation
-    (e.g. NWIS gage, HUC12 or NID) or NHDPlus COMID.
+3.  **Subsetting National Datasets**: It provides utilities to subset
+    the national dataset for areas upstream of a specified location (XY
+    coordinates), hydrofabric ID, indexed hydrolocation (e.g., NWIS
+    gage, HUC12, or NID), NHDPlus COMID, or NLDI feature.
 
-4.  It provides a wide range of documentation including the hydrofabric
-    and cross section data model, the origins and development of the
-    product that can be found on the [landing
+4.  **Comprehensive Documentation**: The repository offers extensive
+    documentation, including details on the hydrofabric and
+    cross-section data model, as well as the origins and development of
+    the product. This information can be found on the [landing
     page](https://noaa-owp.github.io/hydrofabric/) under
-    [articles](https://noaa-owp.github.io/hydrofabric/articles/index.html).
+    [articles](https://noaa-owp.github.io/hydrofabric/articles/index.html)..
 
 ## Cloud Native Data Archives
 
@@ -58,15 +63,16 @@ remotes::install_github("NOAA-OWP/hydrofabric")
 library(hydrofabric)
 ```
 
-    ## ── Attaching packages ───────────────────────────────────────────────────────── hydrofabric 0.0.9 ──
+    ## ── Attaching packages ───────────────────────────────────────────────────────── hydrofabric 0.2.1 ──
 
-    ## ✔ dplyr        1.1.4      ✔ zonal        0.0.2 
-    ## ✔ climateR     0.3.5      ✔ hfsubsetR    0.0.9 
-    ## ✔ nhdplusTools 1.1.0      ✔ sf           1.0.17
-    ## ✔ hydrofab     0.5.2      ✔ terra        1.7.71
+    ## ✔ climateR  0.3.6      ✔ hydroloom 1.1.0 
+    ## ✔ dplyr     1.1.4      ✔ sf        1.0.19
+    ## ✔ hfsubsetR 0.3.2      ✔ terra     1.7.78
+    ## ✔ hydrofab  0.6        ✔ zonal     0.1.0
 
     ## ── Conflicts ──────────────────────────────────────────────────────────── hydrofabric_conflicts() ──
-    ## ✖ terra::plot() masks climateR::plot()
+    ## ✖ terra::plot()  masks climateR::plot()
+    ## ✖ terra::query() masks hfsubsetR::query()
 
     ## 
     ## Attaching package: 'hydrofabric'
@@ -78,46 +84,40 @@ library(hydrofabric)
 `library(hydrofabric)` will load the core packages (alphabetical):
 
 - [climateR](https://github.com/mikejohnson51/climateR) for accessing
-  federated data stores for parameter and attributes estimation
+  federated data for parameter and attributes estimation
 - [hfsubsetR](https://github.com/lynker-spatial/) for cloud-based
   hydrofabric subsetting
 - [hydrofab](https://github.com/mikejohnson51/hydrofab) a tool set for
   “fabricating” multiscale hydrofabrics
-- [ngen.hydrofab](https://github.com/mikejohnson51/ngen.hydrofab)
-  NextGen extensions for hydrofab
-- [nhdplusTools](https://github.com/doi-usgs/nhdplusTools/) for network
+- [hydroloom](https://github.com/doi-usgs/nhdplusTools/) for network
   manipulation
-- [zonal](https://github.com/mikejohnson51/zonal) for catchment
-  parameter estimation
+- [zonal](https://github.com/mikejohnson51/zonal) for spatial grid to
+  polygon summaries
 
 Additionally it will load key geospatial data science libraries:
 
 - `dplyr` (data.frames)
-- `sf` (vector)
-- `terra` (raster)
+- `sf` (vector geodata)
+- `terra` (raster geodata)
 
 # Subsetting
 
 ``` r
-# The output directory
-o = "vignettes/tutorial/example.gpkg"
+gpkg <- './conus_nextgen.gpkg'
 
-# Build subset
-hfsubsetR::get_subset(comid = 101, outfile = o, overwrite = FALSE)
+get_hydrofabric(outfile = gpkg)
 ```
 
-    ## Warning in hfsubsetR::get_subset(comid = 101, outfile = o, overwrite = FALSE):
-    ## vignettes/tutorial/example.gpkg already exists and overwrite is FALSE
+``` r
+subset_fabric <- get_subset(gpkg = gpkg, 
+                            comid = 101)
+```
 
-    ## [1] "vignettes/tutorial/example.gpkg"
-
-![](man/figures/unnamed-chunk-6-1.png)<!-- -->
+![](man/figures/unnamed-chunk-7-1.png)<!-- -->
 
 We have *also* created a CLI cloud based subsetter. Binaries of these
 can be installed at the [release
 page](https://github.com/lynker-spatial/hfsubsetCLI/releases).
-
-> NOTE: A Python Implementation is coming soon!
 
 # Hydrofabric Characteristic Data
 
@@ -132,51 +132,63 @@ Additionally, open source tools like `climateR` and `zonal` can be used
 to rapidly access and summarize data for a catchment set:
 
 ``` r
-# Read Hydrofabric
-hf = read_hydrofabric(o)
-
 # Get Daymet Data
-(tmax = getDaymet(hf$catchments, varname = "tmax", startDate = "2020-10-01"))
+(tmax = getDaymet(subset_fabric$divides, 
+                  varname = "tmax", 
+                  startDate = "2020-10-01"))
 ```
 
     ## $tmax
     ## class       : SpatRaster 
-    ## dimensions  : 21, 19, 1  (nrow, ncol, nlyr)
+    ## dimensions  : 34, 27, 1  (nrow, ncol, nlyr)
     ## resolution  : 1000, 1000  (x, y)
-    ## extent      : 480250, 499250, -1202500, -1181500  (xmin, xmax, ymin, ymax)
+    ## extent      : 480250, 507250, -1205500, -1171500  (xmin, xmax, ymin, ymax)
     ## coord. ref. : +proj=lcc +lat_0=42.5 +lon_0=-100 +lat_1=25 +lat_2=60 +x_0=0 +y_0=0 +ellps=WGS84 +units=m +no_defs 
     ## source(s)   : memory
     ## name        : tmax_2020-10-01_na_total 
-    ## min value   :                    32.83 
+    ## min value   :                    32.49 
     ## max value   :                    33.79 
     ## unit        :                degrees C 
     ## time        : 2020-10-01 UTC
 
-![](man/figures/unnamed-chunk-8-1.png)<!-- -->
+![](man/figures/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
-(summary_stats = zonal::execute_zonal(tmax, hf$catchments, ID = "divide_id"))
+(summary_stats = zonal::execute_zonal(tmax, 
+                                      subset_fabric$divides, 
+                                      ID = "divide_id"))
 ```
 
-    ## Simple feature collection with 35 features and 4 fields
+    ## Simple feature collection with 33 features and 11 fields
     ## Geometry type: POLYGON
     ## Dimension:     XY
-    ## Bounding box:  xmin: 113055 ymin: 890715 xmax: 130425 ymax: 911055
+    ## Bounding box:  xmin: 113055 ymin: 888405 xmax: 138555 ymax: 920325
     ## Projected CRS: NAD83 / Conus Albers
     ## First 10 features:
-    ##    divide_id areasqkm vpuid mean.tmax_2020.10.01_na_total                           geom
-    ## 1        101   4.5666    12                      33.49731 POLYGON ((130305 890715, 13...
-    ## 2    1078473  12.3156    12                      33.17984 POLYGON ((120345 900615, 12...
-    ## 3    1078475  12.3408    12                      33.21740 POLYGON ((117855 903975, 11...
-    ## 4    1078513   6.4449    12                      33.66863 POLYGON ((114645 895815, 11...
-    ## 5    1078519   1.9197    12                      33.69756 POLYGON ((115515 895755, 11...
-    ## 6    1078525   0.3789    12                      33.70147 POLYGON ((115965 895215, 11...
-    ## 7    1078527   0.3312    12                      33.72665 POLYGON ((114735 895485, 11...
-    ## 8    1078535   0.3582    12                      33.70396 POLYGON ((116445 895155, 11...
-    ## 9    1078545   0.2862    12                      33.70000 POLYGON ((116445 894735, 11...
-    ## 10   1078549   4.6296    12                      33.60812 POLYGON ((117675 894825, 11...
+    ##      divide_id        toid    type ds_id  areasqkm vpuid         id  lengthkm tot_drainage_areasqkm
+    ## 1  cat-2440455 nex-2440456 network    NA 12.333600    12 wb-2440455  8.311509              12.33360
+    ## 2  cat-2440456 nex-2440457 network    NA 22.042350    12 wb-2440456  8.331279              46.69020
+    ## 3  cat-2440457 nex-2440458 network    NA 14.172300    12 wb-2440457  6.178294              75.85065
+    ## 4  cat-2440458 nex-2440459 network    NA  8.410501    12 wb-2440458  8.247455             152.46045
+    ## 5  cat-2440459 nex-2440460 network    NA  8.895599    12 wb-2440459  8.716688             174.68595
+    ## 6  cat-2440463 nex-2440460 network    NA  7.793550    12 wb-2440463  5.555428               7.79355
+    ## 7  cat-2440464 nex-2440465 network    NA 49.057200    12 wb-2440464 13.680996              49.05720
+    ## 8  cat-2440465 nex-2440466 network    NA 58.074299    12 wb-2440465 18.292739             129.15360
+    ## 9  cat-2440466 nex-2440460 network    NA  3.231900    12 wb-2440466  6.033382             290.13525
+    ## 10 cat-2440467 nex-2440460 network    NA  6.275700    12 wb-2440467  3.406335               6.27570
+    ##    has_flowline mean.tmax_2020.10.01_na_total                           geom
+    ## 1          TRUE                      33.21733 POLYGON ((117855 903975, 11...
+    ## 2          TRUE                      33.48803 POLYGON ((118485 894765, 11...
+    ## 3          TRUE                      33.58906 POLYGON ((119205 893865, 11...
+    ## 4          TRUE                      33.59082 POLYGON ((125595 892305, 12...
+    ## 5          TRUE                      33.49315 POLYGON ((132465 889485, 13...
+    ## 6          TRUE                      33.18192 POLYGON ((133125 892065, 13...
+    ## 7          TRUE                      32.79919 POLYGON ((126585 907905, 12...
+    ## 8          TRUE                      33.19112 POLYGON ((131505 895095, 13...
+    ## 9          TRUE                      33.47892 POLYGON ((132015 891435, 13...
+    ## 10         TRUE                      33.28711 POLYGON ((132045 891555, 13...
 
-![](man/figures/unnamed-chunk-10-1.png)<!-- -->
+![](man/figures/unnamed-chunk-11-1.png)<!-- -->
 
 # Background
 
@@ -233,8 +245,8 @@ Please cite data and use as:
 
 # Questions:
 
-<a href = "mailto:jjohnson@lynker.com?subject=NextGen Hydrofabric Questions">
-Mike Johnson (Hydrofabric Lead) </a>
+<a href = "mailto:mike.johnson@noaa.gov?subject=NextGen Hydrofabric Questions">
+Mike Johnson (Hydrofabric Program Lead) </a>
 
 <img src="man/figures/logos.png" width="1796" style="display: block; margin: auto;" />
 

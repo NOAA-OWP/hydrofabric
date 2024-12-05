@@ -15,3 +15,5 @@ docs
 tmp
 runners
 in-progress
+data-raw
+README_files

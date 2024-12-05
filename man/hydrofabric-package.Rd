@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Mike Johnson \email{jjohnson@lynker.com}
+\strong{Maintainer}: Mike Johnson \email{mike.johnson@noaa.gov}
 
 Other contributors:
 \itemize{

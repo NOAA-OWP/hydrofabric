@@ -25,16 +25,16 @@ Imports:
     glue,
     grDevices,
     hydrofab,
+    hydroloom,
     hfsubsetR,
     jsonlite,
-    nhdplusTools,
     purrr,
     rstudioapi,
     sf,
     terra,
     utils,
     zonal
-License: Apache License (>= 2)
+License: Apache License (>= 2) + LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
@@ -47,11 +47,12 @@ Suggests:
     dm, 
     leaflet, 
     DT,
-    knitr
+    knitr,
+    distill
 Remotes: 
     NOAA-OWP/hydrofab,
     mikejohnson51/zonal,
     mikejohnson51/climateR,
     lynker-spatial/hfsubsetR
-Config/testthat/edition: 3
 VignetteBuilder: knitr
+Config/testthat/edition: 3
