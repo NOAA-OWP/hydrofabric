@@ -6,6 +6,10 @@ output:
   distill::distill_article:
     toc: true
     toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Background}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -14,8 +18,6 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE, 
                       warning = FALSE,
                       tidy=TRUE, tidy.opts=list(width.cutoff=60))
-
-
 ```
 
 The hydrofabric team is focused on delivering a consistent, interoperable, flexible, cloud native solution for [hydrofabric data](https://noaa-owp.github.io/hydrofabric/articles/01-intro-deep-dive.html) to those interested in hydrologic modeling and geospatial analysis. We aim to provide _open data to improve open science_ and it doing so strive to make _real data [FAIR](https://www.go-fair.org/fair-principles/) data_.

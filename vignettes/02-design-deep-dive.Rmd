@@ -15,6 +15,10 @@ author:
   - name: "Angus Watters"
     affiliation: Lynker
 output: distill::distill_article
+vignette: >
+  %\VignetteIndexEntry{The Reference Fabric}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -22,6 +26,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2);library(hydrofabric)
 base <- "tutorial"
 dir.create(base, showWarnings = FALSE)
+base_gpkg = "/Users/mikejohnson/hydrofabric/CONUS/v2.2/nextgen/ls_conus.gpkg"
 ```
 
 # How do we arrive at the NextGen Hydrofabric?
@@ -123,7 +128,7 @@ Points of Interest (POIs) for hydrologic modeling are collected from a variety o
   
 ```{r, echo = FALSE, eval = FALSE, warning=FALSE}
 
-df = open_dataset('s3://lynker-spatial/hydrofabric/v2.2/conus_hl') |> 
+df = as_ogr(base_gpkg, "hydrolocations") |> 
   select("hl_source", 'hl_reference', "hl_link") |>
   distinct() |> 
   collect() |>
@@ -150,8 +155,10 @@ ggsave(filename = "../man/figures/poi_dist.png")
 A VPU is a **V**ector **P**rocessing **Unit**. The USGS determined these regions when designing the NHDPlusV2. Since our work builds off the NHDPlusV2, we adopt these processing units.
 
 ```{r, echo = FALSE}
-ggplot(data = vpu_boundaries[1:21,]) + 
-  geom_sf(data = vpu_boundaries[1:21,]) + 
+x = hydrofab::vpu_boundaries[1:21,]
+
+ggplot(data = x) + 
+  geom_sf(data = x) + 
   geom_sf_label(aes(label = VPUID)) + 
   theme_void()
 ```
@@ -167,26 +174,6 @@ knitr::include_graphics(c('../man/figures/merit-hydro.png', '../man/figures/basi
 
 # Getting the reference fabric
 
-All reference products live on Lynker Spatial s3 account. 
-
-They can be accessed with the web interface, downloaded, or interfaced with arrow. 
-
-The `hydrofab::get_hydrofabric()` utility will download the most current geofabric for a Vector Processing Unit (VPU). 
-
-As an example, lets use the Geonconnex reference features to identify the location of our Fort Collins gage.
-
-This location can be joined to the set of VPU boundaries severed with `nhdplusTools` to find the correct VPU.
-
-```{r}
-(gage = open_dataset('s3://lynker-spatial/hydrofabric/v2.2/conus_hl') |> 
-  select("vpuid", 'hl_reference', "hl_link") %>% 
-  filter(hl_link == '06752260') %>% 
-  collect())
-  
-reference_gpkg = get_vpu_fabric(vpu = gage$vpuid[1],
-                                outfile = glue("tutorial/vpu_{gage$vpuid[1]}.gpkg"))
-```
-
-If the requested file already exists, the file path will be returned. 
+All reference products live on Lynker Spatial s3 account. They can be accessed with the web interface.
 
 Ok! With that, we have an idea of what the reference fabric is, how it was made, and how we can get it! The next stage is to learn how to manipulate this reference fabric for unique model applications. 

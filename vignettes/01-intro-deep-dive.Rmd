@@ -11,6 +11,10 @@ output:
   distill::distill_article:
     toc: true
     toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{NOAA's Enterprise Hydrofabric System}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}

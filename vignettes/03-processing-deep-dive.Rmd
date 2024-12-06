@@ -14,6 +14,10 @@ output:
   distill::distill_article:
     toc: true
     toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{Network Manipulation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -23,8 +27,6 @@ knitr::opts_chunk$set(  collapse = TRUE,
   warning = FALSE, message = FALSE)
 library(hydrofabric)
 library(ggplot2)
-using_local_example = "/Users/mjohnson/hydrofabric"
-hf <- "tutorial/poudre.gpkg"
 ```
 
 # Network Manipulation: Geoprocessing
@@ -45,25 +47,11 @@ All reference and (precomputed) refactored data products live on ScienceBase. Th
 
 ```{r, eval = FALSE}
 library(hydrofabric)
-using_local_example = "/Users/mjohnson/hydrofabric"
+gpkg <- './conus_nextgen.gpkg'
 
-# Define starting feature by source and ID
-(gage = list(featureSource = "nwis", featureID = "06752260"))
-
-# Use subset_network to build a reference subset
-hf = hfsubsetR::get_subset(nldi_feature = gage, 
-                           source  = using_local_example, 
-                           outfile = "tutorial/poudre.gpkg",
-                           overwrite = FALSE)
-```
-
-```{r}
-d = read_hydrofabric("tutorial/poudre.gpkg")
-
-pois = open_dataset(glue("{using_local_example}/v2.2/conus_hl")) %>% 
-  filter(hf_id %in% d$flowpaths$id, hl_source == 'GFv20') %>% 
-  collect() %>% 
-  st_as_sf(coords = c("X", "Y"), crs = 5070)
+subset_fabric <- get_subset(gpkg = gpkg, 
+                            comid = 101,
+                            "../inst/extdata/reference-comid-101-subset.gpkg")
 ```
 
 # 1) Running the Process: Refactoring
@@ -104,15 +92,19 @@ You might also have areas where you want to avoid, or, enforce a splitting event
  
 ## Example
 
-```{r, eval = FALSE}
-refactored = refactor(hf,
+```{r, eval = TRUE}
+refactored = refactor("../inst/extdata/reference-comid-101-subset.gpkg",
                       split_flines_meters = 10000, 
                       collapse_flines_meters = 1000, 
                       collapse_flines_main_meters = 1000,
-                      pois = pois,
                       fac = '/vsis3/lynker-spatial/gridded-resources/fac.vrt',
                       fdr = '/vsis3/lynker-spatial/gridded-resources/fdr.vrt',
-                      outfile = "tutorial/refactor.gpkg")
+                      outfile = "../inst/extdata/refactor.gpkg")
+```
+
+
+```{r}
+mapview::mapview(read_hydrofabric("../inst/extdata/refactor.gpkg"))
 ```
 
 ## Outputs 
@@ -120,8 +112,8 @@ refactored = refactor(hf,
 To get a high level understanding of what happened with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
-reference = read_hydrofabric("tutorial/poudre.gpkg")
-refactor  = read_hydrofabric("tutorial/refactored.gpkg")
+reference = read_hydrofabric("../inst/extdata/reference-comid-101-subset.gpkg")
+refactor  = read_hydrofabric("../inst/extdata/refactor.gpkg")
 
 refactor$flowpaths$LENGTHKM = add_lengthkm(refactor$flowpaths)
 refactor$catchments$areasqkm = add_areasqkm(refactor$catchments)
@@ -187,11 +179,6 @@ ggplot() +
 
 - Since refactoring requires the preservation of the flowpath network, the blue lines are representative of both the reference and refactored network with the caveat they are broken and different places.
 
-```{r, echo = FALSE}
-knitr::include_graphics('../man/figures/refactored-network.png')
-```
-
-
 # 2. Running the Process: Aggregating
 
 - Aggregation is a primarily a divide oriented workflow. It collapses the network to provide a new discretization.
@@ -216,20 +203,18 @@ Here, a `hydrolocation` POINT layer can be passed to help direct the aggregation
 
 ## Example
 
-```{r, eval = FALSE}
-
-hydrolocations = read_sf("tutorial/refactored.gpkg", 'lookup_table') %>% 
-  inner_join(pois, by = c("NHDPlusV2_COMID" = "hf_id")) %>% 
-  select(poi_id, NHDPlusV2_COMID, id = reconciled_ID) %>% 
-  distinct()
-
-aggregate_to_distribution(gpkg = "tutorial/refactored.gpkg",
-                          hydrolocations = mutate(pois, id = hf_id),
+```{r, eval = TRUE}
+aggregate_to_distribution(gpkg = "../inst/extdata/refactor.gpkg",
                           ideal_size_sqkm = 10, 
                           min_length_km = 1, 
                           min_area_sqkm = 3, 
-                          outfile = "tutorial/aggregated.gpkg", 
+                          outfile = "../inst/extdata/aggregate.gpkg", 
                           overwrite = TRUE)
+```
+
+```{r}
+r = read_hydrofabric("../inst/extdata/aggregate.gpkg")
+mapview::mapview(r)
 ```
 
 ## Outputs 
@@ -237,7 +222,7 @@ aggregate_to_distribution(gpkg = "tutorial/refactored.gpkg",
 To get a high level understanding of what happens with this "refactor", we can look at the length distributions:
 
 ```{r, echo = FALSE}
-agg = read_hydrofabric("tutorial/aggregated.gpkg")
+agg = read_hydrofabric("../inst/extdata/aggregate.gpkg")
 
 ggplot() + 
   geom_density(data = refactor$flowpaths,  aes(x = LENGTHKM), color = "blue", lwd = 3) + 
@@ -283,18 +268,6 @@ ggplot() +
   
 ```
 
-- Finally, we can zoom into a layer of this network to see what changes exist.
-
-- In the left-hand figure below, the white edges represent the `reference` catchment network, the black edges represent the refactored network, and the red represnet the aggregated network
-
-- In the right-hand figure, we can see the blue flowlines (from reference and refactor) that were prunned in the aggregation process.
-
-
-```{r, echo=FALSE,out.width="45%",fig.show='hold',fig.align='center'}
-knitr::include_graphics(c('../man/figures/catchment-dissolving.png', '../man/figures/river-pruning.png'))
-```
-
-
 Lastly, we can look at the cumulative network traits of each fabric:
 
 ```{r, echo=FALSE}
@@ -312,21 +285,16 @@ ggplot(aes(x=class, y=num, fill=type)) +
   scale_fill_manual(values=c('green', 'blue','red'))
 ```
 
-```{r}
-r = read_hydrofabric("tutorial/aggregated.gpkg")
-mapview::mapview(r) + pois
-```
-
 # Full Run-through
 
 ```{r, eval = FALSE}
-hf = get_subset(nldi_feature = list(featureSource = "nwis", featureID = "06752260"), 
-                source = "/Users/mjohnson/hydrofabric",
-                outfile = "tutorial/poudre.gpkg") |>
+hf = get_subset(gpkg = './conus_nextgen.gpkg', 
+                comid = 101,
+                "../inst/extdata/reference-comid-101-subset.gpkg") |>
      refactor(fac = '/vsis3/lynker-spatial/gridded-resources/fac.vrt',
               fdr = '/vsis3/lynker-spatial/gridded-resources/fdr.vrt',
-              outfile = "tutorial/refactor.gpkg") |>
-     aggregate_to_distribution(outfile = "tutorial/aggregate.gpkg")
+              outfile = "../inst/extdata/refactor.gpkg") |>
+     aggregate_to_distribution(outfile = "../inst/extdata/aggregate.gpkg")
 ```
 
 
@@ -343,4 +311,9 @@ nhdplusTools::get_sorted()
 
 ```{r, echo = FALSE}
 knitr::include_graphics('../man/figures/figure7.png')
+```
+
+```{r, echo = FALSE}
+unlink('../inst/extdata/refactor.gpkg')
+unlink('aggregate.gpkg')
 ```

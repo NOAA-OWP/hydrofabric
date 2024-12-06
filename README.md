@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Hydrofabric:<a href="https://github.com/lynker-spatial/hfsubsetR"><img src="man/figures/logo.png" align="right" width="25%"/></a>
+# Hydrofabric:<a href="https://github.com/NOAA-OWP/hydrofabric"><img src="man/figures/logo.png" align="right" width="25%"/></a>
 
 <!-- badges: start -->
 
@@ -65,7 +65,7 @@ library(hydrofabric)
 
     ## ── Attaching packages ───────────────────────────────────────────────────────── hydrofabric 0.2.1 ──
 
-    ## ✔ climateR  0.3.6      ✔ hydroloom 1.1.0 
+    ## ✔ climateR  0.3.7      ✔ hydroloom 1.1.0 
     ## ✔ dplyr     1.1.4      ✔ sf        1.0.19
     ## ✔ hfsubsetR 0.3.2      ✔ terra     1.7.78
     ## ✔ hydrofab  0.6        ✔ zonal     0.1.0
@@ -133,7 +133,7 @@ to rapidly access and summarize data for a catchment set:
 
 ``` r
 # Get Daymet Data
-(tmax = getDaymet(subset_fabric$divides, 
+(tmax = getDaymet(subset_fabric$catchments, 
                   varname = "tmax", 
                   startDate = "2020-10-01"))
 ```
@@ -155,7 +155,7 @@ to rapidly access and summarize data for a catchment set:
 
 ``` r
 (summary_stats = zonal::execute_zonal(tmax, 
-                                      subset_fabric$divides, 
+                                      subset_fabric$catchments, 
                                       ID = "divide_id"))
 ```
 

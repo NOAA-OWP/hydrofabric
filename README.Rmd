@@ -11,10 +11,10 @@ knitr::opts_chunk$set(
   message = TRUE,
   fig.path = 'man/figures/'
 )
-gpkg = '/Users/mikejohnson/hydrofabric/conus_nextgen.gpkg'
+
 ```
 
-# Hydrofabric:<a href="https://github.com/lynker-spatial/hfsubsetR"><img src="man/figures/logo.png" align="right" width="25%"/></a>
+# Hydrofabric:<a href="https://github.com/NOAA-OWP/hydrofabric"><img src="man/figures/logo.png" align="right" width="25%"/></a>
 
 <!-- badges: start -->
 [![R CMD Check](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)](https://github.com/NOAA-OWP/hydrofabric/actions/workflows/R-CMD-check.yaml)
@@ -75,14 +75,16 @@ gpkg <- './conus_nextgen.gpkg'
 get_hydrofabric(outfile = gpkg)
 ```
 
-```{r}
+```{r, eval = FALSE}
 subset_fabric <- get_subset(gpkg = gpkg, 
                             comid = 101)
 ```
 
 ```{r, echo = FALSE}
+subset_fabric = read_hydrofabric("inst/extdata/comid-101-subset.gpkg")
+subset_fabric$nexus = sf::read_sf("inst/extdata/comid-101-subset.gpkg", 'nexus')
 {
-  plot(subset_fabric$divides$geom, col = "gray90")
+  plot(subset_fabric$catchments$geom, col = "gray90")
   plot(subset_fabric$flowpaths$geom, add = TRUE, col = "blue")
   plot(subset_fabric$nexus, add = TRUE, col = "red", pch = 16)
 }
@@ -100,7 +102,7 @@ Additionally, open source tools like `climateR` and `zonal` can be used to rapid
 
 ```{r}
 # Get Daymet Data
-(tmax = getDaymet(subset_fabric$divides, 
+(tmax = getDaymet(subset_fabric$catchments, 
                   varname = "tmax", 
                   startDate = "2020-10-01"))
 ```
@@ -111,7 +113,7 @@ plot(tmax$tmax, main = 'Daymet Maximum Temperture')
 
 ```{r}
 (summary_stats = zonal::execute_zonal(tmax, 
-                                      subset_fabric$divides, 
+                                      subset_fabric$catchments, 
                                       ID = "divide_id"))
 ```
 

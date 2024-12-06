@@ -8,6 +8,10 @@ author:
     affiliation: Lynker, NOAA-Affiliate
     affiliation_url: https://lynker.com
 output: distill::distill_article
+vignette: >
+  %\VignetteIndexEntry{Applying NextGen Structure}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
@@ -58,11 +62,8 @@ Right now, the following prefixs are used to distinguish between types of model 
 The following function (1) identifies nexus locations, (2) moves them when needed and (3) applies the above schema to the features.
 
 ```{r, eval = TRUE}
-ngen = 'tutorial/nextgen.gpkg'
-
-unlink(ngen)
-
-ngen <- apply_nexus_topology("tutorial/aggregated.gpkg", export_gpkg = 'tutorial/nextgen.gpkg')
+ngen <- apply_nexus_topology(gpkg = "../inst/extdata//aggregate.gpkg", 
+                             export_gpkg = '../inst/extdata//nextgen.gpkg')
 ```
 
 We can see the results of this by opening the hydrofabric and adding it to a map!
