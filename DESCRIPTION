@@ -1,0 +1,60 @@
+Package: hydrofabric
+Title: Build Hydrologic Modeling Fabrics from Reference Networks
+Version: 0.1.0
+Authors@R: c(
+    person(given = "Mike",
+           family = "Johnson",
+           role = c("aut", "cre"),
+           email = "mjohnson@lynker.com"),
+    person(given = "Lynker Corporation",
+           role = "cph"),
+    person(given = "NOAA Office of Water Prediction",
+           role = "fnd",
+           comment = "partial funding"))
+Description: A general toolkit for building hydrologic modeling fabrics from a
+    reference hydrographic network. Flowlines are split, collapsed, and
+    reconciled against flow direction and flow accumulation rasters; catchment
+    divides are partitioned to match; the network is aggregated to a
+    distribution topology; and per-unit results are merged into global domains
+    with globally unique identifiers. Outputs are checked against structural invariants
+    and stamped with build provenance for reproducible reuse. The reference
+    application is the NOAA Office of Water Prediction National Water Model
+    (NWM) v4 for the NextGen Modeling System, developed with partial OWP
+    funding.
+License: Apache License (== 2.0)
+URL: https://lynker-spatial.github.io/hydrofabric, https://github.com/lynker-spatial/hydrofabric
+BugReports: https://github.com/lynker-spatial/hydrofabric/issues
+Encoding: UTF-8
+SystemRequirements: GDAL (>= 3.5), GEOS (>= 3.11), PROJ (>= 9), mapshaper
+    (command-line tool, used by the aggregate phase)
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    cli,
+    data.table,
+    DBI,
+    dplyr,
+    furrr,
+    future,
+    geos,
+    hfutils (>= 0.4.3),
+    igraph,
+    jsonlite,
+    logger,
+    lwgeom,
+    parallel,
+    RSQLite,
+    sf,
+    stats,
+    terra,
+    utils
+Remotes:
+    lynker-spatial/hfutils
+Suggests:
+    arrow,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    withr
+VignetteBuilder: knitr
+Config/testthat/edition: 3

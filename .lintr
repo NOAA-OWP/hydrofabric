@@ -1,0 +1,16 @@
+linters: linters_with_defaults(
+    line_length_linter = line_length_linter(120L), # house width; styler does not wrap
+    indentation_linter = NULL,    # styler is the formatter of record (owns indentation)
+    object_name_linter = NULL,    # hydrofabric column conventions (ID, toID, COMID, VPU,
+                                  # rec_id, ...) and dotted internal helpers are intentional
+    commented_code_linter = NULL, # false-positives on prose comments ("# a -> b")
+    return_linter = NULL,         # explicit return() is used intentionally
+    brace_linter = NULL,          # allow guard clauses: if (x) return(y), inline handlers
+    object_usage_linter = NULL,   # false-positives on cli/glue + data.table NSE
+    object_length_linter = NULL   # intentional descriptive names (rf_generate_events_*, ...)
+  )
+  # ~44 line_length(>120) lints remain in dense pipeline code (nested dplyr
+  # chains / SQL templates): visible tech-debt, not reflowed here to avoid
+  # touching working production logic; revisit as a separate refactor.
+encoding: "UTF-8"
+exclusions: list("tests/testthat.R")

@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  r-cmd-check:
+    runs-on: ubuntu-latest
+    env:
+      R_VERSION: "4.4"
+      _R_CHECK_TESTS_NLINES_: 0
+      NOT_CRAN: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ env.R_VERSION }}
+          use-public-rspm: true
+
+      # Pandoc builds the package vignettes during R CMD check.
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      # mapshaper is required by the aggregate divide cleanup
+      # (hfutils::clean_gpkg_layer); installing it lets the aggregate regression
+      # test run rather than skip.
+      - name: Install mapshaper
+        run: npm install -g mapshaper
+
+      # The arrow R package installs from RSPM with Arrow bundled.
+      - name: Install system deps (GEOS / GDAL / PROJ / units)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgdal-dev libproj-dev libgeos-dev libsqlite3-dev \
+            libudunits2-dev libcurl4-openssl-dev libssl-dev \
+            libxml2-dev libnetcdf-dev libv8-dev
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          cache-version: 2
+          extra-packages: |
+            any::rcmdcheck
+            any::devtools
+            any::arrow
+
+      - name: R CMD check (no examples, no manual, faster CI)
+        run: |
+          Rscript -e 'rcmdcheck::rcmdcheck(args = c("--no-examples", "--no-manual", "--no-tests"), error_on = "warning")'
+
+      - name: Unit tests
+        run: |
+          Rscript -e 'devtools::test()'

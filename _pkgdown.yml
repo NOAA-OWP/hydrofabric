@@ -1,0 +1,147 @@
+url: https://lynker-spatial.github.io/hydrofabric
+
+# Built to a dedicated dir and deployed to the gh-pages branch by CI.
+destination: pkgdown_site
+
+template:
+  bootstrap: 5
+  bslib:
+    # Palette: cool blues, mid-contrast on white.
+    primary: "#1EB5FF"
+    secondary: "#1E39B7"
+    info: "#66CCFF"
+    bg: "#ffffff"
+    fg: "#1f3347"
+    base_font: { google: "Inter" }
+    heading_font: { google: "Inter" }
+    code_font: { google: "JetBrains Mono" }
+    headings-font-weight: 600
+    link-color: "#1E89FF"
+    link-hover-color: "#1E39B7"
+    code-color: "#1E39B7"
+    border-radius: "0.5rem"
+    navbar-light-bg: "#f7fbff"
+    navbar-light-hover-color: "#1EB5FF"
+  includes:
+    in_header: |
+      <meta name="theme-color" content="#1EB5FF">
+
+navbar:
+  bg: light
+  structure:
+    left:  [intro, articles, reference, datamodel, news]
+    right: [github]
+  components:
+    intro:
+      text: Get started
+      href: articles/hydrofabric.html
+    datamodel:
+      text: Data model
+      href: https://lynker-spatial.github.io/hfdatamodel/
+
+footer:
+  structure:
+    left: blank
+    right: blank
+  components:
+    blank: ""
+
+home:
+  title: hydrofabric
+  description: >
+    A toolkit for building topology-correct hydrofabrics from a reference
+    hydrographic network: refactor, aggregate, package, and merge, with full
+    reference-id lineage and structural invariants. Its reference application is
+    the NOAA OWP National Water Model v4 for the NextGen Modeling System.
+
+reference:
+  - title: Pipeline
+    desc: End-to-end pipeline entry points.
+    contents:
+      - run_pipeline
+      - run_vpus
+      - presplit_reference
+      - prepare_hydrolocations
+      - check_reference_input
+      - check_grid_coverage
+      - check_hydrolocation_input
+      - check_reference_coincident_geometry
+      - check_reference_divide_pairing
+      - check_reference_downstream_resolves
+      - check_reference_severed_terminals
+      - hf_compare_products
+      - hl_reference_index
+      - hf_input_manifest
+      - hf_verify_manifest
+      - hf_output_manifest
+      - hf_verify_output_manifest
+  - title: "Refactor"
+    desc: Split/collapse flowlines and raster-partition divides.
+    contents:
+      - refactor_fabric
+      - refactor_flowlines
+      - reconcile_collapsed_flowlines
+      - split_flowlines
+      - events_to_exclude_cats
+      - reconcile_divides
+      - partition_reconcile_divides
+      - partition_reconcile_divides_from_objects
+  - title: "Aggregate"
+    desc: Aggregate the network and divides to distribution scale.
+    contents:
+      - aggregate_fabric
+      - aggregate_network
+      - construct_agg_divides
+      - prepare_network
+      - add_network_type
+      - extend_flowpaths_to_mainstem
+  - title: "NextGen"
+    desc: Build the NextGen product and finalize the data model.
+    contents:
+      - nextgen_fabric
+      - nextgen_from_gpkg
+      - add_flowlines
+      - build_aspatial_network
+      - enforce_flowpath_flowdir
+      - flag_flowpath_constituents
+      - flag_routeable_flowlines
+      - add_upstream_index
+      - finalize_data_model
+  - title: "Global merge"
+    desc: Merge per-VPU outputs into domain products with global ids.
+    contents:
+      - merge_vpus
+  - title: QA, lineage & invariants
+    desc: The correctness contract and reference-id traceability.
+    contents:
+      - check_invariants
+      - enforce_integer_ids
+      - lineage_build
+      - lineage_attach_aggregated
+      - lineage_attach_ngen
+      - lineage_member_csv
+
+articles:
+  - title: Guide
+    navbar: ~
+    contents:
+      - hydrofabric
+      - inputs
+      - refactor
+      - aggregate
+      - nextgen
+      - merge
+  - title: Design
+    navbar: Design
+    contents:
+      - invariants
+      - poi-contract
+      - tests
+  - title: Data
+    navbar: Data
+    contents:
+      - upstream-index
+
+authors:
+  Mike Johnson:
+    href: https://github.com/mikejohnson51

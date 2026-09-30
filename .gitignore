@@ -1,0 +1,16 @@
+# R and editor files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+
+# Build and check output
+*.Rcheck/
+*.tar.gz
+/doc/
+/Meta/
+pkgdown_site/
+README.html
+vignettes/*.html
+vignettes/*.R

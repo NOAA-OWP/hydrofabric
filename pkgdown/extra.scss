@@ -1,0 +1,17 @@
+/* Small readability adjustments for the hydrofabric pkgdown site.
+   Colours come from the bslib palette in _pkgdown.yml. */
+
+$accent:    #1EB5FF;
+$surface-2: #eef4fa;
+$ink:       #122333;
+
+// Tables carry a lot of the schema documentation, so give the header row
+// enough contrast to stay legible in long tables.
+.table thead th, table.table th {
+  background: $surface-2;
+  color: $ink;
+}
+.table tbody tr:hover td { background: rgba($accent, .05); }
+
+// Code blocks: a flat tint reads more calmly than a bordered box.
+pre, div.sourceCode pre { background: $surface-2; }

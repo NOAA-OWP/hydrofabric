@@ -1,0 +1,61 @@
+hydrofabric
+Copyright 2025-2026 Lynker Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-------------------------------------------------------------------------------
+
+Authors:
+  Mike Johnson <mjohnson@lynker.com>
+
+-------------------------------------------------------------------------------
+
+Attribution:
+  This software and the data it produces build on the Lynker Spatial Reference
+  Fabric (https://www.lynker-spatial.com/). Derived data products are
+  distributed under CC BY-SA 4.0 and must credit "Lynker Corporation" per that
+  license.
+
+  Every domain except Hawaii and PRVI also draws on TDX-Hydro and HydroSHEDS v2,
+  whose licenses require their own credit on any redistribution:
+
+    Contains TDX-Hydro (c) 2023 National Geospatial-Intelligence Agency (NGA),
+    licensed under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/),
+    used as a base network. Modified and substantially transformed by Lynker
+    Spatial. Derived data (c) Lynker Corporation, distributed under CC BY-SA 4.0.
+
+    Contains HydroSHEDS v2 flow-direction and flow-accumulation data (c) World
+    Wildlife Fund, Inc., licensed under CC BY 4.0
+    (https://creativecommons.org/licenses/by/4.0/); derived from TanDEM-X (c) DLR.
+
+  Alaska also credits its lake polygons:
+
+    Contains HydroLAKES v1.0 lake polygons (c) World Wildlife Fund, Inc.
+    (Messager et al., 2016), licensed under CC BY 4.0
+    (https://creativecommons.org/licenses/by/4.0/).
+
+  Hawaii and PRVI are built from NHDPlus HR, a US Government work in the public
+  domain, and carry the Lynker Corporation credit alone. The CC BY-SA 4.0 term
+  applies to the fabric derived here, not to the source data.
+
+  The pipeline stamps the applicable notices into every GeoPackage it writes.
+
+-------------------------------------------------------------------------------
+
+Funding:
+  Development of this software was supported in part by NOAA Office of Water
+  Prediction work under the following task orders:
+    - National Water Model (NWM): Task No. 1305M324F0376
+    - Geospatial Services: Task No. 1305M323FNWWY0192
+
+  These task orders funded portions of, but not all of, this work.

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" width="720" height="330"
+     font-family="Inter, Helvetica, Arial, sans-serif" role="img"
+     aria-label="A small network numbered in depth-first pre-order, with the contiguous interval that answers an upstream query.">
+  <style>
+    .n  { fill:#EAF6FF; stroke:#1EB5FF; stroke-width:1.6 }
+    .nq { fill:#1EB5FF; stroke:#1E39B7; stroke-width:2 }
+    .e  { stroke:#1E39B7; stroke-width:1.6; fill:none; marker-end:url(#a) }
+    .t  { fill:#1f3347; font-size:13px }
+    .tw { fill:#ffffff; font-size:13px; font-weight:600 }
+    .lbl{ fill:#4a6076; font-size:12px }
+    .hd { fill:#1f3347; font-size:13px; font-weight:600 }
+    .band { fill:#1EB5FF; opacity:.13 }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1E39B7"/>
+    </marker>
+  </defs>
+
+  <text class="hd" x="0" y="14">Depth-first pre-order numbering, flow downward</text>
+
+  <!-- edges (upstream nodes feed downward into the outlet) -->
+  <path class="e" d="M110,96 L152,140"/>
+  <path class="e" d="M190,96 L166,140"/>
+  <path class="e" d="M160,178 L200,222"/>
+  <path class="e" d="M290,96 L262,222"/>
+  <path class="e" d="M240,258 L240,286"/>
+
+  <!-- upstream leaves -->
+  <circle class="n" cx="100" cy="82" r="20"/><text class="t" x="94"  y="87">3</text>
+  <circle class="n" cx="200" cy="82" r="20"/><text class="t" x="194" y="87">4</text>
+  <circle class="n" cx="300" cy="82" r="20"/><text class="t" x="294" y="87">5</text>
+  <!-- confluence -->
+  <circle class="n" cx="160" cy="160" r="20"/><text class="t" x="154" y="165">2</text>
+  <!-- the queried flowpath X -->
+  <circle class="nq" cx="240" cy="240" r="22"/><text class="tw" x="228" y="245">X=1</text>
+  <!-- outlet -->
+  <circle class="n" cx="240" cy="304" r="20"/><text class="t" x="234" y="309">0</text>
+
+  <text class="lbl" x="326" y="87">leaves</text>
+  <text class="lbl" x="186" y="196">confluence</text>
+  <text class="lbl" x="272" y="245">queried flowpath</text>
+  <text class="lbl" x="266" y="309">outlet (downstream)</text>
+
+  <!-- interval strip -->
+  <text class="hd" x="430" y="14">upstream_id, one integer column</text>
+  <rect class="band" x="430" y="34" width="228" height="34" rx="6"/>
+  <g class="t">
+    <rect x="430" y="34" width="57" height="34" rx="6" fill="none" stroke="#1EB5FF"/>
+    <rect x="487" y="34" width="57" height="34" rx="6" fill="none" stroke="#1EB5FF"/>
+    <rect x="544" y="34" width="57" height="34" rx="6" fill="none" stroke="#1EB5FF"/>
+    <rect x="601" y="34" width="57" height="34" rx="6" fill="none" stroke="#1EB5FF"/>
+    <text x="454" y="56">2</text><text x="511" y="56">3</text>
+    <text x="568" y="56">4</text><text x="625" y="56">5</text>
+  </g>
+  <path d="M430,78 L658,78" stroke="#1E39B7" stroke-width="1.4"/>
+  <path d="M430,74 L430,82 M658,74 L658,82" stroke="#1E39B7" stroke-width="1.4"/>
+  <text class="lbl" x="430" y="98">the four flowpaths upstream of X, contiguous</text>
+
+  <text class="t" x="430" y="140">num_upstreams[X] = 4</text>
+  <text class="t" x="430" y="164">upstream_id[X]   = 1</text>
+  <text class="hd" x="430" y="200">Query</text>
+  <text class="t" x="430" y="222">upstream_id &gt; 1</text>
+  <text class="t" x="430" y="244">upstream_id &lt;= 1 + 4</text>
+  <text class="lbl" x="430" y="270">one range filter, no traversal</text>
+</svg>
