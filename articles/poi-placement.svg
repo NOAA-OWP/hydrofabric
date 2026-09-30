@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" height="300"
+     font-family="Inter, Helvetica, Arial, sans-serif" role="img"
+     aria-label="Three cases: a POI that splits its reach, a POI too near the inlet that moves to the upstream reach's outlet, and a POI too near the outlet that moves to its own reach's outlet.">
+  <style>
+    .reach  { stroke:#8fb3cc; stroke-width:7; stroke-linecap:round; fill:none }
+    .reachB { stroke:#1E39B7; stroke-width:7; stroke-linecap:round; fill:none }
+    .poi    { fill:#ffffff; stroke:#1E39B7; stroke-width:2.4 }
+    .moved  { fill:#1EB5FF; stroke:#1E39B7; stroke-width:2.4 }
+    .hd     { fill:#1f3347; font-size:13px; font-weight:600 }
+    .t      { fill:#1f3347; font-size:12px }
+    .lbl    { fill:#4a6076; font-size:11.5px }
+    .arrow  { stroke:#1E39B7; stroke-width:1.5; fill:none; marker-end:url(#m) }
+    .floor  { fill:#1EB5FF; opacity:.16 }
+  </style>
+  <defs>
+    <marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1E39B7"/>
+    </marker>
+  </defs>
+
+  <text class="hd" x="0" y="14">Flow left to right. A POI must end up at a reach outlet.</text>
+
+  <!-- CASE 1: split -->
+  <text class="hd" x="0" y="52">1. The split succeeds</text>
+  <path class="reach" d="M150,72 L420,72"/>
+  <circle class="poi" cx="300" cy="72" r="7"/>
+  <text class="lbl" x="150" y="94">inlet</text>
+  <text class="lbl" x="398" y="94">outlet</text>
+  <text class="t" x="268" y="52">POI</text>
+  <path class="arrow" d="M470,72 L510,72"/>
+  <path class="reachB" d="M540,72 L620,72"/>
+  <path class="reach" d="M628,72 L700,72"/>
+  <circle class="moved" cx="620" cy="72" r="7"/>
+  <text class="lbl" x="540" y="94">the POI is now an outlet of its own reach</text>
+
+  <!-- CASE 2: too near the inlet -->
+  <text class="hd" x="0" y="140">2. Too near the inlet</text>
+  <rect class="floor" x="150" y="150" width="46" height="20" rx="4"/>
+  <path class="reach" d="M150,160 L420,160"/>
+  <path class="reach" d="M20,160 L142,160"/>
+  <circle class="poi" cx="178" cy="160" r="7"/>
+  <text class="lbl" x="150" y="186">below the split floor</text>
+  <path class="arrow" d="M470,160 L510,160"/>
+  <path class="reach" d="M540,160 L700,160"/>
+  <circle class="moved" cx="612" cy="160" r="7"/>
+  <path class="reachB" d="M540,160 L612,160"/>
+  <text class="lbl" x="540" y="186">moves to the upstream reach's outlet;</text>
+  <text class="lbl" x="540" y="200">flowpath_id changes</text>
+
+  <!-- CASE 3: too near the outlet -->
+  <text class="hd" x="0" y="234">3. Too near the outlet</text>
+  <rect class="floor" x="374" y="244" width="46" height="20" rx="4"/>
+  <path class="reach" d="M150,254 L420,254"/>
+  <circle class="poi" cx="396" cy="254" r="7"/>
+  <text class="lbl" x="330" y="280">below the split floor</text>
+  <path class="arrow" d="M470,254 L510,254"/>
+  <path class="reachB" d="M540,254 L680,254"/>
+  <circle class="moved" cx="680" cy="254" r="7"/>
+  <text class="lbl" x="540" y="280">moves to its own reach's outlet;</text>
+  <text class="lbl" x="540" y="294">flowpath_id is unchanged</text>
+</svg>

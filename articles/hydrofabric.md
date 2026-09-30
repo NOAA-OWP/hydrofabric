@@ -1,0 +1,144 @@
+# The hydrofabric pipeline
+
+`hydrofabric` builds hydrologic modeling fabrics from a reference
+hydrographic network. Each VPU runs through three phases, **refactor**,
+**aggregate** and **nextgen**, and the VPUs are then **merged** into
+domain products with globally unique identifiers. The examples need
+reference data and grids, so they are not run when this vignette is
+built.
+
+The terms used here (flowpath, divide, flowline, nexus, hydrolocation,
+VPU) are those of the [hydrofabric data
+model](https://lynker-spatial.github.io/hfdatamodel/).
+
+## Inputs
+
+A build needs a reference GeoPackage (`flowpaths` and `divides`), a
+hydrolocation GeoPackage, and flow-direction and flow-accumulation
+grids; channel, lake and lake-mask tables are optional. See
+[`vignette("inputs")`](https://lynker-spatial.github.io/hydrofabric/articles/inputs.md).
+Raw hydrolocation points are snapped to the reference with
+[`prepare_hydrolocations()`](https://lynker-spatial.github.io/hydrofabric/reference/prepare_hydrolocations.md).
+
+## One VPU
+
+``` r
+
+library(hydrofabric)
+
+run_pipeline(
+  vpuid               = "01",
+  reference_gpkg      = "reference.gpkg",
+  hydrolocations_gpkg = "hydrolocations.gpkg",
+  fdr_path            = "fdr.vrt",
+  fac_path            = "fac.vrt",
+  out_dir             = "out"
+)
+```
+
+The product is `out/vpu_01/ngen_vpu01.gpkg`. `from` and `through` run
+part of the pipeline:
+
+``` r
+
+run_pipeline(..., through = "aggregate")   # stop before the nextgen phase
+run_pipeline(..., from    = "aggregate")   # resume from a refactored fabric
+```
+
+Phase parameters are arguments of each phase function, and
+[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md)
+passes them through:
+
+``` r
+
+run_pipeline(..., min_area_sqkm = 5, coverage_min = 0.95)
+```
+
+See the
+[refactor](https://lynker-spatial.github.io/hydrofabric/articles/refactor.md),
+[aggregate](https://lynker-spatial.github.io/hydrofabric/articles/aggregate.md),
+[nextgen](https://lynker-spatial.github.io/hydrofabric/articles/nextgen.md)
+and
+[merge](https://lynker-spatial.github.io/hydrofabric/articles/merge.md)
+vignettes for each phase.
+
+## All VPUs
+
+[`run_vpus()`](https://lynker-spatial.github.io/hydrofabric/reference/run_vpus.md)
+runs a set of VPUs. Shared inputs are given once, and each domain
+overrides only what differs for it:
+
+``` r
+
+conus <- c("01","02","03N","03S","03W","04","05","06","07","08","09",
+           "10L","10U","11","12","13","14","15","16","17","18")
+
+inputs <- stats::setNames(vector("list", length(conus)), conus)
+inputs[["19"]] <- list(reference_gpkg = "ak_reference.gpkg",
+                       fdr_path = "ak/fdr.vrt", fac_path = "ak/fac.vrt")
+inputs[["20"]] <- list(reference_gpkg = "hi_reference.gpkg",
+                       fdr_path = "hi/hi_fdr.vrt", fac_path = "hi/hi_fac.vrt")
+inputs[["21"]] <- list(reference_gpkg = "prvi_reference.gpkg",
+                       fdr_path = "prvi/prvi_fdr.tif", fac_path = "prvi/prvi_fac.tif")
+
+res <- run_vpus(
+  inputs,
+  out_dir             = "out",
+  reference_gpkg      = "conus_reference.gpkg",
+  hydrolocations_gpkg = "hydrolocations.gpkg",
+  fdr_path            = "conus/fdr.vrt",
+  fac_path            = "conus/fac.vrt",
+  merge               = TRUE)
+
+subset(res, status != "ok")
+```
+
+A failed VPU does not stop the others. `merge = TRUE` merges only when
+every VPU succeeded, because the merge assigns one id pool across the
+whole set.
+
+To merge separately:
+
+``` r
+
+vpus <- names(inputs)
+merge_vpus(
+  gpkg_map = as.list(setNames(
+    file.path("out", paste0("vpu_", vpus), sprintf("ngen_vpu%s.gpkg", vpus)), vpus)),
+  out_dir  = "out/global"
+)
+```
+
+## Domains
+
+| Domain | VPU | Network | Grids | CRS |
+|----|----|----|----|----|
+| SuperCONUS | 01-18 | Lynker Reference Fabric | NHDPlus V2.1 (HydroSHEDS v2 fallback) | EPSG:5070 |
+| Alaska | 19 | TDX-Hydro | HydroSHEDS v2 | EPSG:3338 |
+| Hawaii | 20 | NHDPlus HR | NHDPlus HR | Hawaii Albers Equal Area Conic |
+| PRVI | 21 | NHDPlus HR | NHDPlus HR | EPSG:6566 |
+| Guam | 22 | NHDPlus HR | NHDPlus HR | EPSG:32655 |
+
+Guam is supported but not part of the NWM v4 delivery.
+
+## Validation and tests
+
+Every phase checks its output against the invariant suite, and the
+nextgen phase stops the build when a gating check fails. See
+[`vignette("invariants")`](https://lynker-spatial.github.io/hydrofabric/articles/invariants.md).
+
+The unit and functional tests, including the acyclic and non-dendritic
+checks, run from the installed package and the `tests/` directory:
+
+``` r
+
+library(testthat); library(hydrofabric)
+test_dir("tests/testthat")
+```
+
+## Identifiers
+
+Integer feature ids are Lynker Reference Fabric ids, matched to NHD
+COMIDs where a correspondence exists. Columns named `*_comid` carry
+these ids. The `network` table traces every reference id through to the
+flowpath that contains it.

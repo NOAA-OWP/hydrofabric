@@ -1,0 +1,61 @@
+# Make every network divide carry one of its flowpath's flowlines
+
+NextGen requires a divide to be the catchment of the flowpath that owns
+it, and the `divide_has_member_flowline` gate states that as: at least
+one of the owning flowpath's flowlines must intersect the divide, or lie
+within 30 m of it. This enforces exactly that rule, in the same terms,
+once the geometry is final.
+
+It exists because a domain whose grid and vector network come from
+unrelated sources cannot be split exactly. Alaska pairs TDX-Hydro
+reaches with HydroSHEDS grids, and where the two disagree the partition
+can hand a flowpath ground its own line never touches. Chasing that to
+zero in the splitter has a floor set by the input data; conforming the
+finished fabric to the specification does not.
+
+Two remedies, in order of preference:
+
+- **Re-own.** If the divide carries some *other* flowpath's flowlines
+  and that flowpath has no divide, the pairing was simply swapped: move
+  the divide to the flowpath whose line it actually carries. Nothing
+  moves geometrically.
+
+- **Absorb.** Otherwise the divide is nobody's catchment. Merge it into
+  the neighbour sharing the longest boundary and mark its flowpath a
+  connector. Area is conserved, the ground stays in the layer, it just
+  changes owner.
+
+Only divides that FAIL the gate are touched, so a domain that already
+conforms is left byte-identical. That is the safety property: this
+cannot regress a passing VPU, because it does nothing on one.
+
+## Usage
+
+``` r
+normalize_divide_ownership(
+  input_gpkg,
+  tol_m = 30,
+  divide_layer = "divides",
+  flowpath_layer = "flowpaths",
+  flowline_layer = "flowlines"
+)
+```
+
+## Arguments
+
+- input_gpkg:
+
+  Path to the NextGen GeoPackage.
+
+- tol_m:
+
+  Distance below which a flowline counts as touching its divide.
+  Defaults to the fabric's 30 m tolerance, matching the gate.
+
+- divide_layer, flowpath_layer, flowline_layer:
+
+  Layer names.
+
+## Value
+
+Invisibly, a data.frame of the divides acted on and what was done.

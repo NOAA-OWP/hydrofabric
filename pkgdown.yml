@@ -1,0 +1,18 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  aggregate: aggregate.html
+  hydrofabric: hydrofabric.html
+  inputs: inputs.html
+  invariants: invariants.html
+  merge: merge.html
+  nextgen: nextgen.html
+  poi-contract: poi-contract.html
+  refactor: refactor.html
+  tests: tests.html
+  upstream-index: upstream-index.html
+last_built: 2026-09-30T21:13Z
+urls:
+  reference: https://lynker-spatial.github.io/hydrofabric/reference
+  article: https://lynker-spatial.github.io/hydrofabric/articles
