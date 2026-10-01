@@ -34,6 +34,6 @@ hashes. Returned invisibly when everything matches.
 f <- tempfile(); writeLines("x", f)
 m <- hf_input_manifest(reference = f)
 hf_verify_manifest(m)
-#> [manifest] ok       reference        file20aca1b748f
+#> [manifest] ok       reference        file1f92498166d
 #> [manifest] all 1 input(s) match
 ```

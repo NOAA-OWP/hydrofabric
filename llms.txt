@@ -19,15 +19,15 @@ nexuses (orange).
 ``` r
 
 # install.packages("remotes")
-remotes::install_github("lynker-spatial/hydrofabric")
+remotes::install_github("NOAA-OWP/hydrofabric")
 ```
 
 Requires GDAL \>= 3.5, GEOS \>= 3.11, PROJ \>= 9, the `arrow` package
 for the parquet inputs, and the
 [mapshaper](https://github.com/mbloch/mapshaper) command-line tool
 (`npm install -g mapshaper`). The
-[`hfutils`](https://github.com/lynker-spatial/hfutils) dependency
-installs automatically.
+[`hfutils`](https://github.com/NOAA-OWP/hfutils) dependency installs
+automatically.
 
 ## Pipeline
 
