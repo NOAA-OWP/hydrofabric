@@ -1,11 +1,11 @@
 # Build a set of VPUs, then merge them
 
 A loop over
-[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md)
+[`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md)
 with per-VPU inputs, so a national build is a list of paths rather than
 a script. One VPU failing does not stop the rest by default; the return
 value says which succeeded, and
-[`merge_vpus()`](https://lynker-spatial.github.io/hydrofabric/reference/merge_vpus.md)
+[`merge_vpus()`](https://NOAA-OWP.github.io/hydrofabric/reference/merge_vpus.md)
 can be run from it once they all have.
 
 `inputs` is a named list, one entry per `vpuid`, each holding the
@@ -38,7 +38,7 @@ run_vpus(
 - ...:
 
   Arguments common to every VPU, forwarded to
-  [`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md).
+  [`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md).
 
 - continue_on_error:
 

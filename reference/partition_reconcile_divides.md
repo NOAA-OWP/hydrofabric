@@ -3,9 +3,9 @@
 Performs strict raster-based divide partitioning of reconciled divides.
 Consumes GeoPackage outputs or in-memory flowpath/divide objects (the
 in-memory entry point
-[`partition_reconcile_divides_from_objects()`](https://lynker-spatial.github.io/hydrofabric/reference/partition_reconcile_divides_from_objects.md)
+[`partition_reconcile_divides_from_objects()`](https://NOAA-OWP.github.io/hydrofabric/reference/partition_reconcile_divides_from_objects.md)
 is what
-[`reconcile_divides()`](https://lynker-spatial.github.io/hydrofabric/reference/reconcile_divides.md)
+[`reconcile_divides()`](https://NOAA-OWP.github.io/hydrofabric/reference/reconcile_divides.md)
 calls during the refactor phase).
 
 For each parent divide linked to multiple final flowpaths, the function:

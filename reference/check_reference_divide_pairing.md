@@ -19,7 +19,7 @@ paired reaches, 104,830 endpoints are within 30 m of their divide, and
 147 (0.098%) are beyond 250 m, the worst 10.4 km away.
 
 Report-only, and deliberately not wired into
-[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md).
+[`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md).
 The pairing belongs to the reference and is not ours to change, and this
 asks a question about a reference release rather than about a VPU.
 

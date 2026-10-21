@@ -1,7 +1,7 @@
 # Construct aggregated divides from Stage-1 rec_div via rec_id_list
 
 Given the network table from
-[`aggregate_network()`](https://lynker-spatial.github.io/hydrofabric/reference/aggregate_network.md)
+[`aggregate_network()`](https://NOAA-OWP.github.io/hydrofabric/reference/aggregate_network.md)
 (which carries `flowpath_id` -\> `rec_id_list`) and the Stage-1
 `rec_div` polygons, unions the `rec_div` members for each aggregated
 flowpath.
@@ -20,7 +20,7 @@ construct_agg_divides(network, rec_div, flowpaths)
 - network:
 
   Network `data.frame` from
-  [`aggregate_network()`](https://lynker-spatial.github.io/hydrofabric/reference/aggregate_network.md)
+  [`aggregate_network()`](https://NOAA-OWP.github.io/hydrofabric/reference/aggregate_network.md)
   with `flowpath_id` and `rec_id_list`.
 
 - rec_div:
@@ -30,7 +30,7 @@ construct_agg_divides(network, rec_div, flowpaths)
 - flowpaths:
 
   Aggregated flowpath `sf` from
-  [`aggregate_network()`](https://lynker-spatial.github.io/hydrofabric/reference/aggregate_network.md).
+  [`aggregate_network()`](https://NOAA-OWP.github.io/hydrofabric/reference/aggregate_network.md).
 
 ## Value
 

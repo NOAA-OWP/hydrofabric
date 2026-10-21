@@ -2,7 +2,7 @@
 
 Reads the `flowpath_id` and `vpuid` values a reference carries, in the
 shape
-[`check_hydrolocation_input()`](https://lynker-spatial.github.io/hydrofabric/reference/check_hydrolocation_input.md)
+[`check_hydrolocation_input()`](https://NOAA-OWP.github.io/hydrofabric/reference/check_hydrolocation_input.md)
 expects. Attribute-only, so it does not read geometry.
 
 ## Usage

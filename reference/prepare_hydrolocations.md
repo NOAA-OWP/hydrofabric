@@ -2,7 +2,7 @@
 
 Maps a raw hydrolocation point dataset (e.g. the gage / assimilation
 points supplied by OWP) to the canonical `hydrolocations` schema that
-[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md)
+[`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md)
 embeds, and optionally writes it as a GeoPackage suitable for the
 `hydrolocations_gpkg` argument.
 

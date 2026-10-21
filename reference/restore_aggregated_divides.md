@@ -55,7 +55,7 @@ restore_aggregated_divides(
 - rec_div:
 
   sf object of reconciled divides returned by
-  [`reconcile_divides()`](https://lynker-spatial.github.io/hydrofabric/reference/reconcile_divides.md)
+  [`reconcile_divides()`](https://NOAA-OWP.github.io/hydrofabric/reference/reconcile_divides.md)
   (before aggregation). Must contain `flowpath_id` (= reconciled integer
   ID) and geometry.
 

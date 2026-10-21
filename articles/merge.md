@@ -1,6 +1,6 @@
 # Merge
 
-[`merge_vpus()`](https://lynker-spatial.github.io/hydrofabric/reference/merge_vpus.md)
+[`merge_vpus()`](https://NOAA-OWP.github.io/hydrofabric/reference/merge_vpus.md)
 is the last phase: it combines the per-VPU NextGen products into domain
 products with globally unique identifiers, and resolves the topology
 that crosses VPU boundaries. It reads only finished `ngen_vpu*.gpkg`
@@ -84,5 +84,5 @@ A domain that fails under `strict = TRUE` is not written.
 
 The field-level schema is in `docs/data_model.md` in the source
 repository, and [the upstream
-index](https://lynker-spatial.github.io/hydrofabric/articles/upstream-index.md)
+index](https://NOAA-OWP.github.io/hydrofabric/articles/upstream-index.md)
 covers the range queries each domain supports.

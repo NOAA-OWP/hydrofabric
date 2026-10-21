@@ -1,6 +1,6 @@
 # NextGen
 
-[`nextgen_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md)
+[`nextgen_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md)
 assembles the **NextGen-ready** product: the routing network (flowpaths,
 flowlines, nexuses), the catchment divides, the aspatial network table,
 and the model attributes. It reads the refactored + aggregated fabric
@@ -47,7 +47,7 @@ when building a routing network.
 
 A hydrolocation stays where its source put it; where it cannot, the move
 and its reason are recorded. See
-[`vignette("poi-contract")`](https://lynker-spatial.github.io/hydrofabric/articles/poi-contract.md).
+[`vignette("poi-contract")`](https://NOAA-OWP.github.io/hydrofabric/articles/poi-contract.md).
 The field-level schema is in `docs/data_model.md` in the source
 repository.
 
@@ -71,20 +71,20 @@ make the network routable.
 ## What it does
 
 1.  **Sub-flowline topology**
-    ([`add_flowlines()`](https://lynker-spatial.github.io/hydrofabric/reference/add_flowlines.md)):
+    ([`add_flowlines()`](https://NOAA-OWP.github.io/hydrofabric/reference/add_flowlines.md)):
     split aggregated flowpaths into routing units, splitting segments
     longer than ~2 km and breaking at POIs and junctions.
 2.  **Divide clip / coalesce / clean** to match the flowlines.
 3.  **NextGen topology**
-    ([`nextgen_from_gpkg()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_from_gpkg.md)):
+    ([`nextgen_from_gpkg()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_from_gpkg.md)):
     build nexus geometries, assign prefixed ids (`fp-`, `cat-`, `nex-`,
     `tnx-`), and wire `toid` connectivity.
 4.  **Aspatial network**
-    ([`build_aspatial_network()`](https://lynker-spatial.github.io/hydrofabric/reference/build_aspatial_network.md)):
+    ([`build_aspatial_network()`](https://NOAA-OWP.github.io/hydrofabric/reference/build_aspatial_network.md)):
     the full fp to nex to fp table with hydrosequence, mainstem (level
     path) id, and total drainage area.
 5.  **Finalize the data model**
-    ([`finalize_data_model()`](https://lynker-spatial.github.io/hydrofabric/reference/finalize_data_model.md)):
+    ([`finalize_data_model()`](https://NOAA-OWP.github.io/hydrofabric/reference/finalize_data_model.md)):
     slope and, when supplied, channel attributes and lake flags.
 
 ## Running it
@@ -114,7 +114,7 @@ nextgen_fabric(
 
 Routing attributes and lakes are added when `hydraulics_path`,
 `lakes_path` and `lake_mask_path` are supplied (see
-[`?nextgen_fabric`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md)).
+[`?nextgen_fabric`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md)).
 
 ## Validation
 
@@ -122,9 +122,9 @@ Ends with `check_invariants("ngen", ...)`, which stops the build if a
 gating check fails: an acyclic flowpath-nexus graph, at most one divide
 per flowpath, resolvable `toid`s, divide coverage and area conservation.
 See
-[`vignette("invariants")`](https://lynker-spatial.github.io/hydrofabric/articles/invariants.md).
+[`vignette("invariants")`](https://NOAA-OWP.github.io/hydrofabric/articles/invariants.md).
 
 ## Next
 
 Merge per-VPU outputs into domain products: see the [merge
-vignette](https://lynker-spatial.github.io/hydrofabric/articles/merge.md).
+vignette](https://NOAA-OWP.github.io/hydrofabric/articles/merge.md).

@@ -19,10 +19,10 @@ Schema:
   refactor_flowlines
 
 - `aggregated_id` (character): set by
-  [`lineage_attach_aggregated()`](https://lynker-spatial.github.io/hydrofabric/reference/lineage_attach_aggregated.md)
+  [`lineage_attach_aggregated()`](https://NOAA-OWP.github.io/hydrofabric/reference/lineage_attach_aggregated.md)
 
 - `final_divide_id`(character): set by
-  [`lineage_attach_ngen()`](https://lynker-spatial.github.io/hydrofabric/reference/lineage_attach_ngen.md)
+  [`lineage_attach_ngen()`](https://NOAA-OWP.github.io/hydrofabric/reference/lineage_attach_ngen.md)
 
 - `final_flowpath_id`(character): set by
-  [`lineage_attach_ngen()`](https://lynker-spatial.github.io/hydrofabric/reference/lineage_attach_ngen.md)
+  [`lineage_attach_ngen()`](https://NOAA-OWP.github.io/hydrofabric/reference/lineage_attach_ngen.md)

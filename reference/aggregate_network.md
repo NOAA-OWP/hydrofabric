@@ -10,7 +10,7 @@ Returns aggregated flowpaths, network table, and poi layer.
 
 The returned `divides` element is a geometry-free stub (`data.frame`)
 carrying only `divide_id` and `flowpath_toid`. Pass it with `rec_div` to
-[`construct_agg_divides()`](https://lynker-spatial.github.io/hydrofabric/reference/construct_agg_divides.md)
+[`construct_agg_divides()`](https://NOAA-OWP.github.io/hydrofabric/reference/construct_agg_divides.md)
 to build real divide geometry.
 
 ## Usage
@@ -39,7 +39,7 @@ aggregate_network(
 - divide:
 
   Reconciled divide `sf` from Stage-1 `rec_div`. Used only by
-  [`prepare_network()`](https://lynker-spatial.github.io/hydrofabric/reference/prepare_network.md)
+  [`prepare_network()`](https://NOAA-OWP.github.io/hydrofabric/reference/prepare_network.md)
   for initial topology setup.
 
 - pois:

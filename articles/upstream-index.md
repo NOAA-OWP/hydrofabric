@@ -5,7 +5,7 @@ a gage, which catchments contribute to a reservoir, which reaches a
 subset needs to be hydrologically complete above a point. Answering by
 traversal is correct but costs a full graph walk per query.
 
-[`add_upstream_index()`](https://lynker-spatial.github.io/hydrofabric/reference/add_upstream_index.md)
+[`add_upstream_index()`](https://NOAA-OWP.github.io/hydrofabric/reference/add_upstream_index.md)
 precomputes the answer once, at build time, and stores it as two integer
 columns so that “everything upstream of X” becomes a single integer
 range filter. No traversal at query time.
@@ -51,7 +51,7 @@ integers, which turns an upstream query into one range filter.
 ## Using it
 
 The index is added during
-[`finalize_data_model()`](https://lynker-spatial.github.io/hydrofabric/reference/finalize_data_model.md),
+[`finalize_data_model()`](https://NOAA-OWP.github.io/hydrofabric/reference/finalize_data_model.md),
 so every product carries it. The values live on `flowpaths` and are
 denormalized onto `flowlines`, `divides`, and `network` by
 `flowpath_id`, so a feature on any layer resolves to its flowpath’s
@@ -89,6 +89,6 @@ not be used as a persistent key. It accompanies the canonical
 `flowpath_id`; it never replaces it.
 
 The encoding is exact only for a tree.
-[`add_upstream_index()`](https://lynker-spatial.github.io/hydrofabric/reference/add_upstream_index.md)
+[`add_upstream_index()`](https://NOAA-OWP.github.io/hydrofabric/reference/add_upstream_index.md)
 warns if a flowpath falls outside its downstream’s interval, and skips a
 network that is not acyclic rather than writing a misleading index.

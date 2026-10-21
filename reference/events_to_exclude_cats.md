@@ -3,7 +3,7 @@
 Returns a character vector of segment IDs that should be protected from
 collapse because they host (or are immediately downstream of) an event.
 Pass the result directly as the `exclude_cats` argument to
-[`refactor_flowlines()`](https://lynker-spatial.github.io/hydrofabric/reference/refactor_flowlines.md).
+[`refactor_flowlines()`](https://NOAA-OWP.github.io/hydrofabric/reference/refactor_flowlines.md).
 
 ## Usage
 

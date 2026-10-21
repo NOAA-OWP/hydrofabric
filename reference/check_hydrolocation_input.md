@@ -43,7 +43,7 @@ check_hydrolocation_input(
 
   Named list of references to resolve against, each a list of `ids`
   (character `flowpath_id`) and `vpuids`. Built by
-  [`hl_reference_index()`](https://lynker-spatial.github.io/hydrofabric/reference/hl_reference_index.md)
+  [`hl_reference_index()`](https://NOAA-OWP.github.io/hydrofabric/reference/hl_reference_index.md)
   when not supplied directly.
 
 - check_distance:

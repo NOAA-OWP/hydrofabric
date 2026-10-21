@@ -13,7 +13,7 @@ lineage_attach_aggregated(lineage, network)
 - lineage:
 
   A lineage `data.table` from
-  [`lineage_build()`](https://lynker-spatial.github.io/hydrofabric/reference/lineage_build.md).
+  [`lineage_build()`](https://NOAA-OWP.github.io/hydrofabric/reference/lineage_build.md).
 
 - network:
 

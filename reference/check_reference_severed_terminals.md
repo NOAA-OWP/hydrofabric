@@ -20,7 +20,7 @@ nationwide rather than gathered at the borders: VPU 17 has 76, VPU 18
 69, VPU 16 68.
 
 Report-only, and deliberately not wired into
-[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md).
+[`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md).
 The topology belongs to the reference, and repairing it means writing
 edges into an input rather than working around it in a build. This
 reports what a staged reference still carries.

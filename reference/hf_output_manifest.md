@@ -3,7 +3,7 @@
 Writes a manifest of finished products: the md5, size, layer counts and
 invariant verdict of each, together with the commit that built them and
 the digest of the input manifest they were built from. Verifiable with
-[`hf_verify_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_verify_manifest.md),
+[`hf_verify_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_verify_manifest.md),
 the same way inputs are.
 
 ## Usage
@@ -43,7 +43,7 @@ Invisibly, the manifest as a list. Written to `out` as JSON.
 ## Details
 
 This is the other half of
-[`hf_input_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_input_manifest.md).
+[`hf_input_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_input_manifest.md).
 Without it a product cannot be checked against what was shipped, and the
 tie between a delivered file, the code that made it and the inputs it
 consumed lives only in a build log.

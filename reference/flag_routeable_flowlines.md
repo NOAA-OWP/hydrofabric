@@ -18,7 +18,7 @@ reach's flow exits the domain rather than draining into a filtered-out
 connector.
 
 Requires `flowpath_constituent` on the flowlines layer (see
-[`flag_flowpath_constituents()`](https://lynker-spatial.github.io/hydrofabric/reference/flag_flowpath_constituents.md),
+[`flag_flowpath_constituents()`](https://NOAA-OWP.github.io/hydrofabric/reference/flag_flowpath_constituents.md),
 which must run first).
 
 ## Usage

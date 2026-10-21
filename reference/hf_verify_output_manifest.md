@@ -13,7 +13,7 @@ hf_verify_output_manifest(manifest, strict = FALSE)
 - manifest:
 
   Path to a manifest written by
-  [`hf_output_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_output_manifest.md).
+  [`hf_output_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_output_manifest.md).
 
 - strict:
 

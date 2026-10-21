@@ -2,9 +2,9 @@
 
 The invariant suite tests the structural properties a consumer depends
 on. Every phase records its results;
-[`nextgen_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md)
+[`nextgen_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md)
 stops the build when a gating check fails, and
-[`merge_vpus()`](https://lynker-spatial.github.io/hydrofabric/reference/merge_vpus.md)
+[`merge_vpus()`](https://NOAA-OWP.github.io/hydrofabric/reference/merge_vpus.md)
 runs its own suite on each merged domain, adding cross-VPU conservation
 and completeness checks.
 
@@ -25,7 +25,7 @@ a step in the build keeps it that way.
 | Merge | id uniqueness and prefixes across the domain, resolvable `toid`s, divide ownership, an acyclic graph, every VPU present, feature counts, divide area and drainage area conserved, consistent CRS, and the nextgen network checks on the merged network |
 
 The POI contract is described in
-[`vignette("poi-contract")`](https://lynker-spatial.github.io/hydrofabric/articles/poi-contract.md).
+[`vignette("poi-contract")`](https://NOAA-OWP.github.io/hydrofabric/articles/poi-contract.md).
 
 ## Running the suite
 
@@ -55,5 +55,5 @@ check whose input was not supplied leaves no entry, so absence means
 the suite was given.
 
 To compare a rebuild against the product it replaces, use
-[`hf_compare_products()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_compare_products.md),
+[`hf_compare_products()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_compare_products.md),
 which names any flowpath that lost its divide.

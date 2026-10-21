@@ -15,11 +15,11 @@ with partial OWP funding.
 
 Useful links:
 
-- <https://lynker-spatial.github.io/hydrofabric>
+- <https://NOAA-OWP.github.io/hydrofabric>
 
-- <https://github.com/lynker-spatial/hydrofabric>
+- <https://github.com/NOAA-OWP/hydrofabric>
 
-- Report bugs at <https://github.com/lynker-spatial/hydrofabric/issues>
+- Report bugs at <https://github.com/NOAA-OWP/hydrofabric/issues>
 
 ## Author
 

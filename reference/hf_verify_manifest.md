@@ -15,7 +15,7 @@ hf_verify_manifest(manifest, strict = FALSE)
 - manifest:
 
   Path to a manifest written by
-  [`hf_input_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_input_manifest.md),
+  [`hf_input_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_input_manifest.md),
   or the data frame it returned.
 
 - strict:
@@ -34,6 +34,6 @@ hashes. Returned invisibly when everything matches.
 f <- tempfile(); writeLines("x", f)
 m <- hf_input_manifest(reference = f)
 hf_verify_manifest(m)
-#> [manifest] ok       reference        file1f92498166d
+#> [manifest] ok       reference        file214353a79973
 #> [manifest] all 1 input(s) match
 ```

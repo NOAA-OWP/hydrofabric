@@ -61,7 +61,7 @@ refactor_fabric(
 - exclude_hl_types:
 
   Hydrolocation `hl_type` values dropped at ingest; see
-  [`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md).
+  [`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md).
 
 - out_dir:
 
@@ -79,7 +79,7 @@ refactor_fabric(
 
   Split flowlines longer than this (m); the default (1e9) effectively
   disables Stage-1 splitting (routing-unit splitting is done later by
-  [`add_flowlines()`](https://lynker-spatial.github.io/hydrofabric/reference/add_flowlines.md)).
+  [`add_flowlines()`](https://NOAA-OWP.github.io/hydrofabric/reference/add_flowlines.md)).
 
 - collapse_flines_meters:
 

@@ -2,7 +2,7 @@
 
 Fingerprints each supplied file, size, modification time and MD5, and
 optionally writes the result as JSON. Pair it with
-[`hf_verify_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_verify_manifest.md)
+[`hf_verify_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_verify_manifest.md)
 to confirm a later run is reading the same inputs.
 
 Hashing streams the whole file, so a multi-gigabyte reference takes a
@@ -37,7 +37,7 @@ A data frame with one row per input: `role`, `path`, `exists`, `bytes`,
 f <- tempfile(); writeLines("x", f)
 hf_input_manifest(reference = f)
 #>        role                             path exists bytes                mtime
-#> 1 reference /tmp/RtmpbMyKAU/file1f927c004de0   TRUE     2 2026-10-01T12:58:22Z
+#> 1 reference /tmp/RtmpSrsmAV/file214316a336ea   TRUE     2 2026-10-21T20:13:25Z
 #>                                md5
 #> 1 401b30e3b8b5d629635a5c613cdb7919
 ```

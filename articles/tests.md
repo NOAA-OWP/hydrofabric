@@ -52,7 +52,7 @@ hf_check_merge_invariants(list(flowpaths = fp, divides = dv, nexus = nx),
 
 Each returns a list with `ok` and one entry per check. `strict = TRUE`
 stops at the first failure.
-[`hydrofabric::check_invariants()`](https://lynker-spatial.github.io/hydrofabric/reference/check_invariants.md)
+[`hydrofabric::check_invariants()`](https://NOAA-OWP.github.io/hydrofabric/reference/check_invariants.md)
 runs the full pipeline suite, which adds the checks that need the
 build’s intermediates.
 

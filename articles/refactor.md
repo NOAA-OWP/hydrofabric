@@ -1,6 +1,6 @@
 # Refactor
 
-[`refactor_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/refactor_fabric.md)
+[`refactor_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/refactor_fabric.md)
 is the first and most compute-intensive phase: it takes the reference
 network + FDR/FAC grids and produces a **refactored, reconciled** fabric
 with a full lineage back to the source reference ids.
@@ -31,12 +31,12 @@ producing reconciled reaches each with a re-derived catchment divide.
 1.  **Generate events** from the hydrolocations (`tolerance_m` snap),
     plus junction events at confluences.
 2.  **Split and collapse** flowlines
-    ([`refactor_flowlines()`](https://lynker-spatial.github.io/hydrofabric/reference/refactor_flowlines.md)):
+    ([`refactor_flowlines()`](https://NOAA-OWP.github.io/hydrofabric/reference/refactor_flowlines.md)):
     collapse inter-confluence segments shorter than
     `collapse_flines_meters`, then assert the network is a DAG and
     recompute hydrosequence.
 3.  **Reconcile divides** against the refactored flowlines
-    ([`reconcile_divides()`](https://lynker-spatial.github.io/hydrofabric/reference/reconcile_divides.md)):
+    ([`reconcile_divides()`](https://NOAA-OWP.github.io/hydrofabric/reference/reconcile_divides.md)):
     each parent divide is partitioned from the FDR/FAC grids. This is
     the slowest step and runs in parallel across divides.
 4.  **Build the lineage** table (reference id to reconciled id).
@@ -79,4 +79,4 @@ flowline has a divide, and total divide-area conservation.
 ## Next
 
 The aggregate phase consumes this output. See the [aggregate
-vignette](https://lynker-spatial.github.io/hydrofabric/articles/aggregate.md).
+vignette](https://NOAA-OWP.github.io/hydrofabric/articles/aggregate.md).

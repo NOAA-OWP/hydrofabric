@@ -131,4 +131,4 @@ which is different from comparing well.
 
 Each step of the chain is checked by the invariant suite, with a 30 m
 tolerance, the DEM resolution. See
-[`vignette("invariants")`](https://lynker-spatial.github.io/hydrofabric/articles/invariants.md).
+[`vignette("invariants")`](https://NOAA-OWP.github.io/hydrofabric/articles/invariants.md).

@@ -86,12 +86,12 @@ run_pipeline(
 The product is `out/vpu_01/ngen_vpu01.gpkg`; intermediates and the
 invariant record are in `out/vpu_01/work/`. Each phase is also its own
 function:
-[`refactor_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/refactor_fabric.md),
-[`aggregate_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/aggregate_fabric.md),
-[`nextgen_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md)
+[`refactor_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/refactor_fabric.md),
+[`aggregate_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/aggregate_fabric.md),
+[`nextgen_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md)
 and
-[`merge_vpus()`](https://lynker-spatial.github.io/hydrofabric/reference/merge_vpus.md).
-[`vignette("hydrofabric")`](https://lynker-spatial.github.io/hydrofabric/articles/hydrofabric.md)
+[`merge_vpus()`](https://NOAA-OWP.github.io/hydrofabric/reference/merge_vpus.md).
+[`vignette("hydrofabric")`](https://NOAA-OWP.github.io/hydrofabric/articles/hydrofabric.md)
 covers national builds and parameters.
 
 ## Reproducing the NWM v4 delivery
@@ -111,16 +111,16 @@ Rscript run_vpu.R all    # every VPU, then the merge
 Each product is a GeoPackage with `flowpaths`, `divides`, `flowlines`,
 `nexus`, `network`, `hydrolocations`, `pois`, `lakes`, and the
 `flowpath-attributes` and `flowline-attributes` routing tables. See
-[`vignette("nextgen")`](https://lynker-spatial.github.io/hydrofabric/articles/nextgen.md)
+[`vignette("nextgen")`](https://NOAA-OWP.github.io/hydrofabric/articles/nextgen.md)
 for the schema and
-[`vignette("invariants")`](https://lynker-spatial.github.io/hydrofabric/articles/invariants.md)
+[`vignette("invariants")`](https://NOAA-OWP.github.io/hydrofabric/articles/invariants.md)
 for the checks every product passes.
 
 ## Tests
 
 The unit and functional tests, including the acyclic and non-dendritic
 network checks, run with `testthat::test_dir("tests/testthat")`.
-[`vignette("tests")`](https://lynker-spatial.github.io/hydrofabric/articles/tests.md)
+[`vignette("tests")`](https://NOAA-OWP.github.io/hydrofabric/articles/tests.md)
 describes what they cover.
 
 ## License

@@ -16,9 +16,9 @@ model](https://lynker-spatial.github.io/hfdatamodel/).
 A build needs a reference GeoPackage (`flowpaths` and `divides`), a
 hydrolocation GeoPackage, and flow-direction and flow-accumulation
 grids; channel, lake and lake-mask tables are optional. See
-[`vignette("inputs")`](https://lynker-spatial.github.io/hydrofabric/articles/inputs.md).
+[`vignette("inputs")`](https://NOAA-OWP.github.io/hydrofabric/articles/inputs.md).
 Raw hydrolocation points are snapped to the reference with
-[`prepare_hydrolocations()`](https://lynker-spatial.github.io/hydrofabric/reference/prepare_hydrolocations.md).
+[`prepare_hydrolocations()`](https://NOAA-OWP.github.io/hydrofabric/reference/prepare_hydrolocations.md).
 
 ## One VPU
 
@@ -46,7 +46,7 @@ run_pipeline(..., from    = "aggregate")   # resume from a refactored fabric
 ```
 
 Phase parameters are arguments of each phase function, and
-[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md)
+[`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md)
 passes them through:
 
 ``` r
@@ -55,16 +55,15 @@ run_pipeline(..., min_area_sqkm = 5, coverage_min = 0.95)
 ```
 
 See the
-[refactor](https://lynker-spatial.github.io/hydrofabric/articles/refactor.md),
-[aggregate](https://lynker-spatial.github.io/hydrofabric/articles/aggregate.md),
-[nextgen](https://lynker-spatial.github.io/hydrofabric/articles/nextgen.md)
-and
-[merge](https://lynker-spatial.github.io/hydrofabric/articles/merge.md)
+[refactor](https://NOAA-OWP.github.io/hydrofabric/articles/refactor.md),
+[aggregate](https://NOAA-OWP.github.io/hydrofabric/articles/aggregate.md),
+[nextgen](https://NOAA-OWP.github.io/hydrofabric/articles/nextgen.md)
+and [merge](https://NOAA-OWP.github.io/hydrofabric/articles/merge.md)
 vignettes for each phase.
 
 ## All VPUs
 
-[`run_vpus()`](https://lynker-spatial.github.io/hydrofabric/reference/run_vpus.md)
+[`run_vpus()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_vpus.md)
 runs a set of VPUs. Shared inputs are given once, and each domain
 overrides only what differs for it:
 
@@ -125,7 +124,7 @@ Guam is supported but not part of the NWM v4 delivery.
 
 Every phase checks its output against the invariant suite, and the
 nextgen phase stops the build when a gating check fails. See
-[`vignette("invariants")`](https://lynker-spatial.github.io/hydrofabric/articles/invariants.md).
+[`vignette("invariants")`](https://NOAA-OWP.github.io/hydrofabric/articles/invariants.md).
 
 The unit and functional tests, including the acyclic and non-dendritic
 checks, run from the installed package and the `tests/` directory:

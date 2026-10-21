@@ -8,7 +8,7 @@ flowpath as tributaries (a branch that drains into the stem but whose
 channel the flowpath line does not trace) are `FALSE`.
 
 The test is geometric and matches the flowpath line by construction:
-[`extend_flowpaths_to_mainstem()`](https://lynker-spatial.github.io/hydrofabric/reference/extend_flowpaths_to_mainstem.md)
+[`extend_flowpaths_to_mainstem()`](https://NOAA-OWP.github.io/hydrofabric/reference/extend_flowpaths_to_mainstem.md)
 builds each flowpath line by merging its stem member reaches, so a
 constituent's geometry is a sub-segment of the line (coverage ~1) while
 a tributary branches away (coverage low). A flowline is a constituent

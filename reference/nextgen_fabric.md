@@ -112,7 +112,7 @@ nextgen_fabric(
 - slope_parquet:
 
   Optional path to a per-reference-id slope parquet, passed to
-  [`finalize_data_model()`](https://lynker-spatial.github.io/hydrofabric/reference/finalize_data_model.md).
+  [`finalize_data_model()`](https://NOAA-OWP.github.io/hydrofabric/reference/finalize_data_model.md).
   `NULL` (default) takes slope from `hydraulics_path` when that table
   carries a `slope_m_m` column, and otherwise leaves `slope` `NA`.
 

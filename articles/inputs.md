@@ -22,9 +22,9 @@ The level-path id becomes the product’s `mainstem_id`. A national
 reference is sliced by `vpuid`, and a row whose `vpuid` names no VPU
 being built is not used.
 
-[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md)
+[`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md)
 checks the reference before building with
-[`check_reference_input()`](https://lynker-spatial.github.io/hydrofabric/reference/check_reference_input.md),
+[`check_reference_input()`](https://NOAA-OWP.github.io/hydrofabric/reference/check_reference_input.md),
 which catches truncated identifiers and topology that does not resolve:
 
 ``` r
@@ -37,7 +37,7 @@ check_reference_input("reference.gpkg")
 Hydrolocations are the gages, assimilation and routing points that
 become POIs. The minimum is `POINT` geometry and an `hl_reference` such
 as `nwis-07187000`.
-[`prepare_hydrolocations()`](https://lynker-spatial.github.io/hydrofabric/reference/prepare_hydrolocations.md)
+[`prepare_hydrolocations()`](https://NOAA-OWP.github.io/hydrofabric/reference/prepare_hydrolocations.md)
 snaps raw points to the reference and assigns `flowpath_id`, `poi_id`
 and linear-reference measures:
 
@@ -55,7 +55,7 @@ prepare_hydrolocations(
 Points more than `max_dist` (1000 m) from a flowpath are dropped with a
 warning. The build excludes `hl_type` values named in `exclude_hl_types`
 (default `"wbin"`) and bridge hydrolocations (`hl_type = "nbi"`).
-[`check_hydrolocation_input()`](https://lynker-spatial.github.io/hydrofabric/reference/check_hydrolocation_input.md)
+[`check_hydrolocation_input()`](https://NOAA-OWP.github.io/hydrofabric/reference/check_hydrolocation_input.md)
 validates a set against the references before a build.
 
 ## Grids
@@ -82,9 +82,9 @@ its `slope_m_m` column, the flowpath slope. A separate `slope_parquet`
 
 ## Recording the inputs
 
-[`hf_input_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_input_manifest.md)
+[`hf_input_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_input_manifest.md)
 records each input with its size and MD5, and
-[`hf_verify_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_verify_manifest.md)
+[`hf_verify_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_verify_manifest.md)
 checks a later run against it:
 
 ``` r
@@ -99,7 +99,7 @@ hf_verify_manifest("inputs_manifest.json", strict = TRUE)
 ```
 
 A VRT names tiles stored beside it, so record or check the tiles too.
-[`hf_output_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_output_manifest.md)
+[`hf_output_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_output_manifest.md)
 and
-[`hf_verify_output_manifest()`](https://lynker-spatial.github.io/hydrofabric/reference/hf_verify_output_manifest.md)
+[`hf_verify_output_manifest()`](https://NOAA-OWP.github.io/hydrofabric/reference/hf_verify_output_manifest.md)
 do the same for the products.

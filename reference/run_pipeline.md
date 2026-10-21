@@ -125,20 +125,20 @@ run_pipeline(
 - lakes_path:
 
   Optional path to the NWM lakes GeoPackage; forwarded to
-  [`nextgen_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md)
+  [`nextgen_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md)
   (Step 6h). `NULL` skips lakes (default).
 
 - lake_mask_path:
 
   Optional path to the lake-mask parquet (reach -\> waterbody
   membership); forwarded to
-  [`nextgen_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md).
+  [`nextgen_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md).
   Required when `lakes_path` is supplied.
 
 - slope_parquet:
 
   Optional path to a per-reference-id slope parquet; forwarded to
-  [`nextgen_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md).
+  [`nextgen_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md).
   `NULL` (default) takes slope from `hydraulics_path` when that table
   carries a `slope_m_m` column, and otherwise leaves slope `NA`.
 
@@ -150,9 +150,9 @@ run_pipeline(
 - check_input:
 
   If `TRUE` (default), validate the inputs before building:
-  [`check_reference_input()`](https://lynker-spatial.github.io/hydrofabric/reference/check_reference_input.md)
+  [`check_reference_input()`](https://NOAA-OWP.github.io/hydrofabric/reference/check_reference_input.md)
   aborts on damaged identifiers or unresolvable topology, and
-  [`check_grid_coverage()`](https://lynker-spatial.github.io/hydrofabric/reference/check_grid_coverage.md)
+  [`check_grid_coverage()`](https://NOAA-OWP.github.io/hydrofabric/reference/check_grid_coverage.md)
   aborts when a primary grid does not cover the domain, which is what a
   configuration inheriting another domain's grid looks like.
 
@@ -160,9 +160,9 @@ run_pipeline(
 
   Stage tuning parameters, forwarded to whichever stage declares each
   (e.g. `min_area_sqkm = 5`, `coverage_min = 0.95`). See
-  [`refactor_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/refactor_fabric.md),
-  [`aggregate_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/aggregate_fabric.md),
-  [`nextgen_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/nextgen_fabric.md)
+  [`refactor_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/refactor_fabric.md),
+  [`aggregate_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/aggregate_fabric.md),
+  [`nextgen_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/nextgen_fabric.md)
   for the full set and defaults.
 
 ## Value

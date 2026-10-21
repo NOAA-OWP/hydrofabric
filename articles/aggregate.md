@@ -1,6 +1,6 @@
 # Aggregate
 
-[`aggregate_fabric()`](https://lynker-spatial.github.io/hydrofabric/reference/aggregate_fabric.md)
+[`aggregate_fabric()`](https://NOAA-OWP.github.io/hydrofabric/reference/aggregate_fabric.md)
 coalesces the reconciled fabric to **distribution scale**: merging small
 flowpaths and divides toward the target modeling size while conserving
 total drainage area. It reads the refactor output from disk and needs no
@@ -27,11 +27,11 @@ the bold lines and divides are the aggregated flowpaths.
 ## What it does
 
 1.  **Aggregate the network**
-    ([`aggregate_network()`](https://lynker-spatial.github.io/hydrofabric/reference/aggregate_network.md)):
+    ([`aggregate_network()`](https://NOAA-OWP.github.io/hydrofabric/reference/aggregate_network.md)):
     merge flowpaths below the distribution thresholds along level paths,
     then rebuild `toid` topology.
 2.  **Construct aggregated divides**
-    ([`construct_agg_divides()`](https://lynker-spatial.github.io/hydrofabric/reference/construct_agg_divides.md)):
+    ([`construct_agg_divides()`](https://NOAA-OWP.github.io/hydrofabric/reference/construct_agg_divides.md)):
     dissolve the member divides for each aggregated flowpath, repairing
     geometry while conserving area.
 3.  **Carry lineage** (`member_comid`) forward so the tracked-feature
@@ -84,4 +84,4 @@ divides, and at most one divide per flowpath.
 ## Next
 
 The nextgen phase builds the final product. See the [nextgen
-vignette](https://lynker-spatial.github.io/hydrofabric/articles/nextgen.md).
+vignette](https://NOAA-OWP.github.io/hydrofabric/articles/nextgen.md).

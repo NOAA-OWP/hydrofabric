@@ -21,7 +21,7 @@ adjacency: those four tributaries were contracted into one flowpath
 carrying four outlets.
 
 Report-only, and deliberately not wired into
-[`run_pipeline()`](https://lynker-spatial.github.io/hydrofabric/reference/run_pipeline.md).
+[`run_pipeline()`](https://NOAA-OWP.github.io/hydrofabric/reference/run_pipeline.md).
 The geometry belongs to the reference and is not ours to change, and
 this asks a question about a reference release rather than about a VPU,
 so it runs once per input rather than once per build.

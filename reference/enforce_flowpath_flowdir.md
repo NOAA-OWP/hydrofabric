@@ -1,6 +1,6 @@
 # Enforce upstream-\>downstream orientation on aggregated flowpath geometry
 
-[`extend_flowpaths_to_mainstem()`](https://lynker-spatial.github.io/hydrofabric/reference/extend_flowpaths_to_mainstem.md)
+[`extend_flowpaths_to_mainstem()`](https://NOAA-OWP.github.io/hydrofabric/reference/extend_flowpaths_to_mainstem.md)
 rebuilds each aggregate flowpath line with `geos_line_merge`, which does
 not preserve flow direction, and (unlike the reconciled `flowlines`,
 guarded by the `reconciled_flow_direction` invariant) the aggregated
