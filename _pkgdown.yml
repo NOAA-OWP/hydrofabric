@@ -1,4 +1,4 @@
-url: https://lynker-spatial.github.io/hydrofabric
+url: https://NOAA-OWP.github.io/hydrofabric
 
 # Built to a dedicated dir and deployed to the gh-pages branch by CI.
 destination: pkgdown_site

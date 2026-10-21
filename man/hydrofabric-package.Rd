@@ -11,9 +11,9 @@ A general toolkit for building hydrologic modeling fabrics from a reference hydr
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://lynker-spatial.github.io/hydrofabric}
-  \item \url{https://github.com/lynker-spatial/hydrofabric}
-  \item Report bugs at \url{https://github.com/lynker-spatial/hydrofabric/issues}
+  \item \url{https://NOAA-OWP.github.io/hydrofabric}
+  \item \url{https://github.com/NOAA-OWP/hydrofabric}
+  \item Report bugs at \url{https://github.com/NOAA-OWP/hydrofabric/issues}
 }
 
 }
