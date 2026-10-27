@@ -1,0 +1,14 @@
+site_name: Hydrofabric v3 Waterbody Hydrolocations and Hydraulic Parameters
+site_description: Technical methods, hydraulic estimation, QA, and v4 transition notes
+repo_url: https://github.com/NOAA-OWP/hydrofabric-builds
+theme:
+  name: mkdocs
+nav:
+  - Overview: index.md
+  - Hydrolocation methodology: hydrolocations.md
+  - Hydraulic parameters: hydraulic-parameters.md
+  - Inputs and outputs: inputs-outputs.md
+  - QA and validation: qa.md
+  - Running the workflow: running-the-workflow.md
+  - v4 transition: v4-transition.md
+  - Publication notes: publication.md
