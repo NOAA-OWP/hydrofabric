@@ -36,8 +36,8 @@ A data frame with one row per input: `role`, `path`, `exists`, `bytes`,
 ``` r
 f <- tempfile(); writeLines("x", f)
 hf_input_manifest(reference = f)
-#>        role                            path exists bytes                mtime
-#> 1 reference /tmp/RtmpN2Kx8V/file223717a94f2   TRUE     2 2026-11-10T16:16:26Z
+#>        role                             path exists bytes                mtime
+#> 1 reference /tmp/RtmpXwoem0/file1fed4dd6525a   TRUE     2 2026-11-12T13:14:57Z
 #>                                md5
 #> 1 401b30e3b8b5d629635a5c613cdb7919
 ```
